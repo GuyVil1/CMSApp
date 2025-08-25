@@ -214,6 +214,12 @@ class VideoModule extends BaseModule {
             }
         }
         
+        // Pour les vidéos YouTube/Vimeo, si aucune dimension n'est définie, utiliser des valeurs par défaut
+        if ((this.videoData.type === 'youtube' || this.videoData.type === 'vimeo') && !width && !height) {
+            width = 560;
+            height = 315;
+        }
+        
         return { width, height };
     }
 
@@ -235,12 +241,22 @@ class VideoModule extends BaseModule {
         const alignmentClass = this.getAlignmentClass();
         
         if (this.videoData.type === 'youtube' || this.videoData.type === 'vimeo') {
+            // Calculer les styles CSS pour l'iframe uniquement
+            let iframeStyle = '';
+            
+            if (dimensions.width) {
+                iframeStyle += `width: ${dimensions.width}px; `;
+            }
+            
+            if (dimensions.height) {
+                iframeStyle += `height: ${dimensions.height}px; `;
+            }
+            
             videoHtml = `
                 <div class="video-container ${alignmentClass}">
                     <iframe 
                         src="${this.videoData.url}${this.getEmbedParams()}"
-                        width="${dimensions.width || '100%'}" 
-                        height="${dimensions.height || '315'}"
+                        style="${iframeStyle}"
                         frameborder="0" 
                         allowfullscreen
                         title="${this.videoData.title || 'Vidéo'}">
@@ -335,12 +351,22 @@ class VideoModule extends BaseModule {
         const alignmentClass = this.getAlignmentClass();
         
         if (this.videoData.type === 'youtube' || this.videoData.type === 'vimeo') {
+            // Calculer les styles CSS pour l'iframe uniquement
+            let iframeStyle = '';
+            
+            if (dimensions.width) {
+                iframeStyle += `width: ${dimensions.width}px; `;
+            }
+            
+            if (dimensions.height) {
+                iframeStyle += `height: ${dimensions.height}px; `;
+            }
+            
             videoHtml = `
                 <div class="video-container ${alignmentClass}">
                     <iframe 
                         src="${this.videoData.url}${this.getEmbedParams()}"
-                        width="${dimensions.width || '100%'}" 
-                        height="${dimensions.height || '315'}"
+                        style="${iframeStyle}"
                         frameborder="0" 
                         allowfullscreen
                         title="${this.videoData.title || 'Vidéo'}">
@@ -506,6 +532,14 @@ class VideoModule extends BaseModule {
         if (videoWidth) {
             this.widthChangeHandler = (e) => {
                 this.videoData.width = e.target.value ? parseInt(e.target.value) : null;
+                // Si on a un ratio d'aspect et qu'on change la largeur, calculer automatiquement la hauteur
+                if (this.videoData.aspectRatio && this.videoData.width && !this.videoData.height) {
+                    const calculatedHeight = Math.round(this.videoData.width / this.videoData.aspectRatio);
+                    const heightInput = optionsContent.querySelector('.video-height');
+                    if (heightInput) {
+                        heightInput.value = calculatedHeight;
+                    }
+                }
                 this.displayVideo();
             };
             videoWidth.addEventListener('change', this.widthChangeHandler);
@@ -514,6 +548,14 @@ class VideoModule extends BaseModule {
         if (videoHeight) {
             this.heightChangeHandler = (e) => {
                 this.videoData.height = e.target.value ? parseInt(e.target.value) : null;
+                // Si on a un ratio d'aspect et qu'on change la hauteur, calculer automatiquement la largeur
+                if (this.videoData.aspectRatio && this.videoData.height && !this.videoData.width) {
+                    const calculatedWidth = Math.round(this.videoData.height * this.videoData.aspectRatio);
+                    const widthInput = optionsContent.querySelector('.video-width');
+                    if (widthInput) {
+                        widthInput.value = calculatedWidth;
+                    }
+                }
                 this.displayVideo();
             };
             videoHeight.addEventListener('change', this.heightChangeHandler);
@@ -632,6 +674,21 @@ class VideoModule extends BaseModule {
         if (videoMuted && this.mutedChangeHandler) {
             videoMuted.removeEventListener('change', this.mutedChangeHandler);
         }
+    }
+
+    loadData(data) {
+        console.log('📂 Chargement des données vidéo:', data);
+        
+        // Appliquer les données au module
+        this.videoData = {
+            ...this.videoData,
+            ...data
+        };
+        
+        // Afficher la vidéo avec les données chargées
+        this.displayVideo();
+        
+        console.log('✅ Données vidéo chargées avec succès');
     }
 
     handleOptionAction(action) {

@@ -753,9 +753,12 @@ class StyleManager {
                     background: rgba(255, 215, 0, 0.1);
                 }
                 
+                /* Alignement des vidéos */
                 .video-container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
                     width: 100%;
-                    text-align: center;
                 }
                 
                 .video-container iframe,
@@ -766,35 +769,42 @@ class StyleManager {
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                 }
                 
-                /* Alignement des vidéos */
                 .video-container.align-left {
-                    text-align: left;
-                }
-                
-                .video-container.align-center {
-                    text-align: center;
-                }
-                
-                .video-container.align-right {
-                    text-align: right;
+                    align-items: flex-start;
                 }
                 
                 .video-container.align-left iframe,
                 .video-container.align-left video {
-                    margin-left: 0;
-                    margin-right: auto;
+                    align-self: flex-start;
+                }
+                
+                .video-container.align-center {
+                    align-items: center;
                 }
                 
                 .video-container.align-center iframe,
                 .video-container.align-center video {
-                    margin-left: auto;
-                    margin-right: auto;
+                    align-self: center;
+                }
+                
+                .video-container.align-right {
+                    align-items: flex-end;
                 }
                 
                 .video-container.align-right iframe,
                 .video-container.align-right video {
-                    margin-left: auto;
-                    margin-right: 0;
+                    align-self: flex-end;
+                }
+                
+                /* Debug temporaire pour voir l'alignement */
+                .video-container.align-left {
+                    border: 2px solid red;
+                }
+                .video-container.align-center {
+                    border: 2px solid green;
+                }
+                .video-container.align-right {
+                    border: 2px solid blue;
                 }
                 
                 .video-title {

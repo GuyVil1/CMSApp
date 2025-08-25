@@ -395,6 +395,21 @@ class SeparatorModule extends BaseModule {
             });
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données séparateur:', data);
+        
+        // Appliquer les données au module
+        this.separatorData = {
+            ...this.separatorData,
+            ...data
+        };
+        
+        // Re-rendre le séparateur avec les données chargées
+        this.render();
+        
+        console.log('✅ Données séparateur chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

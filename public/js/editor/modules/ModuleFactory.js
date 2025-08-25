@@ -18,14 +18,21 @@ class ModuleFactory {
         };
     }
 
-    createModule(type) {
+    createModule(type, initialData = null) {
         const ModuleClass = this.moduleTypes[type];
         if (!ModuleClass) {
             console.warn(`Type de module non supporté: ${type}`);
             return this.createDefaultModule(type);
         }
 
-        return new ModuleClass(this.editor);
+        const module = new ModuleClass(this.editor);
+        
+        // Si des données initiales sont fournies, les appliquer au module
+        if (initialData && typeof module.loadData === 'function') {
+            module.loadData(initialData);
+        }
+
+        return module;
     }
 
     createDefaultModule(type) {

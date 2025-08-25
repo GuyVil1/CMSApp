@@ -52,6 +52,12 @@ class FullscreenEditor {
             this.styleManager.addStyles();
             console.log('✅ Styles ajoutés');
             
+            // Charger le contenu initial s'il existe
+            if (this.options.initialContent && this.options.initialContent.trim()) {
+                console.log('📂 Chargement du contenu initial:', this.options.initialContent.substring(0, 100) + '...');
+                this.loadInitialContent();
+            }
+            
             this.open(); // Ouvrir l'éditeur automatiquement
             console.log('✅ Méthode open() appelée');
         } catch (error) {
@@ -2149,6 +2155,8 @@ class FullscreenEditor {
         if (this.options.onClose) {
             this.options.onClose();
         }
+        // Restaurer le scroll du body
+        document.body.style.overflow = '';
         this.modal.remove();
     }
     
@@ -2234,6 +2242,251 @@ class FullscreenEditor {
                 `;
             }
         });
+    }
+
+    loadInitialContent() {
+        console.log('📂 Début du chargement du contenu initial...');
+        try {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.options.initialContent;
+            console.log('📄 Contenu HTML à parser:', tempDiv.innerHTML.substring(0, 500) + '...');
+            
+            this.contentSections.innerHTML = ''; // Clear existing sections
+            const sections = tempDiv.querySelectorAll('.content-section');
+            console.log(`📋 ${sections.length} sections trouvées dans le contenu initial`);
+            
+            if (sections.length === 0) {
+                console.log('⚠️ Aucune section trouvée, création d\'une section par défaut');
+                this.addSection(1);
+                this.parseModulesInSection(tempDiv, this.getFirstColumn());
+            } else {
+                sections.forEach((section, index) => {
+                    console.log(`📝 Création de la section ${index + 1}...`);
+                    const columnCount = parseInt(section.dataset.columns) || 1;
+                    this.addSection(columnCount);
+                    const createdSection = this.contentSections.children[index];
+                    if (createdSection) {
+                        const firstColumn = createdSection.querySelector('.content-column');
+                        if (firstColumn) {
+                            this.parseModulesInSection(section, firstColumn);
+                        }
+                    }
+                });
+            }
+            console.log('✅ Contenu initial chargé avec succès');
+        } catch (error) {
+            console.error('❌ Erreur lors du chargement du contenu initial:', error);
+        }
+    }
+
+    parseModulesInSection(sectionElement, columnElement) {
+        console.log('🔍 Parsing des modules dans la section...');
+        
+        // Chercher les modules vidéo
+        const videoContainers = sectionElement.querySelectorAll('.video-container');
+        console.log(`🎬 ${videoContainers.length} conteneurs vidéo trouvés`);
+        videoContainers.forEach(videoContainer => {
+            console.log('🎬 Module vidéo trouvé, recréation...');
+            this.recreateVideoModule(videoContainer, columnElement);
+        });
+        
+        // Chercher les modules texte
+        const textContainers = sectionElement.querySelectorAll('.text-container');
+        console.log(`📝 ${textContainers.length} conteneurs texte trouvés`);
+        textContainers.forEach(textContainer => {
+            console.log('📝 Module texte trouvé, recréation...');
+            this.recreateTextModule(textContainer, columnElement);
+        });
+        
+        // Chercher les modules image
+        const imageContainers = sectionElement.querySelectorAll('.image-container');
+        console.log(`🖼️ ${imageContainers.length} conteneurs image trouvés`);
+        imageContainers.forEach(imageContainer => {
+            console.log('🖼️ Module image trouvé, recréation...');
+            this.recreateImageModule(imageContainer, columnElement);
+        });
+        
+        // Chercher les séparateurs
+        const separators = sectionElement.querySelectorAll('.separator-container');
+        console.log(`➖ ${separators.length} conteneurs séparateur trouvés`);
+        separators.forEach(separator => {
+            console.log('➖ Séparateur trouvé, recréation...');
+            this.recreateSeparatorModule(separator, columnElement);
+        });
+        
+        // Ajouter d'autres types de modules selon besoin...
+    }
+
+    recreateVideoModule(videoContainer, columnElement) {
+        try {
+            const iframe = videoContainer.querySelector('iframe');
+            const video = videoContainer.querySelector('video');
+            const title = videoContainer.querySelector('.video-title');
+            const description = videoContainer.querySelector('.video-description');
+            
+            if (iframe) {
+                // Vidéo YouTube/Vimeo
+                const src = iframe.src;
+                const style = iframe.style.cssText;
+                
+                // Extraire les dimensions du style
+                const widthMatch = style.match(/width:\s*(\d+)px/);
+                const heightMatch = style.match(/height:\s*(\d+)px/);
+                
+                const videoData = {
+                    type: src.includes('youtube.com') ? 'youtube' : 'vimeo',
+                    url: src,
+                    title: title ? title.textContent : '',
+                    description: description ? description.textContent : '',
+                    width: widthMatch ? parseInt(widthMatch[1]) : null,
+                    height: heightMatch ? parseInt(heightMatch[1]) : null,
+                    alignment: this.getAlignmentFromClass(videoContainer.className)
+                };
+                
+                // Créer le module vidéo
+                const module = this.moduleFactory.createModule('video', videoData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                }
+            } else if (video) {
+                // Vidéo fichier local
+                const src = video.querySelector('source').src;
+                const videoData = {
+                    type: 'file',
+                    url: src,
+                    title: title ? title.textContent : '',
+                    description: description ? description.textContent : '',
+                    controls: video.hasAttribute('controls'),
+                    autoplay: video.hasAttribute('autoplay'),
+                    loop: video.hasAttribute('loop'),
+                    muted: video.hasAttribute('muted'),
+                    alignment: this.getAlignmentFromClass(videoContainer.className)
+                };
+                
+                // Créer le module vidéo
+                const module = this.moduleFactory.createModule('video', videoData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module vidéo:', error);
+        }
+    }
+
+    recreateTextModule(textContainer, columnElement) {
+        try {
+            const textContent = textContainer.querySelector('.text-content');
+            const alignment = this.getAlignmentFromClass(textContainer.className);
+            
+            if (textContent) {
+                const textData = {
+                    content: textContent.innerHTML,
+                    formatting: {
+                        textAlign: textContent.style.textAlign || 'left',
+                        color: textContent.style.color || '#000000',
+                        fontSize: textContent.style.fontSize || '16px'
+                    },
+                    alignment: alignment
+                };
+                
+                console.log('📝 Données texte extraites:', textData);
+                
+                const module = this.moduleFactory.createModule('text', textData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module texte recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module texte:', error);
+        }
+    }
+
+    recreateImageModule(imageContainer, columnElement) {
+        try {
+            const img = imageContainer.querySelector('img');
+            const title = imageContainer.querySelector('.image-title');
+            const description = imageContainer.querySelector('.image-description');
+            const caption = imageContainer.querySelector('.image-caption');
+            const alignment = this.getAlignmentFromClass(imageContainer.className);
+            
+            if (img) {
+                const imageData = {
+                    src: img.src,
+                    alt: img.alt || '',
+                    title: title ? title.textContent : '',
+                    description: description ? description.textContent : '',
+                    caption: caption ? caption.textContent : '',
+                    alignment: alignment,
+                    width: img.style.width ? parseInt(img.style.width) : null,
+                    height: img.style.height ? parseInt(img.style.height) : null
+                };
+                
+                console.log('🖼️ Données image extraites:', imageData);
+                
+                const module = this.moduleFactory.createModule('image', imageData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module image recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module image:', error);
+        }
+    }
+
+    recreateSeparatorModule(separatorContainer, columnElement) {
+        try {
+            const separator = separatorContainer.querySelector('.separator');
+            const style = separator ? separator.className.replace('separator', '').trim() : '';
+            const alignment = this.getAlignmentFromClass(separatorContainer.className);
+            
+            const separatorData = {
+                style: style || 'simple',
+                alignment: alignment
+            };
+            
+            const module = this.moduleFactory.createModule('separator', separatorData);
+            if (module) {
+                columnElement.appendChild(module.element);
+                this.modules.set(module.moduleId, module);
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module séparateur:', error);
+        }
+    }
+
+    getAlignmentFromClass(className) {
+        // Gérer tous les types d'alignement
+        if (className.includes('text-align-left') || className.includes('image-align-left') || 
+            className.includes('video-align-left') || className.includes('separator-align-left') ||
+            className.includes('align-left')) {
+            return 'left';
+        }
+        if (className.includes('text-align-right') || className.includes('image-align-right') || 
+            className.includes('video-align-right') || className.includes('separator-align-right') ||
+            className.includes('align-right')) {
+            return 'right';
+        }
+        if (className.includes('text-align-center') || className.includes('image-align-center') || 
+            className.includes('video-align-center') || className.includes('separator-align-center') ||
+            className.includes('align-center')) {
+            return 'center';
+        }
+        return 'left'; // Par défaut
+    }
+
+    getFirstColumn() {
+        const firstSection = this.contentSections.querySelector('.content-section');
+        if (firstSection) {
+            return firstSection.querySelector('.content-column');
+        }
+        return null;
     }
 }
 

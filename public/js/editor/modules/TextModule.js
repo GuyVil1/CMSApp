@@ -69,7 +69,23 @@ class TextModule extends BaseModule {
     }
 
     getContent() {
-        return this.content;
+        const alignmentClass = this.getAlignmentClass();
+        return `
+            <div class="text-container ${alignmentClass}">
+                <div class="text-content" style="text-align: ${this.formatting.textAlign}; color: ${this.formatting.color}; font-size: ${this.formatting.fontSize};">
+                    ${this.content}
+                </div>
+            </div>
+        `;
+    }
+
+    getAlignmentClass() {
+        switch (this.formatting.textAlign) {
+            case 'left': return 'text-align-left';
+            case 'center': return 'text-align-center';
+            case 'right': return 'text-align-right';
+            default: return 'text-align-left';
+        }
     }
 
     getOptionsHTML() {
@@ -316,6 +332,28 @@ class TextModule extends BaseModule {
         
         // Mettre à jour le contenu sauvegardé
         this.content = content.innerHTML;
+    }
+
+    loadData(data) {
+        console.log('📂 Chargement des données texte:', data);
+        
+        // Appliquer les données au module
+        if (data.content) {
+            this.content = data.content;
+        }
+        
+        if (data.formatting) {
+            this.formatting = {
+                ...this.formatting,
+                ...data.formatting
+            };
+        }
+        
+        // Re-rendre le module avec les données chargées
+        this.render();
+        this.bindEvents();
+        
+        console.log('✅ Données texte chargées avec succès');
     }
 }
 

@@ -9,7 +9,8 @@ class ImageModule extends BaseModule {
             alt: '',
             caption: '',
             width: null,
-            height: null
+            height: null,
+            alignment: 'left'
         };
     }
 
@@ -181,14 +182,25 @@ class ImageModule extends BaseModule {
     getContent() {
         if (!this.imageData.src) return '';
         
+        const alignmentClass = this.getAlignmentClass();
+        
         return `
-            <div class="image-container">
+            <div class="image-container ${alignmentClass}">
                 <img src="${this.imageData.src}" alt="${this.imageData.alt}" class="uploaded-image" 
                      style="${this.imageData.width ? `width: ${this.imageData.width}px;` : ''} 
                             ${this.imageData.height ? `height: ${this.imageData.height}px;` : ''}">
                 ${this.imageData.caption ? `<div class="image-caption">${this.imageData.caption}</div>` : ''}
             </div>
         `;
+    }
+
+    getAlignmentClass() {
+        switch (this.imageData.alignment) {
+            case 'left': return 'image-align-left';
+            case 'center': return 'image-align-center';
+            case 'right': return 'image-align-right';
+            default: return 'image-align-left';
+        }
     }
 
     getOptionsHTML() {
@@ -393,6 +405,21 @@ class ImageModule extends BaseModule {
                 }
                 break;
         }
+    }
+
+    loadData(data) {
+        console.log('📂 Chargement des données image:', data);
+        
+        // Appliquer les données au module
+        this.imageData = {
+            ...this.imageData,
+            ...data
+        };
+        
+        // Afficher l'image avec les données chargées
+        this.displayImage();
+        
+        console.log('✅ Données image chargées avec succès');
     }
 }
 
