@@ -1,32 +1,60 @@
-# Configuration et fichiers sensibles
-config/config.php
-config/env.example
-wamp.conf
-
-# Fichiers temporaires et de test
-test-*.php
-test-*.html
-test-*.jpg
-Img_Temporaire/
-Visuels_Site/
-
-# Fichiers de cache et logs
-*.log
-*.cache
-*.tmp
-
 # Fichiers système
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Fichiers d'upload temporaires
-public/uploads/temp/
+# Fichiers temporaires
+*.tmp
+*.temp
+*.log
+*.cache
 
-# Fichiers de dépendances (si vous en ajoutez plus tard)
-vendor/
-node_modules/
-
-# Fichiers d'environnement
+# Fichiers de configuration sensibles
+config/config.php
 .env
-.env.local
-.env.production
+*.env
+
+# Fichiers uploadés
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Fichiers de session
+sessions/
+
+# Fichiers de cache
+cache/
+tmp/
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers de backup
+*.bak
+*.backup
+
+# Fichiers de test
+test-*.html
+test-*.php
+
+# Fichiers temporaires d'images
+Img_Temporaire/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# Fichiers de base de données
+*.sql
+*.db
+
+# Fichiers de logs
+logs/
+*.log
+
+# Fichiers de configuration WAMP
+wamp.conf

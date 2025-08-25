@@ -7,9 +7,15 @@
 function loadScript(src) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
+        script.src = src + '?v=' + Date.now();
+        script.onload = () => {
+            console.log(`✅ ${src} chargé avec succès`);
+            resolve();
+        };
+        script.onerror = (error) => {
+            console.error(`❌ Erreur lors du chargement de ${src}:`, error);
+            reject(error);
+        };
         document.head.appendChild(script);
     });
 }
@@ -19,7 +25,7 @@ async function loadEditorModules() {
     try {
         console.log('🔄 Chargement des modules de l\'éditeur...');
         
-                            // Ordre de chargement des modules (dépendances)
+        // Ordre de chargement des modules (dépendances)
         const modules = [
             '/public/js/editor/core/BaseModule.js',
             '/public/js/editor/modules/TextModule.js',
@@ -27,8 +33,8 @@ async function loadEditorModules() {
             '/public/js/editor/modules/VideoModule.js',
             '/public/js/editor/modules/QuoteModule.js',
             '/public/js/editor/modules/GalleryModule.js',
-                '/public/js/editor/modules/HeadingModule.js',
-                '/public/js/editor/modules/ListModule.js',
+            '/public/js/editor/modules/HeadingModule.js',
+            '/public/js/editor/modules/ListModule.js',
             '/public/js/editor/modules/SeparatorModule.js',
             '/public/js/editor/modules/TableModule.js',
             '/public/js/editor/modules/ButtonModule.js',
@@ -45,8 +51,18 @@ async function loadEditorModules() {
         
         console.log('✅ Tous les modules de l\'éditeur ont été chargés avec succès !');
         
+        // Vérification finale
+        console.log('🔍 Vérification des classes disponibles:');
+        console.log('- FullscreenEditor:', typeof window.FullscreenEditor);
+        console.log('- StyleManager:', typeof window.StyleManager);
+        console.log('- ModuleFactory:', typeof window.ModuleFactory);
+        console.log('- BaseModule:', typeof window.BaseModule);
+        console.log('- TextModule:', typeof window.TextModule);
+        console.log('- ImageModule:', typeof window.ImageModule);
+        
         // Événement pour indiquer que l'éditeur est prêt
         window.dispatchEvent(new CustomEvent('editorReady'));
+        console.log('🎉 Événement editorReady déclenché !');
         
     } catch (error) {
         console.error('❌ Erreur lors du chargement des modules de l\'éditeur:', error);

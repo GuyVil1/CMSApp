@@ -4,6 +4,9 @@
  */
 class FullscreenEditor {
     constructor(options = {}) {
+        console.log('🏗️ Constructeur FullscreenEditor appelé');
+        console.log('Options reçues:', options);
+        
         this.options = {
             onSave: null,
             onClose: null,
@@ -16,19 +19,45 @@ class FullscreenEditor {
         this.modules = new Map(); // Stockage des instances de modules
         this.sections = new Map(); // Stockage des sections
         
-        // Initialisation des gestionnaires
-        this.styleManager = new StyleManager();
-        this.moduleFactory = new ModuleFactory(this);
+        console.log('🔧 Initialisation des gestionnaires...');
         
-        this.init();
+        try {
+            // Initialisation des gestionnaires
+            this.styleManager = new StyleManager();
+            console.log('✅ StyleManager créé');
+            
+            this.moduleFactory = new ModuleFactory(this);
+            console.log('✅ ModuleFactory créé');
+            
+            console.log('🚀 Appel de this.init()...');
+            this.init();
+        } catch (error) {
+            console.error('❌ Erreur dans le constructeur:', error);
+            throw error;
+        }
     }
     
     init() {
-        this.createModal();
-        this.createLayout();
-        this.bindEvents();
-        this.styleManager.addStyles();
-        this.open(); // Ouvrir l'éditeur automatiquement
+        console.log('🔧 Initialisation de l\'éditeur...');
+        try {
+            this.createModal();
+            console.log('✅ Modal créé');
+            
+            this.createLayout();
+            console.log('✅ Layout créé');
+            
+            this.bindEvents();
+            console.log('✅ Événements liés');
+            
+            this.styleManager.addStyles();
+            console.log('✅ Styles ajoutés');
+            
+            this.open(); // Ouvrir l'éditeur automatiquement
+            console.log('✅ Méthode open() appelée');
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'initialisation:', error);
+            throw error;
+        }
     }
     
     createModal() {
@@ -140,11 +169,23 @@ class FullscreenEditor {
     }
     
     createLayout() {
+        console.log('🔧 Création du layout...');
+        console.log('Modal:', this.modal);
+        
         this.leftSidebar = this.modal.querySelector('.sidebar-left');
+        console.log('LeftSidebar:', this.leftSidebar);
+        
         this.rightSidebar = this.modal.querySelector('.sidebar-right');
+        console.log('RightSidebar:', this.rightSidebar);
+        
         this.editorMain = this.modal.querySelector('.editor-main');
+        console.log('EditorMain:', this.editorMain);
+        
         this.contentSections = this.modal.querySelector('.content-sections');
+        console.log('ContentSections:', this.contentSections);
+        
         this.optionsContent = this.modal.querySelector('.options-content');
+        console.log('OptionsContent:', this.optionsContent);
     }
     
     bindEvents() {
@@ -576,7 +617,13 @@ class FullscreenEditor {
     }
     
     getSectionCount() {
-        return this.contentSections.querySelectorAll('.content-section').length;
+        if (!this.contentSections) {
+            console.error('❌ contentSections non défini');
+            return 0;
+        }
+        const count = this.contentSections.querySelectorAll('.content-section').length;
+        console.log(`📊 Nombre de sections: ${count}`);
+        return count;
     }
     
     showPreview() {
@@ -2106,16 +2153,30 @@ class FullscreenEditor {
     }
     
     open() {
+        console.log('🔓 Ouverture de l\'éditeur...');
+        console.log('Modal:', this.modal);
+        console.log('ContentSections:', this.contentSections);
+        
+        if (!this.modal) {
+            console.error('❌ Modal non trouvé');
+            return;
+        }
+        
         this.modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         
+        console.log('✅ Modal affiché');
+        
         // Créer une première section par défaut si aucune n'existe
         if (this.getSectionCount() === 0) {
+            console.log('📝 Création de la première section...');
             this.addSection(1);
         }
         
         // Afficher le message par défaut dans les options
         this.hideOptions();
+        
+        console.log('🎉 Éditeur ouvert avec succès');
     }
 
     bindColumnDragEvents(column) {

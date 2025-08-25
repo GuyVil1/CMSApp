@@ -458,7 +458,7 @@
     </div>
 
             <!-- Éditeur modulaire plein écran -->
-        <script src="/public/js/editor/editor-loader.js"></script>
+        <script src="/public/js/editor/editor-loader.js?v=<?= time() ?>"></script>
         <script>
             // Attendre que le DOM soit chargé
             document.addEventListener('DOMContentLoaded', function() {
@@ -475,9 +475,12 @@
                     editorButton.addEventListener('click', function() {
                         console.log('Clic sur le bouton éditeur détecté');
                         
-                        // Attendre que l'éditeur modulaire soit prêt
+                        // Vérifier si l'éditeur est prêt
                         if (typeof window.FullscreenEditor === 'undefined') {
                             console.log('Éditeur modulaire en cours de chargement, attente...');
+                            showNotification('Chargement de l\'éditeur en cours...', 'info');
+                            
+                            // Attendre l'événement editorReady
                             window.addEventListener('editorReady', function() {
                                 console.log('Éditeur modulaire prêt, initialisation...');
                                 initModularEditor();
@@ -499,37 +502,65 @@
                 
                 function initModularEditor() {
                     try {
-                        // Créer l'éditeur modulaire plein écran
-                        fullscreenEditor = new window.FullscreenEditor({
-                            initialContent: contentTextarea.value,
-                            onSave: function(content) {
-                                console.log('Sauvegarde du contenu:', content.substring(0, 50) + '...');
-                                // Mettre à jour le textarea et la prévisualisation
-                                contentTextarea.value = content;
-                                contentPreview.innerHTML = '<div class="preview-content">' + content + '</div>';
-                                
-                                // Fermer l'éditeur
-                                if (fullscreenEditor) {
-                                    fullscreenEditor.close();
-                                    fullscreenEditor = null;
-                                }
-                                
-                                // Afficher un message de succès
-                                showNotification('Contenu sauvegardé avec succès !', 'success');
-                            },
-                            onClose: function() {
-                                console.log('Fermeture de l\'éditeur');
-                                // Fermer l'éditeur sans sauvegarder
-                                if (fullscreenEditor) {
-                                    fullscreenEditor = null;
-                                }
-                            }
-                        });
+                        console.log('🚀 Début de l\'initialisation de l\'éditeur modulaire...');
+                        console.log('Vérification des dépendances:');
+                        console.log('- FullscreenEditor:', typeof window.FullscreenEditor);
+                        console.log('- StyleManager:', typeof window.StyleManager);
+                        console.log('- ModuleFactory:', typeof window.ModuleFactory);
                         
-                        console.log('Éditeur modulaire créé avec succès');
+                        // Créer l'éditeur modulaire plein écran
+                        console.log('🔧 Création de l\'instance FullscreenEditor...');
+                        console.log('FullscreenEditor:', window.FullscreenEditor);
+                        console.log('StyleManager:', window.StyleManager);
+                        console.log('ModuleFactory:', window.ModuleFactory);
+                        
+                        try {
+                            console.log('🔧 Tentative de création de l\'instance FullscreenEditor...');
+                            console.log('Options passées:', {
+                                initialContent: contentTextarea.value,
+                                onSave: typeof function() {},
+                                onClose: typeof function() {}
+                            });
+                            
+                            fullscreenEditor = new window.FullscreenEditor({
+                                initialContent: contentTextarea.value,
+                                onSave: function(content) {
+                                    console.log('Sauvegarde du contenu:', content.substring(0, 50) + '...');
+                                    // Mettre à jour le textarea et la prévisualisation
+                                    contentTextarea.value = content;
+                                    contentPreview.innerHTML = '<div class="preview-content">' + content + '</div>';
+                                    
+                                    // Fermer l'éditeur
+                                    if (fullscreenEditor) {
+                                        fullscreenEditor.close();
+                                        fullscreenEditor = null;
+                                    }
+                                    
+                                    // Afficher un message de succès
+                                    showNotification('Contenu sauvegardé avec succès !', 'success');
+                                },
+                                onClose: function() {
+                                    console.log('Fermeture de l\'éditeur');
+                                    // Fermer l'éditeur sans sauvegarder
+                                    if (fullscreenEditor) {
+                                        fullscreenEditor = null;
+                                    }
+                                }
+                            });
+                            
+                            console.log('✅ Éditeur modulaire créé avec succès');
+                            console.log('Instance créée:', fullscreenEditor);
+                        } catch (constructorError) {
+                            console.error('❌ Erreur dans le constructeur FullscreenEditor:', constructorError);
+                            console.error('Stack trace du constructeur:', constructorError.stack);
+                            console.error('Type d\'erreur:', constructorError.name);
+                            console.error('Message d\'erreur:', constructorError.message);
+                            throw constructorError;
+                        }
                         showNotification('Éditeur modulaire ouvert !', 'success');
                     } catch (error) {
-                        console.error('Erreur lors de la création de l\'éditeur modulaire:', error);
+                        console.error('❌ Erreur lors de la création de l\'éditeur modulaire:', error);
+                        console.error('Stack trace:', error.stack);
                         showNotification('Erreur lors de l\'ouverture de l\'éditeur: ' + error.message, 'error');
                     }
                 }
