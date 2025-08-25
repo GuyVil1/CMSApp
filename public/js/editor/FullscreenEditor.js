@@ -2245,304 +2245,125 @@ class FullscreenEditor {
     }
 
     loadInitialContent() {
-        console.log('📂 Début du chargement du contenu initial...');
-        try {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = this.options.initialContent;
-            console.log('📄 Contenu HTML à parser:', tempDiv.innerHTML.substring(0, 500) + '...');
-            
-            this.contentSections.innerHTML = ''; // Clear existing sections
-            const sections = tempDiv.querySelectorAll('.content-section');
-            console.log(`📋 ${sections.length} sections trouvées dans le contenu initial`);
-            
-            if (sections.length === 0) {
-                console.log('⚠️ Aucune section trouvée, création d\'une section par défaut');
-                this.addSection(1);
-                this.parseModulesInSection(tempDiv, this.getFirstColumn());
-            } else {
-                sections.forEach((section, index) => {
-                    console.log(`📝 Création de la section ${index + 1}...`);
-                    const columnCount = parseInt(section.dataset.columns) || 1;
-                    this.addSection(columnCount);
-                    const createdSection = this.contentSections.children[index];
-                    if (createdSection) {
-                        const firstColumn = createdSection.querySelector('.content-column');
-                        if (firstColumn) {
-                            this.parseModulesInSection(section, firstColumn);
-                        }
-                    }
-                });
-            }
-            console.log('✅ Contenu initial chargé avec succès');
-        } catch (error) {
-            console.error('❌ Erreur lors du chargement du contenu initial:', error);
+        if (!this.options.initialContent) {
+            console.log('📂 Aucun contenu initial à charger');
+            return;
         }
+
+        console.log('📂 Début du chargement du contenu initial...');
+        console.log('📄 Contenu HTML à parser:', this.options.initialContent);
+        
+        // Créer un élément temporaire pour parser le HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = this.options.initialContent;
+        
+        // Chercher toutes les sections
+        const sections = tempDiv.querySelectorAll('.content-section');
+        console.log(`📋 ${sections.length} sections trouvées dans le contenu initial`);
+        
+        // Vider les sections existantes
+        this.contentSections.innerHTML = '';
+        
+        sections.forEach((sectionElement, sectionIndex) => {
+            console.log(`\n🔍 === PARSING SECTION ${sectionIndex + 1} ===`);
+            console.log('📄 HTML de la section:', sectionElement.outerHTML);
+            
+            // Obtenir le nombre de colonnes
+            const columnsCount = parseInt(sectionElement.getAttribute('data-columns')) || 1;
+            console.log('📊 Nombre de colonnes trouvées:', columnsCount);
+            
+            // Créer la section dans l'éditeur
+            const newSection = this.createSection(columnsCount);
+            console.log('✅ Section créée dans l\'éditeur:', newSection);
+            
+            // Ajouter la section au DOM de l'éditeur
+            this.contentSections.appendChild(newSection);
+            console.log('✅ Section ajoutée au DOM de l\'éditeur');
+            
+            // Parser les modules dans cette section
+            this.parseModulesInSection(sectionElement, newSection);
+        });
+        
+        console.log('✅ Contenu initial chargé avec succès');
     }
 
-    parseModulesInSection(sectionElement, columnElement) {
+    parseModulesInSection(sectionElement, section) {
         console.log('🔍 Parsing des modules dans la section...');
+        console.log('📄 Section source:', sectionElement);
+        console.log('📄 Section cible:', section);
         
         // Pour les sections multi-colonnes, chercher dans chaque colonne
         const columns = sectionElement.querySelectorAll('.content-column');
         const columnsCount = columns.length;
+        console.log(`📊 Nombre de colonnes trouvées dans la section source: ${columnsCount}`);
         
         if (columnsCount > 1) {
             console.log(`📋 Section multi-colonnes détectée avec ${columnsCount} colonnes`);
             columns.forEach((col, index) => {
-                console.log(`🔍 Parsing de la colonne ${index + 1}...`);
-                this.parseModulesInColumn(col, col);
+                console.log(`\n🔍 --- PARSING COLONNE ${index + 1} ---`);
+                console.log('📄 HTML de la colonne:', col.outerHTML);
+                const targetColumn = section.querySelectorAll('.content-column')[index];
+                console.log('📄 Colonne cible:', targetColumn);
+                this.parseModulesInColumn(col, targetColumn);
             });
         } else {
             // Section à une seule colonne, chercher directement
             console.log('📋 Section à une seule colonne détectée');
-            this.parseModulesInColumn(sectionElement, columnElement);
+            const targetColumn = section.querySelector('.content-column');
+            console.log('📄 Colonne cible:', targetColumn);
+            this.parseModulesInColumn(sectionElement, targetColumn);
         }
     }
 
-    parseModulesInColumn(columnElement, targetColumnElement) {
+    parseModulesInColumn(sourceColumn, targetColumn) {
+        console.log('🔍 Parsing des modules dans la colonne...');
+        console.log('📄 Élément colonne source:', sourceColumn);
+        console.log('📄 Élément colonne cible:', targetColumn);
+        
         // Chercher d'abord les modules avec les classes content-module-*
-        const contentModules = columnElement.querySelectorAll('[class*="content-module-"]');
+        const contentModules = sourceColumn.querySelectorAll('[class*="content-module-"]');
         console.log(`📦 ${contentModules.length} modules content-module-* trouvés dans la colonne`);
         
-        contentModules.forEach(moduleElement => {
+        contentModules.forEach((moduleElement, moduleIndex) => {
             const className = moduleElement.className;
-            console.log('🔍 Module trouvé avec classe:', className);
+            console.log(`\n🔍 --- MODULE ${moduleIndex + 1} ---`);
+            console.log('📄 Classe du module:', className);
+            console.log('📄 HTML du module:', moduleElement.outerHTML);
             
             if (className.includes('content-module-text')) {
                 console.log('📝 Module texte trouvé, recréation...');
-                this.recreateTextModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateTextModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-image')) {
                 console.log('🖼️ Module image trouvé, recréation...');
-                this.recreateImageModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateImageModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-video')) {
                 console.log('🎬 Module vidéo trouvé, recréation...');
-                this.recreateVideoModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateVideoModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-separator')) {
                 console.log('➖ Module séparateur trouvé, recréation...');
-                this.recreateSeparatorModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateSeparatorModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-heading')) {
                 console.log('📋 Module titre trouvé, recréation...');
-                this.recreateHeadingModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateHeadingModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-quote')) {
                 console.log('💬 Module citation trouvé, recréation...');
-                this.recreateQuoteModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateQuoteModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-button')) {
                 console.log('🔘 Module bouton trouvé, recréation...');
-                this.recreateButtonModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateButtonModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-table')) {
                 console.log('📊 Module tableau trouvé, recréation...');
-                this.recreateTableModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateTableModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-gallery')) {
                 console.log('🖼️ Module galerie trouvé, recréation...');
-                this.recreateGalleryModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateGalleryModuleFromContent(moduleElement, targetColumn);
             } else if (className.includes('content-module-list')) {
                 console.log('📋 Module liste trouvé, recréation...');
-                this.recreateListModuleFromContent(moduleElement, targetColumnElement);
+                this.recreateListModuleFromContent(moduleElement, targetColumn);
             } else {
                 console.log('❓ Type de module non reconnu:', className);
             }
         });
-        
-        // Chercher aussi les conteneurs spécifiques (pour compatibilité)
-        const videoContainers = columnElement.querySelectorAll('.video-container');
-        console.log(`🎬 ${videoContainers.length} conteneurs vidéo trouvés`);
-        videoContainers.forEach(videoContainer => {
-            console.log('🎬 Module vidéo trouvé, recréation...');
-            this.recreateVideoModule(videoContainer, targetColumnElement);
-        });
-        
-        const textContainers = columnElement.querySelectorAll('.text-container');
-        console.log(`📝 ${textContainers.length} conteneurs texte trouvés`);
-        textContainers.forEach(textContainer => {
-            console.log('📝 Module texte trouvé, recréation...');
-            this.recreateTextModule(textContainer, targetColumnElement);
-        });
-        
-        const imageContainers = columnElement.querySelectorAll('.image-container');
-        console.log(`🖼️ ${imageContainers.length} conteneurs image trouvés`);
-        imageContainers.forEach(imageContainer => {
-            console.log('🖼️ Module image trouvé, recréation...');
-            this.recreateImageModule(imageContainer, targetColumnElement);
-        });
-        
-        const separators = columnElement.querySelectorAll('.separator-container');
-        console.log(`➖ ${separators.length} conteneurs séparateur trouvés`);
-        separators.forEach(separator => {
-            console.log('➖ Séparateur trouvé, recréation...');
-            this.recreateSeparatorModule(separator, targetColumnElement);
-        });
-    }
-
-    recreateVideoModule(videoContainer, columnElement) {
-        try {
-            const iframe = videoContainer.querySelector('iframe');
-            const video = videoContainer.querySelector('video');
-            const title = videoContainer.querySelector('.video-title');
-            const description = videoContainer.querySelector('.video-description');
-            
-            if (iframe) {
-                // Vidéo YouTube/Vimeo
-                const src = iframe.src;
-                const style = iframe.style.cssText;
-                
-                // Extraire les dimensions du style
-                const widthMatch = style.match(/width:\s*(\d+)px/);
-                const heightMatch = style.match(/height:\s*(\d+)px/);
-                
-                const videoData = {
-                    type: src.includes('youtube.com') ? 'youtube' : 'vimeo',
-                    url: src,
-                    title: title ? title.textContent : '',
-                    description: description ? description.textContent : '',
-                    width: widthMatch ? parseInt(widthMatch[1]) : null,
-                    height: heightMatch ? parseInt(heightMatch[1]) : null,
-                    alignment: this.getAlignmentFromClass(videoContainer.className)
-                };
-                
-                // Créer le module vidéo
-                const module = this.moduleFactory.createModule('video', videoData);
-                if (module) {
-                    columnElement.appendChild(module.element);
-                    this.modules.set(module.moduleId, module);
-                }
-            } else if (video) {
-                // Vidéo fichier local
-                const src = video.querySelector('source').src;
-                const videoData = {
-                    type: 'file',
-                    url: src,
-                    title: title ? title.textContent : '',
-                    description: description ? description.textContent : '',
-                    controls: video.hasAttribute('controls'),
-                    autoplay: video.hasAttribute('autoplay'),
-                    loop: video.hasAttribute('loop'),
-                    muted: video.hasAttribute('muted'),
-                    alignment: this.getAlignmentFromClass(videoContainer.className)
-                };
-                
-                // Créer le module vidéo
-                const module = this.moduleFactory.createModule('video', videoData);
-                if (module) {
-                    columnElement.appendChild(module.element);
-                    this.modules.set(module.moduleId, module);
-                }
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors de la recréation du module vidéo:', error);
-        }
-    }
-
-    recreateTextModule(textContainer, columnElement) {
-        try {
-            const textContent = textContainer.querySelector('.text-content');
-            const alignment = this.getAlignmentFromClass(textContainer.className);
-            
-            if (textContent) {
-                const textData = {
-                    content: textContent.innerHTML,
-                    formatting: {
-                        textAlign: textContent.style.textAlign || 'left',
-                        color: textContent.style.color || '#000000',
-                        fontSize: textContent.style.fontSize || '16px'
-                    },
-                    alignment: alignment
-                };
-                
-                console.log('📝 Données texte extraites:', textData);
-                
-                const module = this.moduleFactory.createModule('text', textData);
-                if (module) {
-                    columnElement.appendChild(module.element);
-                    this.modules.set(module.moduleId, module);
-                    console.log('✅ Module texte recréé avec succès');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors de la recréation du module texte:', error);
-        }
-    }
-
-    recreateImageModule(imageContainer, columnElement) {
-        try {
-            const img = imageContainer.querySelector('img');
-            const title = imageContainer.querySelector('.image-title');
-            const description = imageContainer.querySelector('.image-description');
-            const caption = imageContainer.querySelector('.image-caption');
-            const alignment = this.getAlignmentFromClass(imageContainer.className);
-            
-            if (img) {
-                const imageData = {
-                    src: img.src,
-                    alt: img.alt || '',
-                    title: title ? title.textContent : '',
-                    description: description ? description.textContent : '',
-                    caption: caption ? caption.textContent : '',
-                    alignment: alignment,
-                    width: img.style.width ? parseInt(img.style.width) : null,
-                    height: img.style.height ? parseInt(img.style.height) : null
-                };
-                
-                console.log('🖼️ Données image extraites:', imageData);
-                
-                const module = this.moduleFactory.createModule('image', imageData);
-                if (module) {
-                    columnElement.appendChild(module.element);
-                    this.modules.set(module.moduleId, module);
-                    console.log('✅ Module image recréé avec succès');
-                }
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors de la recréation du module image:', error);
-        }
-    }
-
-    recreateSeparatorModule(separatorContainer, columnElement) {
-        try {
-            const separator = separatorContainer.querySelector('.separator');
-            const style = separator ? separator.className.replace('separator', '').trim() : '';
-            const alignment = this.getAlignmentFromClass(separatorContainer.className);
-            
-            const separatorData = {
-                style: style || 'simple',
-                alignment: alignment
-            };
-            
-            const module = this.moduleFactory.createModule('separator', separatorData);
-            if (module) {
-                columnElement.appendChild(module.element);
-                this.modules.set(module.moduleId, module);
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors de la recréation du module séparateur:', error);
-        }
-    }
-
-    getAlignmentFromClass(className) {
-        // Gérer tous les types d'alignement
-        if (className.includes('text-align-left') || className.includes('image-align-left') || 
-            className.includes('video-align-left') || className.includes('separator-align-left') ||
-            className.includes('align-left')) {
-            return 'left';
-        }
-        if (className.includes('text-align-right') || className.includes('image-align-right') || 
-            className.includes('video-align-right') || className.includes('separator-align-right') ||
-            className.includes('align-right')) {
-            return 'right';
-        }
-        if (className.includes('text-align-center') || className.includes('image-align-center') || 
-            className.includes('video-align-center') || className.includes('separator-align-center') ||
-            className.includes('align-center')) {
-            return 'center';
-        }
-        return 'left'; // Par défaut
-    }
-
-    getFirstColumn() {
-        const firstSection = this.contentSections.querySelector('.content-section');
-        if (firstSection) {
-            return firstSection.querySelector('.content-column');
-        }
-        return null;
     }
 
     recreateTextModuleFromContent(moduleElement, columnElement) {
@@ -2872,6 +2693,26 @@ class FullscreenEditor {
         } catch (error) {
             console.error('❌ Erreur lors de la recréation du module liste:', error);
         }
+    }
+
+    getAlignmentFromClass(className) {
+        // Gérer tous les types d'alignement
+        if (className.includes('text-align-left') || className.includes('image-align-left') || 
+            className.includes('video-align-left') || className.includes('separator-align-left') ||
+            className.includes('align-left')) {
+            return 'left';
+        }
+        if (className.includes('text-align-right') || className.includes('image-align-right') || 
+            className.includes('video-align-right') || className.includes('separator-align-right') ||
+            className.includes('align-right')) {
+            return 'right';
+        }
+        if (className.includes('text-align-center') || className.includes('image-align-center') || 
+            className.includes('video-align-center') || className.includes('separator-align-center') ||
+            className.includes('align-center')) {
+            return 'center';
+        }
+        return 'left'; // Par défaut
     }
 }
 
