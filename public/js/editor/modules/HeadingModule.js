@@ -262,6 +262,23 @@ class HeadingModule extends BaseModule {
             });
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données titre:', data);
+        
+        // Appliquer les données au module
+        this.headingData = {
+            ...this.headingData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayHeading();
+        }
+        
+        console.log('✅ Données titre chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

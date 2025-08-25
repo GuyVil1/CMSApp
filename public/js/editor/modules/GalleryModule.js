@@ -1006,6 +1006,23 @@ class GalleryModule extends BaseModule {
             this.editor.optionsContent.innerHTML = optionsHTML;
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données galerie:', data);
+        
+        // Appliquer les données au module
+        this.galleryData = {
+            ...this.galleryData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayGallery();
+        }
+        
+        console.log('✅ Données galerie chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

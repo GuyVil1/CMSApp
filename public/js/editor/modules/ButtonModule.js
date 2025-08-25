@@ -473,6 +473,23 @@ class ButtonModule extends BaseModule {
             });
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données bouton:', data);
+        
+        // Appliquer les données au module
+        this.buttonData = {
+            ...this.buttonData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayButton();
+        }
+        
+        console.log('✅ Données bouton chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

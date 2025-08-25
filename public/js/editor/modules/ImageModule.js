@@ -416,8 +416,10 @@ class ImageModule extends BaseModule {
             ...data
         };
         
-        // Afficher l'image avec les données chargées
-        this.displayImage();
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayImage();
+        }
         
         console.log('✅ Données image chargées avec succès');
     }

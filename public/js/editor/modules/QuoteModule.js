@@ -388,6 +388,23 @@ class QuoteModule extends BaseModule {
             this.editor.optionsContent.innerHTML = optionsHTML;
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données citation:', data);
+        
+        // Appliquer les données au module
+        this.quoteData = {
+            ...this.quoteData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayQuote();
+        }
+        
+        console.log('✅ Données citation chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

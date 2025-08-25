@@ -2282,39 +2282,95 @@ class FullscreenEditor {
     parseModulesInSection(sectionElement, columnElement) {
         console.log('🔍 Parsing des modules dans la section...');
         
-        // Chercher les modules vidéo
-        const videoContainers = sectionElement.querySelectorAll('.video-container');
+        // Pour les sections multi-colonnes, chercher dans chaque colonne
+        const columns = sectionElement.querySelectorAll('.content-column');
+        const columnsCount = columns.length;
+        
+        if (columnsCount > 1) {
+            console.log(`📋 Section multi-colonnes détectée avec ${columnsCount} colonnes`);
+            columns.forEach((col, index) => {
+                console.log(`🔍 Parsing de la colonne ${index + 1}...`);
+                this.parseModulesInColumn(col, col);
+            });
+        } else {
+            // Section à une seule colonne, chercher directement
+            console.log('📋 Section à une seule colonne détectée');
+            this.parseModulesInColumn(sectionElement, columnElement);
+        }
+    }
+
+    parseModulesInColumn(columnElement, targetColumnElement) {
+        // Chercher d'abord les modules avec les classes content-module-*
+        const contentModules = columnElement.querySelectorAll('[class*="content-module-"]');
+        console.log(`📦 ${contentModules.length} modules content-module-* trouvés dans la colonne`);
+        
+        contentModules.forEach(moduleElement => {
+            const className = moduleElement.className;
+            console.log('🔍 Module trouvé avec classe:', className);
+            
+            if (className.includes('content-module-text')) {
+                console.log('📝 Module texte trouvé, recréation...');
+                this.recreateTextModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-image')) {
+                console.log('🖼️ Module image trouvé, recréation...');
+                this.recreateImageModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-video')) {
+                console.log('🎬 Module vidéo trouvé, recréation...');
+                this.recreateVideoModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-separator')) {
+                console.log('➖ Module séparateur trouvé, recréation...');
+                this.recreateSeparatorModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-heading')) {
+                console.log('📋 Module titre trouvé, recréation...');
+                this.recreateHeadingModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-quote')) {
+                console.log('💬 Module citation trouvé, recréation...');
+                this.recreateQuoteModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-button')) {
+                console.log('🔘 Module bouton trouvé, recréation...');
+                this.recreateButtonModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-table')) {
+                console.log('📊 Module tableau trouvé, recréation...');
+                this.recreateTableModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-gallery')) {
+                console.log('🖼️ Module galerie trouvé, recréation...');
+                this.recreateGalleryModuleFromContent(moduleElement, targetColumnElement);
+            } else if (className.includes('content-module-list')) {
+                console.log('📋 Module liste trouvé, recréation...');
+                this.recreateListModuleFromContent(moduleElement, targetColumnElement);
+            } else {
+                console.log('❓ Type de module non reconnu:', className);
+            }
+        });
+        
+        // Chercher aussi les conteneurs spécifiques (pour compatibilité)
+        const videoContainers = columnElement.querySelectorAll('.video-container');
         console.log(`🎬 ${videoContainers.length} conteneurs vidéo trouvés`);
         videoContainers.forEach(videoContainer => {
             console.log('🎬 Module vidéo trouvé, recréation...');
-            this.recreateVideoModule(videoContainer, columnElement);
+            this.recreateVideoModule(videoContainer, targetColumnElement);
         });
         
-        // Chercher les modules texte
-        const textContainers = sectionElement.querySelectorAll('.text-container');
+        const textContainers = columnElement.querySelectorAll('.text-container');
         console.log(`📝 ${textContainers.length} conteneurs texte trouvés`);
         textContainers.forEach(textContainer => {
             console.log('📝 Module texte trouvé, recréation...');
-            this.recreateTextModule(textContainer, columnElement);
+            this.recreateTextModule(textContainer, targetColumnElement);
         });
         
-        // Chercher les modules image
-        const imageContainers = sectionElement.querySelectorAll('.image-container');
+        const imageContainers = columnElement.querySelectorAll('.image-container');
         console.log(`🖼️ ${imageContainers.length} conteneurs image trouvés`);
         imageContainers.forEach(imageContainer => {
             console.log('🖼️ Module image trouvé, recréation...');
-            this.recreateImageModule(imageContainer, columnElement);
+            this.recreateImageModule(imageContainer, targetColumnElement);
         });
         
-        // Chercher les séparateurs
-        const separators = sectionElement.querySelectorAll('.separator-container');
+        const separators = columnElement.querySelectorAll('.separator-container');
         console.log(`➖ ${separators.length} conteneurs séparateur trouvés`);
         separators.forEach(separator => {
             console.log('➖ Séparateur trouvé, recréation...');
-            this.recreateSeparatorModule(separator, columnElement);
+            this.recreateSeparatorModule(separator, targetColumnElement);
         });
-        
-        // Ajouter d'autres types de modules selon besoin...
     }
 
     recreateVideoModule(videoContainer, columnElement) {
@@ -2487,6 +2543,335 @@ class FullscreenEditor {
             return firstSection.querySelector('.content-column');
         }
         return null;
+    }
+
+    recreateTextModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('📝 Recréation du module texte depuis content-module-text');
+            
+            // Extraire le contenu du module
+            const textContent = moduleElement.innerHTML || '';
+            console.log('📄 Contenu texte extrait:', textContent.substring(0, 100) + '...');
+            
+            // Extraire l'alignement depuis les classes
+            const alignment = this.getAlignmentFromClass(moduleElement.className);
+            
+            const textData = {
+                content: textContent,
+                formatting: {
+                    textAlign: 'left',
+                    color: '#000000',
+                    fontSize: '16px'
+                },
+                alignment: alignment
+            };
+            
+            console.log('📝 Données texte extraites:', textData);
+            
+            const module = this.moduleFactory.createModule('text', textData);
+            if (module) {
+                columnElement.appendChild(module.element);
+                this.modules.set(module.moduleId, module);
+                console.log('✅ Module texte recréé avec succès');
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module texte:', error);
+        }
+    }
+
+    recreateImageModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('🖼️ Recréation du module image depuis content-module-image');
+            
+            const img = moduleElement.querySelector('img');
+            if (img) {
+                const imageData = {
+                    src: img.src,
+                    alt: img.alt || '',
+                    title: '',
+                    description: '',
+                    caption: '',
+                    alignment: this.getAlignmentFromClass(moduleElement.className),
+                    width: img.style.width ? parseInt(img.style.width) : null,
+                    height: img.style.height ? parseInt(img.style.height) : null
+                };
+                
+                console.log('🖼️ Données image extraites:', imageData);
+                
+                const module = this.moduleFactory.createModule('image', imageData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module image recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module image:', error);
+        }
+    }
+
+    recreateVideoModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('🎬 Recréation du module vidéo depuis content-module-video');
+            
+            const iframe = moduleElement.querySelector('iframe');
+            const video = moduleElement.querySelector('video');
+            
+            if (iframe) {
+                const src = iframe.src;
+                const videoData = {
+                    type: src.includes('youtube.com') ? 'youtube' : 'vimeo',
+                    url: src,
+                    title: '',
+                    description: '',
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('🎬 Données vidéo extraites:', videoData);
+                
+                const module = this.moduleFactory.createModule('video', videoData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module vidéo recréé avec succès');
+                }
+            } else if (video) {
+                const src = video.querySelector('source')?.src || '';
+                const videoData = {
+                    type: 'file',
+                    url: src,
+                    title: '',
+                    description: '',
+                    controls: video.hasAttribute('controls'),
+                    autoplay: video.hasAttribute('autoplay'),
+                    loop: video.hasAttribute('loop'),
+                    muted: video.hasAttribute('muted'),
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('🎬 Données vidéo extraites:', videoData);
+                
+                const module = this.moduleFactory.createModule('video', videoData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module vidéo recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module vidéo:', error);
+        }
+    }
+
+    recreateSeparatorModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('➖ Recréation du module séparateur depuis content-module-separator');
+            
+            const separatorData = {
+                style: 'line',
+                alignment: this.getAlignmentFromClass(moduleElement.className)
+            };
+            
+            console.log('➖ Données séparateur extraites:', separatorData);
+            
+            const module = this.moduleFactory.createModule('separator', separatorData);
+            if (module) {
+                columnElement.appendChild(module.element);
+                this.modules.set(module.moduleId, module);
+                console.log('✅ Module séparateur recréé avec succès');
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module séparateur:', error);
+        }
+    }
+
+    recreateHeadingModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('📋 Recréation du module titre depuis content-module-heading');
+            
+            const heading = moduleElement.querySelector('h1, h2, h3, h4, h5, h6');
+            if (heading) {
+                const headingData = {
+                    text: heading.textContent || '',
+                    level: parseInt(heading.tagName.charAt(1)) || 2,
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('📋 Données titre extraites:', headingData);
+                
+                const module = this.moduleFactory.createModule('heading', headingData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module titre recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module titre:', error);
+        }
+    }
+
+    recreateQuoteModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('💬 Recréation du module citation depuis content-module-quote');
+            
+            const quote = moduleElement.querySelector('blockquote');
+            const author = moduleElement.querySelector('.quote-author');
+            
+            if (quote) {
+                const quoteData = {
+                    text: quote.textContent || '',
+                    author: author ? author.textContent : '',
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('💬 Données citation extraites:', quoteData);
+                
+                const module = this.moduleFactory.createModule('quote', quoteData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module citation recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module citation:', error);
+        }
+    }
+
+    recreateButtonModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('🔘 Recréation du module bouton depuis content-module-button');
+            
+            const button = moduleElement.querySelector('a.custom-button');
+            if (button) {
+                const buttonText = button.querySelector('.button-text');
+                const buttonData = {
+                    text: buttonText ? buttonText.textContent : button.textContent || '',
+                    url: button.href || '#',
+                    target: button.target || '_self',
+                    style: this.extractButtonStyle(button.className),
+                    size: this.extractButtonSize(button.className),
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('🔘 Données bouton extraites:', buttonData);
+                
+                const module = this.moduleFactory.createModule('button', buttonData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module bouton recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module bouton:', error);
+        }
+    }
+
+    extractButtonStyle(className) {
+        if (className.includes('btn-primary')) return 'primary';
+        if (className.includes('btn-secondary')) return 'secondary';
+        if (className.includes('btn-success')) return 'success';
+        if (className.includes('btn-danger')) return 'danger';
+        if (className.includes('btn-warning')) return 'warning';
+        if (className.includes('btn-info')) return 'info';
+        if (className.includes('btn-light')) return 'light';
+        if (className.includes('btn-dark')) return 'dark';
+        return 'primary';
+    }
+
+    extractButtonSize(className) {
+        if (className.includes('btn-small')) return 'small';
+        if (className.includes('btn-large')) return 'large';
+        return 'medium';
+    }
+
+    recreateTableModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('📊 Recréation du module tableau depuis content-module-table');
+            
+            const table = moduleElement.querySelector('table');
+            if (table) {
+                const tableData = {
+                    content: table.innerHTML,
+                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                };
+                
+                console.log('📊 Données tableau extraites:', tableData);
+                
+                const module = this.moduleFactory.createModule('table', tableData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module tableau recréé avec succès');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module tableau:', error);
+        }
+    }
+
+    recreateGalleryModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('🖼️ Recréation du module galerie depuis content-module-gallery');
+            
+            const galleryData = {
+                images: [],
+                layout: 'grid',
+                alignment: this.getAlignmentFromClass(moduleElement.className)
+            };
+            
+            // Extraire les images de la galerie
+            const images = moduleElement.querySelectorAll('img');
+            images.forEach(img => {
+                galleryData.images.push({
+                    src: img.src,
+                    alt: img.alt || '',
+                    caption: ''
+                });
+            });
+            
+            console.log('🖼️ Données galerie extraites:', galleryData);
+            
+            const module = this.moduleFactory.createModule('gallery', galleryData);
+            if (module) {
+                columnElement.appendChild(module.element);
+                this.modules.set(module.moduleId, module);
+                console.log('✅ Module galerie recréé avec succès');
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module galerie:', error);
+        }
+    }
+
+    recreateListModuleFromContent(moduleElement, columnElement) {
+        try {
+            console.log('📋 Recréation du module liste depuis content-module-list');
+            
+            const listData = {
+                items: [],
+                type: 'ul',
+                alignment: this.getAlignmentFromClass(moduleElement.className)
+            };
+            
+            // Extraire les éléments de la liste
+            const listItems = moduleElement.querySelectorAll('li');
+            listItems.forEach(item => {
+                listData.items.push(item.textContent.trim());
+            });
+            
+            console.log('📋 Données liste extraites:', listData);
+            
+            const module = this.moduleFactory.createModule('list', listData);
+            if (module) {
+                columnElement.appendChild(module.element);
+                this.modules.set(module.moduleId, module);
+                console.log('✅ Module liste recréé avec succès');
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la recréation du module liste:', error);
+        }
     }
 }
 

@@ -405,8 +405,10 @@ class SeparatorModule extends BaseModule {
             ...data
         };
         
-        // Re-rendre le séparateur avec les données chargées
-        this.render();
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displaySeparator();
+        }
         
         console.log('✅ Données séparateur chargées avec succès');
     }

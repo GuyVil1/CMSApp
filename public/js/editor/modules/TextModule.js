@@ -349,9 +349,13 @@ class TextModule extends BaseModule {
             };
         }
         
-        // Re-rendre le module avec les données chargées
-        this.render();
-        this.bindEvents();
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            const contentElement = this.element.querySelector('.module-content');
+            if (contentElement) {
+                contentElement.innerHTML = `<p style="color: var(--text) !important; margin: 0;">${this.content}</p>`;
+            }
+        }
         
         console.log('✅ Données texte chargées avec succès');
     }

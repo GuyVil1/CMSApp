@@ -26,6 +26,7 @@ class ModuleFactory {
         }
 
         const module = new ModuleClass(this.editor);
+        module.create(); // Créer l'élément et initialiser this.element
         
         // Si des données initiales sont fournies, les appliquer au module
         if (initialData && typeof module.loadData === 'function') {

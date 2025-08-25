@@ -487,6 +487,23 @@ class TableModule extends BaseModule {
         `);
         popup.document.close();
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données tableau:', data);
+        
+        // Appliquer les données au module
+        this.tableData = {
+            ...this.tableData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayTable();
+        }
+        
+        console.log('✅ Données tableau chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement

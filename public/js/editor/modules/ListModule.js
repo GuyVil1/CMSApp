@@ -462,6 +462,23 @@ class ListModule extends BaseModule {
             });
         }
     }
+
+    loadData(data) {
+        console.log('📂 Chargement des données liste:', data);
+        
+        // Appliquer les données au module
+        this.listData = {
+            ...this.listData,
+            ...data
+        };
+        
+        // Mettre à jour l'affichage si l'élément existe
+        if (this.element) {
+            this.displayList();
+        }
+        
+        console.log('✅ Données liste chargées avec succès');
+    }
 }
 
 // Rendre disponible globalement
