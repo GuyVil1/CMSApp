@@ -1,0 +1,32 @@
+# Configuration et fichiers sensibles
+config/config.php
+config/env.example
+wamp.conf
+
+# Fichiers temporaires et de test
+test-*.php
+test-*.html
+test-*.jpg
+Img_Temporaire/
+Visuels_Site/
+
+# Fichiers de cache et logs
+*.log
+*.cache
+*.tmp
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers d'upload temporaires
+public/uploads/temp/
+
+# Fichiers de dépendances (si vous en ajoutez plus tard)
+vendor/
+node_modules/
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.production
