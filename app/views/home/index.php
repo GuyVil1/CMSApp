@@ -781,7 +781,7 @@
                         <?php if (!empty($featuredArticles)): ?>
                             <!-- Article principal -->
                             <div class="featured-main">
-                                <img src="/uploads/<?php echo htmlspecialchars($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
+                                                                 <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
                                      alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>">
                                 <div class="featured-overlay"></div>
                                 <div class="featured-content">
@@ -795,7 +795,7 @@
                              <div class="featured-bottom">
                                  <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
                                      <div class="featured-small">
-                                         <img src="/uploads/<?php echo htmlspecialchars($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                                         <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
                                               alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                                          <div class="featured-overlay"></div>
                                          <div class="featured-content">
@@ -848,7 +848,7 @@
                      <div class="featured-right">
                          <?php for ($i = 3; $i < min(6, count($featuredArticles)); $i++): ?>
                              <div class="featured-small">
-                                 <img src="/uploads/<?php echo htmlspecialchars($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                                                                                                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
                                       alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                                  <div class="featured-overlay"></div>
                                  <div class="featured-content">
@@ -903,8 +903,8 @@
                                 <?php foreach ($pageArticles as $article): ?>
                                     <div class="article-card" onclick="window.location.href='/articles/<?php echo $article['slug']; ?>'">
                                         <div class="article-image">
-                                            <img src="/uploads/<?php echo htmlspecialchars($article['cover_image'] ?? 'default.jpg'); ?>" 
-                                                 alt="<?php echo htmlspecialchars($article['title']); ?>">
+                                                                                         <img src="/image.php?file=<?php echo urlencode($article['cover_image'] ?? 'default.jpg'); ?>" 
+                                                  alt="<?php echo htmlspecialchars($article['title']); ?>">
                                         </div>
                                         <div class="article-content">
                                             <div class="article-header">
@@ -941,8 +941,8 @@
                             <?php if (!empty($trailers)): ?>
                                 <?php foreach ($trailers as $trailer): ?>
                                     <div class="trailer-item" onclick="window.location.href='/articles/<?php echo $trailer['slug']; ?>'">
-                                        <img src="/uploads/<?php echo htmlspecialchars($trailer['cover_image'] ?? 'default.jpg'); ?>" 
-                                             alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
+                                                                                 <img src="/image.php?file=<?php echo urlencode($trailer['cover_image'] ?? 'default.jpg'); ?>" 
+                                              alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
                                         <div class="trailer-overlay"></div>
                                         <div class="trailer-play">
                                             <svg class="trailer-play-icon" fill="currentColor" viewBox="0 0 24 24">

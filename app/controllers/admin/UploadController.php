@@ -1,14 +1,16 @@
 <?php
 declare(strict_types=1);
 
+namespace Admin;
+
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 
-class UploadController extends Controller
+class UploadController extends \Controller
 {
     public function __construct()
     {
-        Auth::requireRole(['admin', 'editor']);
+        \Auth::requireRole(['admin', 'editor']);
     }
     
     /**
@@ -113,7 +115,7 @@ class UploadController extends Controller
                 'type' => $type
             ];
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('Erreur upload image: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Erreur interne du serveur'];
         }
@@ -180,7 +182,7 @@ class UploadController extends Controller
             
             return $thumbFilename;
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log('Erreur création miniature: ' . $e->getMessage());
             return null;
         }

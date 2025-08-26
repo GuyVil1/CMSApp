@@ -5,18 +5,20 @@ declare(strict_types=1);
  * Contrôleur de gestion des jeux - Belgium Vidéo Gaming
  */
 
+namespace Admin;
+
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../core/Database.php';
 require_once __DIR__ . '/../../models/Game.php';
 require_once __DIR__ . '/../../models/Media.php';
 
-class GamesController extends Controller
+class GamesController extends \Controller
 {
     public function __construct()
     {
         // Vérifier que l'utilisateur est connecté et a les droits admin/editor
-        Auth::requireRole(['admin', 'editor']);
+        \Auth::requireRole(['admin', 'editor']);
     }
     
     /**
@@ -25,7 +27,7 @@ class GamesController extends Controller
     public function get(int $id): void
     {
         try {
-            $game = Database::queryOne("
+            $game = \Database::queryOne("
                 SELECT g.*, m.filename, m.original_name, m.mime_type 
                 FROM games g 
                 LEFT JOIN media m ON g.cover_image_id = m.id 
@@ -61,7 +63,7 @@ class GamesController extends Controller
             
             $this->jsonResponse(['success' => true, 'game' => $gameData]);
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
     }

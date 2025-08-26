@@ -140,7 +140,7 @@ class Media
      */
     public function getUrl(): string
     {
-        return '/uploads/' . $this->filename;
+        return '/image.php?file=' . urlencode($this->filename);
     }
     
     /**
@@ -150,7 +150,7 @@ class Media
     {
         $pathInfo = pathinfo($this->filename);
         $thumbnailName = 'thumb_' . $pathInfo['basename'];
-        return '/uploads/' . $thumbnailName;
+        return '/image.php?file=' . urlencode($thumbnailName);
     }
     
     /**

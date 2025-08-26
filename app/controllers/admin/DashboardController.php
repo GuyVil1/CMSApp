@@ -5,16 +5,18 @@ declare(strict_types=1);
  * Contrôleur du tableau de bord administrateur
  */
 
+namespace Admin;
+
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../core/Database.php';
 
-class DashboardController extends Controller
+class DashboardController extends \Controller
 {
     public function __construct()
     {
         // Vérifier que l'utilisateur est connecté et a les droits admin
-        Auth::requireRole('admin');
+        \Auth::requireRole('admin');
     }
     
     /**
@@ -23,7 +25,7 @@ class DashboardController extends Controller
     public function index(): void
     {
         $this->render('admin/dashboard/index', [
-            'user' => Auth::getUser(),
+            'user' => \Auth::getUser(),
             'stats' => $this->getStats()
         ]);
     }
@@ -35,12 +37,12 @@ class DashboardController extends Controller
     {
         try {
             return [
-                'articles' => Database::queryOne("SELECT COUNT(*) as count FROM articles")['count'] ?? 0,
-                'users' => Database::queryOne("SELECT COUNT(*) as count FROM users")['count'] ?? 0,
-                'games' => Database::queryOne("SELECT COUNT(*) as count FROM games")['count'] ?? 0,
-                'categories' => Database::queryOne("SELECT COUNT(*) as count FROM categories")['count'] ?? 0
+                'articles' => \Database::queryOne("SELECT COUNT(*) as count FROM articles")['count'] ?? 0,
+                'users' => \Database::queryOne("SELECT COUNT(*) as count FROM users")['count'] ?? 0,
+                'games' => \Database::queryOne("SELECT COUNT(*) as count FROM games")['count'] ?? 0,
+                'categories' => \Database::queryOne("SELECT COUNT(*) as count FROM categories")['count'] ?? 0
             ];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return ['articles' => 0, 'users' => 0, 'games' => 0, 'categories' => 0];
         }
     }

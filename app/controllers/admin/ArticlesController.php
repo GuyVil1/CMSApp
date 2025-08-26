@@ -5,18 +5,20 @@ declare(strict_types=1);
  * Contrôleur de gestion des articles - Belgium Vidéo Gaming
  */
 
+namespace Admin;
+
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../core/Database.php';
 require_once __DIR__ . '/../../models/Article.php';
 require_once __DIR__ . '/../../models/Media.php'; // Added for cover image validation
 
-class ArticlesController extends Controller
+class ArticlesController extends \Controller
 {
     public function __construct()
     {
         // Vérifier que l'utilisateur est connecté et a les droits admin/editor
-        Auth::requireRole(['admin', 'editor']);
+        \Auth::requireRole(['admin', 'editor']);
     }
     
     /**
@@ -34,10 +36,10 @@ class ArticlesController extends Controller
         if ($status) $filters['status'] = $status;
         if ($category) $filters['category_id'] = $category;
         
-        $result = Article::findAll($page, 20, $filters);
+        $result = \Article::findAll($page, 20, $filters);
         
         // Charger les catégories pour le filtre
-        $categories = Database::query("SELECT id, name FROM categories ORDER BY name");
+        $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
         
         $this->render('admin/articles/index', [
             'articles' => $result['articles'],
@@ -61,9 +63,9 @@ class ArticlesController extends Controller
     public function create(): void
     {
         // Charger les données nécessaires
-        $categories = Database::query("SELECT id, name FROM categories ORDER BY name");
-        $games = Database::query("SELECT id, title FROM games ORDER BY title");
-        $tags = Database::query("SELECT id, name FROM tags ORDER BY name");
+        $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
+        $games = \Database::query("SELECT id, title FROM games ORDER BY title");
+        $tags = \Database::query("SELECT id, name FROM tags ORDER BY name");
         
         $this->render('admin/articles/form', [
             'article' => null,
@@ -98,12 +100,12 @@ class ArticlesController extends Controller
             $tags = $_POST['tags'] ?? [];
             
             if (empty($title) || empty($content)) {
-                throw new Exception('Le titre et le contenu sont obligatoires');
+                throw new \Exception('Le titre et le contenu sont obligatoires');
             }
             
             // Validation du statut
             if (!in_array($status, ['draft', 'published', 'archived'])) {
-                throw new Exception('Statut invalide');
+                throw new \Exception('Statut invalide');
             }
             
             // Gestion de l'upload d'image d'illustration
@@ -114,17 +116,17 @@ class ArticlesController extends Controller
             
             // Validation de l'image de couverture
             if (empty($cover_image_id) && empty($uploadedImageId)) {
-                // Si un jeu est sélectionné, essayer de récupérer sa cover
-                if ($game_id) {
-                    $game = Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
-                    if ($game && $game['cover_image_id']) {
-                        $cover_image_id = $game['cover_image_id'];
-                    } else {
-                        throw new Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
-                    }
+                            // Si un jeu est sélectionné, essayer de récupérer sa cover
+            if ($game_id) {
+                $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
+                if ($game && $game['cover_image_id']) {
+                    $cover_image_id = $game['cover_image_id'];
                 } else {
-                    throw new Exception('L\'image de couverture est obligatoire');
+                    throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
                 }
+            } else {
+                throw new \Exception('L\'image de couverture est obligatoire');
+            }
             }
             
             // Utiliser l'image uploadée si disponible
@@ -133,15 +135,15 @@ class ArticlesController extends Controller
             }
             
             // Vérifier que l'image existe
-            $coverImage = Media::find($cover_image_id);
+            $coverImage = \Media::find($cover_image_id);
             if (!$coverImage) {
-                throw new Exception('L\'image de couverture sélectionnée n\'existe pas');
+                throw new \Exception('L\'image de couverture sélectionnée n\'existe pas');
             }
             
             // Vérifier la position en avant
             if ($featured_position) {
                 if ($featured_position < 1 || $featured_position > 6) {
-                    throw new Exception('La position en avant doit être comprise entre 1 et 6');
+                    throw new \Exception('La position en avant doit être comprise entre 1 et 6');
                 }
                 // Pas de vérification de disponibilité - remplacement automatique autorisé
             }
@@ -156,7 +158,7 @@ class ArticlesController extends Controller
             }
             
             // Générer le slug
-            $slug = Article::generateSlug($title);
+            $slug = \Article::generateSlug($title);
             
             // Créer l'article
             $articleData = [
@@ -166,14 +168,14 @@ class ArticlesController extends Controller
                 'content' => $content,
                 'status' => $status,
                 'cover_image_id' => $cover_image_id,
-                'author_id' => Auth::getUser()['id'],
+                'author_id' => \Auth::getUser()['id'],
                 'category_id' => $category_id,
                 'game_id' => $game_id,
                 'featured_position' => $featured_position,
                 'published_at' => $published_at
             ];
             
-            $articleId = Article::create($articleData);
+            $articleId = \Article::create($articleData);
             
             if (!$articleId) {
                 throw new Exception('Erreur lors de la création de l\'article');
@@ -181,12 +183,12 @@ class ArticlesController extends Controller
             
             // Gérer le remplacement automatique si une position en avant est sélectionnée
             if ($featured_position) {
-                Article::replaceArticleInPosition($featured_position, $articleId);
+                \Article::replaceArticleInPosition($featured_position, $articleId);
             }
             
             // Ajouter les tags
             if (!empty($tags)) {
-                $article = Article::findById($articleId);
+                $article = \Article::findById($articleId);
                 if ($article) {
                     $article->addTags($tags);
                 }
@@ -194,12 +196,12 @@ class ArticlesController extends Controller
             
             // Log de l'activité
             $statusText = $status === 'published' ? 'publié' : ($status === 'archived' ? 'archivé' : 'créé en brouillon');
-            Auth::logActivity(Auth::getUserId(), "Article $statusText : $title");
+            \Auth::logActivity(\Auth::getUserId(), "Article $statusText : $title");
             
             $this->setFlash('success', "Article $statusText avec succès !");
             $this->redirect('/admin/articles');
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
             $this->redirect('/admin/articles/create');
         }
@@ -218,12 +220,12 @@ class ArticlesController extends Controller
         }
         
         // Charger les données nécessaires
-        $categories = Database::query("SELECT id, name FROM categories ORDER BY name");
-        $games = Database::query("SELECT id, title FROM games ORDER BY title");
-        $tags = Database::query("SELECT id, name FROM tags ORDER BY name");
+        $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
+        $games = \Database::query("SELECT id, title FROM games ORDER BY name");
+        $tags = \Database::query("SELECT id, name FROM tags ORDER BY name");
         
         // Récupérer les tags de l'article
-        $articleTags = Database::query(
+        $articleTags = \Database::query(
             "SELECT tag_id FROM article_tag WHERE article_id = ?",
             [$id]
         );
@@ -277,9 +279,9 @@ class ArticlesController extends Controller
             }
             
             // Vérifier que l'image existe
-            $coverImage = Media::find($cover_image_id);
+            $coverImage = \Media::find($cover_image_id);
             if (!$coverImage) {
-                throw new Exception('L\'image de couverture sélectionnée n\'existe pas');
+                throw new \Exception('L\'image de couverture sélectionnée n\'existe pas');
             }
             
             // Vérifier la position en avant
@@ -295,17 +297,17 @@ class ArticlesController extends Controller
             if ($featured_position && $oldPosition !== $featured_position) {
                 // Libérer l'ancienne position de cet article
                 if ($oldPosition) {
-                    Article::freePosition($oldPosition);
+                    \Article::freePosition($oldPosition);
                 }
                 // Remplacer l'article dans la nouvelle position
-                Article::replaceArticleInPosition($featured_position, $id);
+                \Article::replaceArticleInPosition($featured_position, $id);
             } elseif (!$featured_position && $oldPosition) {
                 // Libérer la position si on retire l'article de la mise en avant
-                Article::freePosition($oldPosition);
+                \Article::freePosition($oldPosition);
             }
             
             // Générer le slug
-            $slug = Article::generateSlug($title, $id);
+            $slug = \Article::generateSlug($title, $id);
             
             // Mettre à jour l'article
             $articleData = [
@@ -327,12 +329,12 @@ class ArticlesController extends Controller
             $article->addTags($tags);
             
             // Log de l'activité
-            Auth::logActivity('article_updated', "Article mis à jour : $title");
+            \Auth::logActivity('article_updated', "Article mis à jour : $title");
             
             $this->setFlash('success', 'Article mis à jour avec succès !');
             $this->redirect('/admin/articles');
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
             $this->redirect("/admin/articles/edit/$id");
         }
@@ -343,7 +345,7 @@ class ArticlesController extends Controller
      */
     public function delete(int $id): void
     {
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -354,21 +356,21 @@ class ArticlesController extends Controller
             // Libérer la position en avant si elle existe
             $featuredPosition = $article->getFeaturedPosition();
             if ($featuredPosition) {
-                Article::freePosition($featuredPosition);
+                \Article::freePosition($featuredPosition);
             }
             
             // Supprimer l'article
             if (!$article->delete()) {
-                throw new Exception('Erreur lors de la suppression de l\'article');
+                throw new \Exception('Erreur lors de la suppression de l\'article');
             }
             
             // Log de l'activité
-            Auth::logActivity('article_deleted', "Article supprimé : {$article->getTitle()}");
+            \Auth::logActivity('article_deleted', "Article supprimé : {$article->getTitle()}");
             
             $this->setFlash('success', 'Article supprimé avec succès !');
             $this->redirect('/admin/articles');
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
             $this->redirect('/admin/articles');
         }
@@ -379,7 +381,7 @@ class ArticlesController extends Controller
      */
     public function publish(int $id): void
     {
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -388,13 +390,13 @@ class ArticlesController extends Controller
         
         try {
             if (!$article->publish()) {
-                throw new Exception('Erreur lors de la publication');
+                throw new \Exception('Erreur lors de la publication');
             }
             
             $this->setFlash('success', 'Article publié avec succès !');
             $this->redirect('/admin/articles');
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
             $this->redirect('/admin/articles');
         }
@@ -405,7 +407,7 @@ class ArticlesController extends Controller
      */
     public function draft(int $id): void
     {
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -414,13 +416,13 @@ class ArticlesController extends Controller
         
         try {
             if (!$article->draft()) {
-                throw new Exception('Erreur lors de la mise en brouillon');
+                throw new \Exception('Erreur lors de la mise en brouillon');
             }
             
             $this->setFlash('success', 'Article mis en brouillon !');
             $this->redirect('/admin/articles');
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
             $this->redirect('/admin/articles');
         }
@@ -431,7 +433,7 @@ class ArticlesController extends Controller
      */
     public function archive(int $id): void
     {
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -440,12 +442,12 @@ class ArticlesController extends Controller
         
         try {
             if ($article->archive()) {
-                Auth::logActivity('article_archived', "Article archivé : " . $article->getTitle());
+                \Auth::logActivity('article_archived', "Article archivé : " . $article->getTitle());
                 $this->setFlash('success', 'Article archivé !');
             } else {
-                throw new Exception('Erreur lors de l\'archivage');
+                throw new \Exception('Erreur lors de l\'archivage');
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->setFlash('error', 'Erreur : ' . $e->getMessage());
         }
         
@@ -471,7 +473,7 @@ class ArticlesController extends Controller
         
         // Positions 1 à 6
         for ($i = 1; $i <= 6; $i++) {
-            $currentArticle = Article::getArticleInPosition($i);
+            $currentArticle = \Article::getArticleInPosition($i);
             
             $positions[] = [
                 'position' => $i,
@@ -582,16 +584,16 @@ class ArticlesController extends Controller
             $file['name'],
             $mimeType,
             $file['size'],
-            Auth::getUser()['id']
+            \Auth::getUser()['id']
         ];
         
-        Database::query($sql, $params);
-        $mediaId = (int)Database::lastInsertId();
+        \Database::query($sql, $params);
+        $mediaId = (int)\Database::lastInsertId();
         
         if (!$mediaId) {
             // Supprimer le fichier si l'insertion échoue
             unlink($filepath);
-            throw new Exception('Erreur lors de l\'enregistrement en base de données.');
+            throw new \Exception('Erreur lors de l\'enregistrement en base de données.');
         }
         
         return $mediaId;

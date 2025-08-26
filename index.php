@@ -102,6 +102,9 @@ function route($uri) {
         } else {
             $params = array_slice($parts, 3);
         }
+        
+        // Ajouter le namespace Admin pour les contrôleurs admin
+        $controller = 'Admin\\' . $controller;
     } 
     // Routes normales
     else {
