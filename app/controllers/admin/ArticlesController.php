@@ -143,10 +143,7 @@ class ArticlesController extends Controller
                 if ($featured_position < 1 || $featured_position > 6) {
                     throw new Exception('La position en avant doit être comprise entre 1 et 6');
                 }
-                
-                if (!Article::isPositionAvailable($featured_position)) {
-                    throw new Exception('Cette position en avant est déjà occupée');
-                }
+                // Pas de vérification de disponibilité - remplacement automatique autorisé
             }
             
             // Gestion de la date de publication
@@ -180,6 +177,11 @@ class ArticlesController extends Controller
             
             if (!$articleId) {
                 throw new Exception('Erreur lors de la création de l\'article');
+            }
+            
+            // Gérer le remplacement automatique si une position en avant est sélectionnée
+            if ($featured_position) {
+                Article::replaceArticleInPosition($featured_position, $articleId);
             }
             
             // Ajouter les tags
@@ -285,15 +287,20 @@ class ArticlesController extends Controller
                 if ($featured_position < 1 || $featured_position > 6) {
                     throw new Exception('La position en avant doit être comprise entre 1 et 6');
                 }
-                
-                if (!Article::isPositionAvailable($featured_position, $id)) {
-                    throw new Exception('Cette position en avant est déjà occupée');
-                }
+                // Pas de vérification de disponibilité - remplacement automatique autorisé
             }
             
-            // Libérer l'ancienne position si elle change
+            // Gérer le remplacement automatique si la position change
             $oldPosition = $article->getFeaturedPosition();
-            if ($oldPosition && $oldPosition !== $featured_position) {
+            if ($featured_position && $oldPosition !== $featured_position) {
+                // Libérer l'ancienne position de cet article
+                if ($oldPosition) {
+                    Article::freePosition($oldPosition);
+                }
+                // Remplacer l'article dans la nouvelle position
+                Article::replaceArticleInPosition($featured_position, $id);
+            } elseif (!$featured_position && $oldPosition) {
+                // Libérer la position si on retire l'article de la mise en avant
                 Article::freePosition($oldPosition);
             }
             
@@ -447,21 +454,58 @@ class ArticlesController extends Controller
     
     /**
      * Obtenir les positions en avant disponibles
+     * Toutes les positions sont disponibles pour permettre le remplacement automatique
      */
     private function getFeaturedPositions(?int $excludeArticleId = null): array
     {
         $positions = [];
         
+        // Option "Pas en avant"
+        $positions[] = [
+            'position' => null,
+            'label' => 'Pas en avant',
+            'available' => true,
+            'current_article' => null,
+            'description' => 'Article non mis en avant'
+        ];
+        
+        // Positions 1 à 6
         for ($i = 1; $i <= 6; $i++) {
-            $available = Article::isPositionAvailable($i, $excludeArticleId);
+            $currentArticle = Article::getArticleInPosition($i);
+            
             $positions[] = [
                 'position' => $i,
                 'label' => "Position $i",
-                'available' => $available
+                'available' => true, // Toujours disponible
+                'current_article' => $currentArticle,
+                'description' => $this->getPositionDescription($i)
             ];
         }
         
         return $positions;
+    }
+    
+    /**
+     * Obtenir la description d'une position pour l'interface
+     */
+    private function getPositionDescription(int $position): string
+    {
+        switch ($position) {
+            case 1:
+                return 'Article principal (2/3 largeur, 2/3 hauteur)';
+            case 2:
+                return 'Article moyen gauche (1/3 hauteur)';
+            case 3:
+                return 'Article moyen droit (1/3 hauteur)';
+            case 4:
+                return 'Article petit haut (1/3 largeur, 1/3 hauteur)';
+            case 5:
+                return 'Article petit milieu (1/3 largeur, 1/3 hauteur)';
+            case 6:
+                return 'Article petit bas (1/3 largeur, 1/3 hauteur)';
+            default:
+                return "Position $position";
+        }
     }
     
     /**

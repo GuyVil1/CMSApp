@@ -127,20 +127,20 @@ class Article
                     WHERE id = ?";
             
             $params = [
-                $data['title'],
-                $data['slug'],
-                $data['excerpt'] ?? null,
-                $data['content'],
-                $data['status'],
-                $data['cover_image_id'] ?? null,
-                $data['category_id'] ?? null,
-                $data['game_id'] ?? null,
-                $data['published_at'] ?? null,
-                $data['featured_position'] ?? null,
+                $data['title'] ?? $this->title,
+                $data['slug'] ?? $this->slug,
+                $data['excerpt'] ?? $this->excerpt,
+                $data['content'] ?? $this->content,
+                $data['status'] ?? $this->status,
+                $data['cover_image_id'] ?? $this->cover_image_id,
+                $data['category_id'] ?? $this->category_id,
+                $data['game_id'] ?? $this->game_id,
+                $data['published_at'] ?? $this->published_at,
+                $data['featured_position'] ?? $this->featured_position,
                 $this->id
             ];
             
-            return Database::execute($sql, $params);
+            return Database::execute($sql, $params) !== false;
         } catch (Exception $e) {
             error_log("Erreur mise à jour article: " . $e->getMessage());
             return false;
@@ -306,22 +306,44 @@ class Article
     
     /**
      * Vérifier si une position en avant est disponible
+     * Maintenant toutes les positions sont disponibles pour permettre le remplacement
      */
     public static function isPositionAvailable(int $position, ?int $excludeId = null): bool
     {
+        // Toutes les positions sont disponibles pour permettre le remplacement automatique
+        return true;
+    }
+    
+    /**
+     * Obtenir l'article actuellement en position donnée
+     */
+    public static function getArticleInPosition(int $position): ?array
+    {
         try {
-            $sql = "SELECT COUNT(*) as count FROM articles WHERE featured_position = ?";
-            $params = [$position];
-            
-            if ($excludeId) {
-                $sql .= " AND id != ?";
-                $params[] = $excludeId;
-            }
-            
-            $result = Database::queryOne($sql, $params);
-            return $result['count'] == 0;
+            $sql = "SELECT id, title FROM articles WHERE featured_position = ? AND status = 'published'";
+            $result = Database::queryOne($sql, [$position]);
+            return $result ?: null;
         } catch (Exception $e) {
-            error_log("Erreur vérification position: " . $e->getMessage());
+            error_log("Erreur récupération article en position: " . $e->getMessage());
+            return null;
+        }
+    }
+    
+    /**
+     * Remplacer un article en position (libérer l'ancien et placer le nouveau)
+     */
+    public static function replaceArticleInPosition(int $position, int $newArticleId): bool
+    {
+        try {
+            // Libérer la position (mettre l'ancien article à NULL)
+            self::freePosition($position);
+            
+            // Placer le nouvel article
+            $sql = "UPDATE articles SET featured_position = ? WHERE id = ?";
+            $result = Database::execute($sql, [$position, $newArticleId]);
+            return $result !== false;
+        } catch (Exception $e) {
+            error_log("Erreur remplacement article en position: " . $e->getMessage());
             return false;
         }
     }
@@ -333,7 +355,8 @@ class Article
     {
         try {
             $sql = "UPDATE articles SET featured_position = NULL WHERE featured_position = ?";
-            return Database::execute($sql, [$position]);
+            $result = Database::execute($sql, [$position]);
+            return $result !== false;
         } catch (Exception $e) {
             error_log("Erreur libération position: " . $e->getMessage());
             return false;

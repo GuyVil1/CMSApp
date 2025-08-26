@@ -212,6 +212,117 @@
             cursor: not-allowed;
         }
         
+        /* Nouveau design en quadrillage pour les positions en avant */
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .grid-item {
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .grid-item:hover {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+        }
+        
+        .grid-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .grid-item input[type="radio"]:checked + .grid-label {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.2);
+            box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+        }
+        
+        .grid-label {
+            display: block;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .grid-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .grid-icon {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .grid-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+        
+        .grid-desc {
+            font-size: 12px;
+            color: #ccc;
+            text-align: center;
+            line-height: 1.3;
+        }
+        
+        .grid-current {
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 10px;
+            color: #ffd700;
+        }
+        
+        .grid-item-none {
+            grid-column: 1 / -1;
+            background: rgba(128, 128, 128, 0.1);
+        }
+        
+        .grid-item-none:hover {
+            border-color: #95a5a6;
+            background: rgba(149, 165, 166, 0.2);
+        }
+        
+        .grid-item-none .grid-icon {
+            color: #95a5a6;
+        }
+        
+        /* Responsive pour le quadrillage */
+        @media (max-width: 768px) {
+            .featured-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .grid-item-none {
+                grid-column: 1 / -1;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .featured-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         /* Tags */
         .tags-container {
             background: rgba(0, 0, 0, 0.2);
@@ -461,23 +572,44 @@
                             Choisissez si cet article doit apparaître en avant sur la page d'accueil
                         </p>
                         
-                        <div class="position-option">
-                            <input type="radio" id="position_none" name="featured_position" value="" 
-                                   <?= !$article || !$article->getFeaturedPosition() ? 'checked' : '' ?>>
-                            <label for="position_none">Pas en avant</label>
-                        </div>
-                        
-                        <?php foreach ($featured_positions as $position): ?>
-                            <div class="position-option <?= $position['available'] ? 'position-available' : 'position-unavailable' ?>">
-                                <input type="radio" id="position_<?= $position['position'] ?>" 
-                                       name="featured_position" value="<?= $position['position'] ?>"
-                                       <?= $article && $article->getFeaturedPosition() == $position['position'] ? 'checked' : '' ?>
-                                       <?= !$position['available'] ? 'disabled' : '' ?>>
-                                <label for="position_<?= $position['position'] ?>">
-                                    <?= htmlspecialchars($position['label']) ?>
+                        <!-- Nouveau design en quadrillage -->
+                        <div class="featured-grid">
+                            <!-- Position "Pas en avant" -->
+                            <div class="grid-item grid-item-none">
+                                <input type="radio" id="position_none" name="featured_position" value="" 
+                                       <?= !$article || !$article->getFeaturedPosition() ? 'checked' : '' ?>>
+                                <label for="position_none" class="grid-label">
+                                    <div class="grid-content">
+                                        <div class="grid-icon">❌</div>
+                                        <div class="grid-title">Pas en avant</div>
+                                        <div class="grid-desc">Article non mis en avant</div>
+                                    </div>
                                 </label>
                             </div>
-                        <?php endforeach; ?>
+                            
+                            <!-- Positions 1-6 en quadrillage -->
+                            <?php foreach ($featured_positions as $position): ?>
+                                <?php if ($position['position']): ?>
+                                    <div class="grid-item grid-item-position" data-position="<?= $position['position'] ?>">
+                                        <input type="radio" id="position_<?= $position['position'] ?>" 
+                                               name="featured_position" value="<?= $position['position'] ?>"
+                                               <?= $article && $article->getFeaturedPosition() == $position['position'] ? 'checked' : '' ?>>
+                                        <label for="position_<?= $position['position'] ?>" class="grid-label">
+                                            <div class="grid-content">
+                                                <div class="grid-icon"><?= $position['position'] ?></div>
+                                                <div class="grid-title">Position <?= $position['position'] ?></div>
+                                                <div class="grid-desc"><?= htmlspecialchars($position['description']) ?></div>
+                                                <?php if ($position['current_article']): ?>
+                                                    <div class="grid-current">
+                                                        <small>Actuellement : <?= htmlspecialchars($position['current_article']['title']) ?></small>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </label>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
 
                     <!-- Tags -->

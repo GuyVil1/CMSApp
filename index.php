@@ -94,6 +94,14 @@ function route($uri) {
             return ['error' => '404'];
         }
         require_once $controllerFile;
+        
+        // Gestion spéciale pour les actions avec ID (publish, draft, archive, delete)
+        if (in_array($action, ['publish', 'draft', 'archive', 'delete']) && isset($parts[3])) {
+            $action = $action;
+            $params = [(int)$parts[3]]; // Convertir l'ID en int
+        } else {
+            $params = array_slice($parts, 3);
+        }
     } 
     // Routes normales
     else {
@@ -115,7 +123,7 @@ function route($uri) {
     return [
         'controller' => $controller,
         'action' => $action,
-        'params' => array_slice($parts, 2)
+        'params' => isset($params) ? $params : array_slice($parts, 2)
     ];
 }
 
