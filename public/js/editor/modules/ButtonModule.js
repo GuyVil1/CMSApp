@@ -41,29 +41,24 @@ class ButtonModule extends BaseModule {
             </div>
         `;
         
-        this.bindButtonEvents();
+        this.bindEvents();
     }
 
     renderButton() {
-        const buttonClass = this.getButtonClass();
-        const alignmentClass = this.getAlignmentClass();
-        const widthClass = this.getWidthClass();
-        const animationClass = this.getAnimationClass();
-        
-        const buttonHTML = `
-            <div class="button-container ${alignmentClass} ${widthClass}">
-                <a href="${this.buttonData.link || '#'}" 
-                   target="${this.buttonData.target}" 
-                   class="custom-button ${buttonClass} ${animationClass}"
-                   style="${this.getCustomStyles()}">
-                    ${this.buttonData.icon && this.buttonData.iconPosition === 'left' ? `<span class="button-icon">${this.buttonData.icon}</span>` : ''}
-                    <span class="button-text">${this.buttonData.text}</span>
-                    ${this.buttonData.icon && this.buttonData.iconPosition === 'right' ? `<span class="button-icon">${this.buttonData.icon}</span>` : ''}
-                </a>
-            </div>
+        const buttonClass = `btn btn-${this.buttonData.style} btn-${this.buttonData.size}`;
+        const style = `
+            background-color: ${this.buttonData.backgroundColor};
+            color: ${this.buttonData.textColor};
+            border: ${this.buttonData.borderWidth}px solid ${this.buttonData.borderColor};
+            border-radius: ${this.buttonData.borderRadius}px;
+            padding: ${this.buttonData.padding}px ${this.buttonData.padding * 2}px;
+            text-align: ${this.buttonData.alignment};
+            text-decoration: ${this.buttonData.underline ? 'underline' : 'none'};
+            font-weight: ${this.buttonData.bold ? 'bold' : 'normal'};
+            font-style: ${this.buttonData.italic ? 'italic' : 'normal'};
         `;
-
-        return buttonHTML;
+        
+        return `<button class="button-text ${buttonClass}" style="${style}" contenteditable="true">${this.buttonData.text}</button>`;
     }
 
     getButtonClass() {
@@ -101,15 +96,33 @@ class ButtonModule extends BaseModule {
         return '';
     }
 
-    bindButtonEvents() {
-        const buttonDisplay = this.element.querySelector('.button-display');
-        if (buttonDisplay) {
-            buttonDisplay.addEventListener('click', (e) => {
-                if (!e.target.closest('a')) {
-                    this.showButtonEditor();
-                }
-            });
-        }
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques au bouton
+        const buttonText = this.element.querySelector('.button-text');
+        if (!buttonText) return;
+
+        // Gestion de la saisie de texte
+        buttonText.addEventListener('input', (e) => {
+            this.buttonData.text = e.target.textContent;
+        });
+
+        // Gestion de la perte de focus
+        buttonText.addEventListener('blur', (e) => {
+            if (!e.target.textContent.trim()) {
+                e.target.textContent = 'Nouveau bouton';
+                this.buttonData.text = 'Nouveau bouton';
+            }
+        });
+
+        // Clic pour éditer
+        buttonText.addEventListener('click', (e) => {
+            if (e.target === buttonText) {
+                this.showButtonEditor();
+            }
+        });
     }
 
     showButtonEditor() {

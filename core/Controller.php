@@ -175,4 +175,131 @@ abstract class Controller
         
         return $slug;
     }
+    
+    /**
+     * Système de Flash Messages
+     * Permet d'afficher des messages temporaires entre deux requêtes
+     */
+    
+    /**
+     * Définir un message flash
+     */
+    protected function setFlash(string $type, string $message): void
+    {
+        // Initialiser le tableau des flash messages s'il n'existe pas
+        if (!isset($_SESSION['flash'])) {
+            $_SESSION['flash'] = [];
+        }
+        
+        // Ajouter le message
+        $_SESSION['flash'][$type] = $message;
+    }
+    
+    /**
+     * Définir un message flash de succès
+     */
+    protected function setFlashSuccess(string $message): void
+    {
+        $this->setFlash('success', $message);
+    }
+    
+    /**
+     * Définir un message flash d'erreur
+     */
+    protected function setFlashError(string $message): void
+    {
+        $this->setFlash('error', $message);
+    }
+    
+    /**
+     * Définir un message flash d'information
+     */
+    protected function setFlashInfo(string $message): void
+    {
+        $this->setFlash('info', $message);
+    }
+    
+    /**
+     * Définir un message flash d'avertissement
+     */
+    protected function setFlashWarning(string $message): void
+    {
+        $this->setFlash('warning', $message);
+    }
+    
+    /**
+     * Récupérer tous les messages flash
+     */
+    protected function getFlash(): array
+    {
+        $flash = $_SESSION['flash'] ?? [];
+        
+        // Supprimer les messages après les avoir récupérés
+        unset($_SESSION['flash']);
+        
+        return $flash;
+    }
+    
+    /**
+     * Récupérer un message flash spécifique
+     */
+    protected function getFlashMessage(string $type): ?string
+    {
+        $flash = $this->getFlash();
+        return $flash[$type] ?? null;
+    }
+    
+    /**
+     * Vérifier s'il y a des messages flash
+     */
+    protected function hasFlash(): bool
+    {
+        return isset($_SESSION['flash']) && !empty($_SESSION['flash']);
+    }
+    
+    /**
+     * Vérifier s'il y a un message flash d'un type spécifique
+     */
+    protected function hasFlashType(string $type): bool
+    {
+        return isset($_SESSION['flash'][$type]);
+    }
+    
+    /**
+     * Supprimer tous les messages flash
+     */
+    protected function clearFlash(): void
+    {
+        unset($_SESSION['flash']);
+    }
+    
+    /**
+     * Supprimer un type de message flash spécifique
+     */
+    protected function clearFlashType(string $type): void
+    {
+        if (isset($_SESSION['flash'][$type])) {
+            unset($_SESSION['flash'][$type]);
+        }
+    }
+    
+    /**
+     * Récupérer les messages flash pour l'affichage dans les vues
+     * Cette méthode est utilisée dans les vues pour afficher les messages
+     */
+    protected function getFlashForView(): array
+    {
+        $flash = $_SESSION['flash'] ?? [];
+        
+        // Ne pas supprimer ici, laisser les vues le faire
+        return $flash;
+    }
+    
+    /**
+     * Marquer les messages flash comme affichés (à appeler après affichage)
+     */
+    protected function markFlashAsDisplayed(): void
+    {
+        unset($_SESSION['flash']);
+    }
 }

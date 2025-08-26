@@ -38,10 +38,14 @@ class GalleryModule extends BaseModule {
             </div>
         `;
         
-        this.bindGalleryEvents();
+        this.bindEvents();
     }
 
-    bindGalleryEvents() {
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques à la galerie
         const content = this.element.querySelector('.module-content');
         if (!content) return;
 
@@ -383,7 +387,7 @@ class GalleryModule extends BaseModule {
                     <div class="gallery-hint">Glissez-déposez ou sélectionnez plusieurs images</div>
                 </div>
             `;
-            this.bindGalleryEvents();
+            this.bindEvents(); // Re-bind events to restore drag & drop
             return;
         }
 
@@ -418,7 +422,7 @@ class GalleryModule extends BaseModule {
         content.innerHTML = galleryHTML;
 
         // Re-binder les événements
-        this.bindGalleryEvents();
+        this.bindEvents(); // Re-bind events to restore drag & drop
 
         // Initialiser les fonctionnalités spécifiques
         if (this.galleryData.layout === 'carousel') {

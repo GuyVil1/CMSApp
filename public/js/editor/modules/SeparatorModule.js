@@ -31,19 +31,29 @@ class SeparatorModule extends BaseModule {
                 </div>
             </div>
         `;
-        this.bindSeparatorEvents();
+        
+        this.bindEvents();
     }
 
     renderSeparator() {
-        const style = this.getSeparatorStyle();
-        const alignmentClass = `separator-align-${this.separatorData.alignment}`;
-        const width = this.separatorData.width === '100' ? '100%' : `${this.separatorData.width}%`;
-        
-        return `
-            <div class="separator-container ${alignmentClass}" style="margin: ${this.separatorData.margin}px 0;">
-                <div class="separator ${this.separatorData.style}" style="width: ${width}; ${style}"></div>
-            </div>
+        const separatorClass = `separator-${this.separatorData.style} separator-${this.separatorData.alignment}`;
+        const style = `
+            border-color: ${this.separatorData.color};
+            border-width: ${this.separatorData.width}px;
+            border-style: ${this.separatorData.style === 'dashed' ? 'dashed' : this.separatorData.style === 'dotted' ? 'dotted' : 'solid'};
+            margin: ${this.separatorData.margin}px 0;
+            width: ${this.separatorData.width}%;
         `;
+        
+        if (this.separatorData.style === 'text') {
+            return `
+                <div class="separator-text ${separatorClass}" style="${style}">
+                    <span class="separator-symbol">${this.separatorData.symbol}</span>
+                </div>
+            `;
+        } else {
+            return `<hr class="separator-line ${separatorClass}" style="${style}">`;
+        }
     }
 
     getSeparatorStyle() {
@@ -134,8 +144,17 @@ class SeparatorModule extends BaseModule {
         }
     }
 
-    bindSeparatorEvents() {
-        // Pas d'événements spécifiques pour le séparateur
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques au séparateur
+        const separatorDisplay = this.element.querySelector('.separator-display');
+        if (separatorDisplay) {
+            separatorDisplay.addEventListener('click', (e) => {
+                this.showSeparatorEditor();
+            });
+        }
     }
 
     showSeparatorEditor() {

@@ -107,7 +107,7 @@ class Article
                 $data['featured_position'] ?? null
             ];
             
-            return Database::execute($sql, $params) ? Database::lastInsertId() : null;
+            return Database::execute($sql, $params) ? (int)Database::lastInsertId() : null;
         } catch (Exception $e) {
             error_log("Erreur création article: " . $e->getMessage());
             return null;

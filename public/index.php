@@ -12,6 +12,9 @@ session_start();
 // Charger la configuration
 require_once __DIR__ . '/../config/config.php';
 
+// Charger les helpers globaux
+require_once __DIR__ . '/../app/helpers/flash_helper.php';
+
 // Charger les classes de base
 require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Controller.php';

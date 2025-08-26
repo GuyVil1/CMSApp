@@ -349,6 +349,38 @@ class MediaController extends \Controller
     }
     
     /**
+     * Liste des médias via API
+     */
+    public function list(): void
+    {
+        try {
+            $media = Database::query("
+                SELECT id, filename, original_name, mime_type, size, created_at 
+                FROM media 
+                ORDER BY created_at DESC
+            ");
+            
+            $mediaList = [];
+            foreach ($media as $item) {
+                $mediaList[] = [
+                    'id' => $item['id'],
+                    'filename' => $item['filename'],
+                    'original_name' => $item['original_name'],
+                    'mime_type' => $item['mime_type'],
+                    'size' => $item['size'],
+                    'url' => '/public/uploads/' . $item['filename'],
+                    'created_at' => $item['created_at']
+                ];
+            }
+            
+            $this->jsonResponse(['success' => true, 'media' => $mediaList]);
+            
+        } catch (Exception $e) {
+            $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+    
+    /**
      * Réponse JSON
      */
     private function jsonResponse(array $data, int $statusCode = 200): void

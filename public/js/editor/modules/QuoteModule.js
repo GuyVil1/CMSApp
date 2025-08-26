@@ -25,29 +25,81 @@ class QuoteModule extends BaseModule {
                 </div>
             </div>
             <div class="module-content">
-                <div class="quote-placeholder">
-                    <div class="quote-icon">💬</div>
-                    <div class="quote-text">Cliquez pour ajouter une citation</div>
-                    <div class="quote-hint">Texte, auteur et source</div>
+                <div class="quote-display">
+                    ${this.renderQuote()}
                 </div>
             </div>
         `;
         
-        this.bindQuoteEvents();
+        this.bindEvents();
     }
 
-    bindQuoteEvents() {
-        const content = this.element.querySelector('.module-content');
-        if (!content) return;
+    renderQuote() {
+        const quoteClass = `quote-${this.quoteData.style} quote-${this.quoteData.alignment}`;
+        const style = `
+            color: ${this.quoteData.textColor};
+            background-color: ${this.quoteData.backgroundColor};
+            border-left: ${this.quoteData.borderWidth}px solid ${this.quoteData.borderColor};
+            padding: ${this.quoteData.padding}px;
+            font-style: ${this.quoteData.italic ? 'italic' : 'normal'};
+            font-weight: ${this.quoteData.bold ? 'bold' : 'normal'};
+        `;
+        
+        return `
+            <blockquote class="quote-text ${quoteClass}" style="${style}">
+                <div class="quote-content" contenteditable="true">${this.quoteData.text}</div>
+                ${this.quoteData.author ? `<cite class="quote-author" contenteditable="true">— ${this.quoteData.author}</cite>` : ''}
+            </blockquote>
+        `;
+    }
 
-        // Clic pour éditer (seulement si on clique sur le placeholder)
-        content.addEventListener('click', (e) => {
-            // Ne pas déclencher l'édition si on clique sur un champ de saisie
-            if (e.target.closest('input, textarea, button')) {
-                return;
-            }
-            this.showQuoteEditor();
-        });
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques à la citation
+        const quoteContent = this.element.querySelector('.quote-content');
+        const quoteAuthor = this.element.querySelector('.quote-author');
+        
+        if (quoteContent) {
+            // Gestion de la saisie de texte
+            quoteContent.addEventListener('input', (e) => {
+                this.quoteData.text = e.target.textContent;
+            });
+
+            // Gestion de la perte de focus
+            quoteContent.addEventListener('blur', (e) => {
+                if (!e.target.textContent.trim()) {
+                    e.target.textContent = 'Votre citation ici...';
+                    this.quoteData.text = 'Votre citation ici...';
+                }
+            });
+        }
+        
+        if (quoteAuthor) {
+            // Gestion de la saisie de l'auteur
+            quoteAuthor.addEventListener('input', (e) => {
+                this.quoteData.author = e.target.textContent.replace('— ', '');
+            });
+
+            // Gestion de la perte de focus
+            quoteAuthor.addEventListener('blur', (e) => {
+                if (!e.target.textContent.trim() || e.target.textContent === '— ') {
+                    e.target.textContent = '— Auteur';
+                    this.quoteData.author = 'Auteur';
+                }
+            });
+        }
+
+        // Clic pour éditer
+        const quoteDisplay = this.element.querySelector('.quote-display');
+        if (quoteDisplay) {
+            quoteDisplay.addEventListener('click', (e) => {
+                if (!e.target.closest('[contenteditable="true"]')) {
+                    this.showQuoteEditor();
+                }
+            });
+        }
     }
 
     showQuoteEditor() {

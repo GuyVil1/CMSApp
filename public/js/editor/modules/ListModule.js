@@ -23,7 +23,7 @@ class ListModule extends BaseModule {
     render() {
         this.element.innerHTML = `
             <div class="module-header">
-                <span class="module-type">📋 Liste</span>
+                <span class="module-type">📝 Liste</span>
                 <div class="module-actions">
                     <button type="button" class="module-action" data-action="move-left">⬅️</button>
                     <button type="button" class="module-action" data-action="move-right">➡️</button>
@@ -36,59 +36,68 @@ class ListModule extends BaseModule {
                 </div>
             </div>
         `;
-        this.bindListEvents();
+        
+        this.bindEvents();
     }
 
     renderList() {
-        const listClass = `list-${this.listData.style} list-${this.listData.spacing} list-${this.listData.bulletStyle} list-align-${this.listData.alignment}`;
-        const style = `color: ${this.listData.color};`;
+        const listType = this.listData.ordered ? 'ol' : 'ul';
+        const listClass = `list-${this.listData.style} list-${this.listData.alignment}`;
+        const style = `
+            color: ${this.listData.textColor};
+            font-size: ${this.listData.fontSize}px;
+            line-height: ${this.listData.lineHeight};
+        `;
         
-        let listHTML = `<${this.listData.type} class="list-container ${listClass}" style="${style}">`;
+        let listHTML = `<${listType} class="list-items ${listClass}" style="${style}">`;
         
         this.listData.items.forEach((item, index) => {
-            const indentClass = `list-indent-${item.level}`;
-            listHTML += `
-                <li class="list-item ${indentClass}" data-index="${index}" contenteditable="true">
-                    ${item.text}
-                </li>
-            `;
+            listHTML += `<li class="list-item" contenteditable="true" data-index="${index}">${item}</li>`;
         });
         
-        listHTML += `</${this.listData.type}>`;
+        listHTML += `</${listType}>`;
         return listHTML;
     }
 
-    bindListEvents() {
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques à la liste
         const listItems = this.element.querySelectorAll('.list-item');
+        
         listItems.forEach((item, index) => {
+            // Gestion de la saisie de texte
             item.addEventListener('input', (e) => {
-                this.listData.items[index].text = e.target.textContent;
+                this.listData.items[index] = e.target.textContent;
             });
-            
+
+            // Gestion de la perte de focus
             item.addEventListener('blur', (e) => {
                 if (!e.target.textContent.trim()) {
-                    e.target.textContent = 'Nouvel élément';
-                    this.listData.items[index].text = 'Nouvel élément';
+                    e.target.textContent = `Élément ${index + 1}`;
+                    this.listData.items[index] = `Élément ${index + 1}`;
                 }
             });
-            
+
+            // Gestion de la touche Entrée pour ajouter un nouvel élément
             item.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     this.addItemAfter(index);
-                } else if (e.key === 'Tab') {
-                    e.preventDefault();
-                    if (e.shiftKey) {
-                        this.decreaseLevel(index);
-                    } else {
-                        this.increaseLevel(index);
-                    }
-                } else if (e.key === 'Backspace' && !e.target.textContent.trim()) {
-                    e.preventDefault();
-                    this.removeItem(index);
                 }
             });
         });
+
+        // Clic pour éditer
+        const listDisplay = this.element.querySelector('.list-display');
+        if (listDisplay) {
+            listDisplay.addEventListener('click', (e) => {
+                if (!e.target.closest('[contenteditable="true"]')) {
+                    this.showListEditor();
+                }
+            });
+        }
     }
 
     addItemAfter(index) {

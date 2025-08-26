@@ -46,6 +46,10 @@ class TableModule extends BaseModule {
     }
 
     bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques au tableau
         const tableDisplay = this.element.querySelector('.table-display');
         if (tableDisplay) {
             tableDisplay.addEventListener('click', () => {

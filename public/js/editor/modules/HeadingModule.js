@@ -31,7 +31,7 @@ class HeadingModule extends BaseModule {
             </div>
         `;
         
-        this.bindHeadingEvents();
+        this.bindEvents();
     }
 
     renderHeading() {
@@ -41,7 +41,11 @@ class HeadingModule extends BaseModule {
         return `<${this.headingData.level} class="heading-text ${headingClass}" style="${style}" contenteditable="true">${this.headingData.text}</${this.headingData.level}>`;
     }
 
-    bindHeadingEvents() {
+    bindEvents() {
+        // Appeler d'abord la méthode parente pour conserver le drag & drop du module
+        super.bindEvents();
+        
+        // Ajouter les événements spécifiques au titre
         const headingText = this.element.querySelector('.heading-text');
         if (!headingText) return;
 
@@ -216,7 +220,7 @@ class HeadingModule extends BaseModule {
             </div>
         `;
         
-        this.bindHeadingEvents();
+        this.bindEvents();
     }
 
     getContent() {

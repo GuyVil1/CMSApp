@@ -286,6 +286,25 @@
             color: #e74c3c;
         }
 
+        /* Nouveaux styles pour la gestion de l'image de couverture */
+        .game-cover-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .game-cover-preview img {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 5px;
+        }
 
     </style>
 </head>
@@ -302,16 +321,24 @@
         </div>
 
         <!-- Messages flash -->
-        <?php if (isset($_SESSION['flash'])): ?>
-            <?php foreach ($_SESSION['flash'] as $type => $message): ?>
-                <div class="flash flash-<?= $type ?>">
-                    <?= htmlspecialchars($message) ?>
-                </div>
-            <?php endforeach; ?>
-            <?php unset($_SESSION['flash']); ?>
-        <?php endif; ?>
+        <?php 
+        // Charger le helper flash avec un chemin absolu depuis la racine du serveur
+        // require_once $_SERVER['DOCUMENT_ROOT'] . '/app/helpers/flash_helper.php';
+        // Afficher les messages flash
+        // displayFlashMessages();
+        
+        // Affichage temporaire des messages flash
+        if (isset($_SESSION['flash']) && !empty($_SESSION['flash'])) {
+            foreach ($_SESSION['flash'] as $type => $message) {
+                echo '<div class="flash flash-' . htmlspecialchars($type) . '">';
+                echo htmlspecialchars($message);
+                echo '</div>';
+            }
+            unset($_SESSION['flash']);
+        }
+        ?>
 
-        <form method="POST" action="<?= $article ? "/admin/articles/update/{$article->getId()}" : '/admin/articles/store' ?>" class="form-container">
+        <form method="POST" action="<?= $article ? "/admin/articles/update/{$article->getId()}" : '/admin/articles/store' ?>" class="form-container" enctype="multipart/form-data">
             <div class="form-grid">
                 <!-- Colonne principale -->
                 <div class="form-main">
@@ -349,7 +376,7 @@
                     <?php endif; ?>
                 </div>
             </div>
-            <textarea id="content" name="content" style="display: none;" required><?= $article ? htmlspecialchars($article->getContent()) : '' ?></textarea>
+                            <textarea id="content" name="content" style="display: none;"><?= $article ? htmlspecialchars($article->getContent()) : '' ?></textarea>
         </div>
                 </div>
 
@@ -381,14 +408,51 @@
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                        <p class="form-hint">Si sélectionné, la cover du jeu sera automatiquement utilisée</p>
                     </div>
 
-                                         <!-- Image de couverture -->
-                     <div class="form-group">
-                         <label for="cover_image">🖼️ Image de couverture *</label>
-                         <input type="file" id="cover_image" name="cover_image" accept="image/*" required>
-                         <p class="form-hint">Cette image sera utilisée pour les miniatures et la mise en avant</p>
-                     </div>
+                    <!-- Statut de l'article -->
+                    <div class="form-group">
+                        <label for="status">📊 Statut de l'article</label>
+                        <select id="status" name="status" required>
+                            <option value="draft" <?= (!$article || $article->getStatus() === 'draft') ? 'selected' : '' ?>>📝 Brouillon</option>
+                            <option value="published" <?= ($article && $article->getStatus() === 'published') ? 'selected' : '' ?>>✅ Publié</option>
+                            <option value="archived" <?= ($article && $article->getStatus() === 'archived') ? 'selected' : '' ?>>📦 Archivé</option>
+                        </select>
+                        <p class="form-hint">Choisissez le statut de publication de l'article</p>
+                    </div>
+
+                    <!-- Date de publication (visible seulement si statut = publié) -->
+                    <div class="form-group" id="published-date-group" style="display: none;">
+                        <label for="published_at">📅 Date de publication</label>
+                        <input type="datetime-local" id="published_at" name="published_at" 
+                               value="<?= $article && $article->getPublishedAt() ? date('Y-m-d\TH:i', strtotime($article->getPublishedAt())) : date('Y-m-d\TH:i') ?>">
+                        <p class="form-hint">Date et heure de publication (optionnel)</p>
+                    </div>
+
+                    <!-- Image de couverture -->
+                    <div class="form-group" id="cover-image-group">
+                        <label for="cover_image_id">🖼️ Image de couverture</label>
+                        
+                        <!-- Si un jeu est sélectionné -->
+                        <div id="game-cover-info" style="display: none;">
+                            <div class="game-cover-preview">
+                                <img id="game-cover-preview" src="" alt="Cover du jeu" style="max-width: 200px; border-radius: 8px; margin: 10px 0;">
+                                <p class="form-hint">✅ Cover du jeu sélectionné (automatique)</p>
+                                <input type="hidden" id="cover_image_id" name="cover_image_id" value="">
+                            </div>
+                        </div>
+                        
+                        <!-- Si aucun jeu sélectionné -->
+                        <div id="manual-cover-selection">
+                            <input type="file" id="cover_image_file" name="cover_image_file" accept="image/*" style="margin-bottom: 10px;">
+                            <p class="form-hint">📁 Upload direct d'une image d'illustration (JPG, PNG, WebP - max 4MB)</p>
+                            <div id="upload-preview" style="display: none; margin-top: 10px;">
+                                <img id="preview-image" src="" alt="Aperçu" style="max-width: 200px; border-radius: 8px; border: 1px solid #ccc;">
+                                <p class="form-hint">✅ Image sélectionnée</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Position en avant -->
                     <div class="featured-positions">
@@ -625,6 +689,150 @@
                     }
                 `;
                 document.head.appendChild(style);
+                
+                // Gestion du statut et de la date de publication
+                const statusSelect = document.getElementById('status');
+                const publishedDateGroup = document.getElementById('published-date-group');
+                
+                if (statusSelect) {
+                    statusSelect.addEventListener('change', function() {
+                        if (this.value === 'published') {
+                            publishedDateGroup.style.display = 'block';
+                        } else {
+                            publishedDateGroup.style.display = 'none';
+                        }
+                    });
+                    
+                    // Initialiser l'affichage
+                    if (statusSelect.value === 'published') {
+                        publishedDateGroup.style.display = 'block';
+                    }
+                }
+                
+                // Gestion intelligente de l'image de couverture
+                const gameSelect = document.getElementById('game_id');
+                const gameCoverInfo = document.getElementById('game-cover-info');
+                const manualCoverSelection = document.getElementById('manual-cover-selection');
+                const gameCoverPreview = document.getElementById('game-cover-preview');
+                const coverImageIdInput = document.getElementById('cover_image_id');
+                const coverImageFileInput = document.getElementById('cover_image_file');
+                const uploadPreview = document.getElementById('upload-preview');
+                const previewImage = document.getElementById('preview-image');
+                
+                if (gameSelect) {
+                    gameSelect.addEventListener('change', function() {
+                        const selectedGameId = this.value;
+                        
+                        if (selectedGameId) {
+                            // Récupérer les informations du jeu sélectionné
+                            fetchGameCover(selectedGameId);
+                        } else {
+                            // Aucun jeu sélectionné, afficher la sélection manuelle
+                            showManualCoverSelection();
+                        }
+                    });
+                    
+                    // Initialiser l'affichage
+                    if (gameSelect.value) {
+                        fetchGameCover(gameSelect.value);
+                    }
+                }
+
+                // Gestion de l'upload d'image d'illustration
+                if (coverImageFileInput) {
+                    coverImageFileInput.addEventListener('change', function(event) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewImage.src = e.target.result;
+                                uploadPreview.style.display = 'block';
+                                coverImageIdInput.value = ''; // Clear previous cover_image_id
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            previewImage.src = '';
+                            uploadPreview.style.display = 'none';
+                            coverImageIdInput.value = '';
+                        }
+                    });
+                }
+                
+                // Fonction pour récupérer la cover du jeu
+                function fetchGameCover(gameId) {
+                    fetch(`/admin/games/get/${gameId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.game.cover_image) {
+                                showGameCover(data.game.cover_image);
+                            } else {
+                                showManualCoverSelection();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de la récupération du jeu:', error);
+                            showManualCoverSelection();
+                        });
+                }
+                
+                // Afficher la cover du jeu
+                function showGameCover(coverImage) {
+                    gameCoverInfo.style.display = 'block';
+                    manualCoverSelection.style.display = 'none';
+                    gameCoverPreview.src = coverImage.url;
+                    coverImageIdInput.value = coverImage.id;
+                }
+                
+                // Afficher la sélection manuelle
+                function showManualCoverSelection() {
+                    gameCoverInfo.style.display = 'none';
+                    manualCoverSelection.style.display = 'block';
+                    coverImageIdInput.value = '';
+                    uploadPreview.style.display = 'none';
+                    previewImage.src = '';
+                }
+                
+                // Fonction pour ouvrir la médiathèque
+                window.openMediaLibrary = function() {
+                    window.open('/admin/media', '_blank', 'width=1000,height=700');
+                };
+
+                // Validation du formulaire avant soumission
+                const form = document.querySelector('.form-container');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        const contentField = document.getElementById('content');
+                        const titleField = document.getElementById('title');
+                        
+                        // Vérifier que le titre n'est pas vide
+                        if (!titleField.value.trim()) {
+                            e.preventDefault();
+                            alert('Le titre est obligatoire');
+                            titleField.focus();
+                            return false;
+                        }
+                        
+                        // Vérifier que le contenu n'est pas vide ou contient juste le placeholder
+                        const content = contentField.value.trim();
+                        if (!content || content === '<div class="content-section" data-columns="1"><div class="module text-module" data-module-type="text" data-module-id="default_text"><div class="module-content"><p>Contenu de l\'article...</p></div></div></div>') {
+                            e.preventDefault();
+                            alert('Veuillez rédiger le contenu de l\'article en utilisant l\'éditeur modulaire');
+                            return false;
+                        }
+                        
+                        // Vérifier qu'une image de couverture est sélectionnée
+                        const hasGameCover = coverImageIdInput.value && coverImageIdInput.value !== '';
+                        const hasUploadedImage = coverImageFileInput && coverImageFileInput.files.length > 0;
+                        
+                        if (!hasGameCover && !hasUploadedImage) {
+                            e.preventDefault();
+                            alert('Veuillez sélectionner une image d\'illustration ou un jeu avec une cover');
+                            return false;
+                        }
+                        
+                        return true;
+                    });
+                }
             });
         </script>
 </body>

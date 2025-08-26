@@ -89,19 +89,47 @@ class ArticlesController extends Controller
             $title = trim($_POST['title'] ?? '');
             $excerpt = trim($_POST['excerpt'] ?? '');
             $content = trim($_POST['content'] ?? '');
+            $status = trim($_POST['status'] ?? 'draft');
             $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;
             $game_id = !empty($_POST['game_id']) ? (int)$_POST['game_id'] : null;
             $featured_position = !empty($_POST['featured_position']) ? (int)$_POST['featured_position'] : null;
             $cover_image_id = !empty($_POST['cover_image_id']) ? (int)$_POST['cover_image_id'] : null;
+            $published_at = !empty($_POST['published_at']) ? $_POST['published_at'] : null;
             $tags = $_POST['tags'] ?? [];
             
             if (empty($title) || empty($content)) {
                 throw new Exception('Le titre et le contenu sont obligatoires');
             }
             
+            // Validation du statut
+            if (!in_array($status, ['draft', 'published', 'archived'])) {
+                throw new Exception('Statut invalide');
+            }
+            
+            // Gestion de l'upload d'image d'illustration
+            $uploadedImageId = null;
+            if (isset($_FILES['cover_image_file']) && $_FILES['cover_image_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadedImageId = $this->handleImageUpload($_FILES['cover_image_file']);
+            }
+            
             // Validation de l'image de couverture
-            if (empty($cover_image_id)) {
-                throw new Exception('L\'image de couverture est obligatoire');
+            if (empty($cover_image_id) && empty($uploadedImageId)) {
+                // Si un jeu est sélectionné, essayer de récupérer sa cover
+                if ($game_id) {
+                    $game = Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
+                    if ($game && $game['cover_image_id']) {
+                        $cover_image_id = $game['cover_image_id'];
+                    } else {
+                        throw new Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
+                    }
+                } else {
+                    throw new Exception('L\'image de couverture est obligatoire');
+                }
+            }
+            
+            // Utiliser l'image uploadée si disponible
+            if ($uploadedImageId) {
+                $cover_image_id = $uploadedImageId;
             }
             
             // Vérifier que l'image existe
@@ -121,6 +149,15 @@ class ArticlesController extends Controller
                 }
             }
             
+            // Gestion de la date de publication
+            if ($status === 'published' && $published_at) {
+                $published_at = date('Y-m-d H:i:s', strtotime($published_at));
+            } elseif ($status === 'published' && !$published_at) {
+                $published_at = date('Y-m-d H:i:s'); // Publication immédiate
+            } else {
+                $published_at = null;
+            }
+            
             // Générer le slug
             $slug = Article::generateSlug($title);
             
@@ -130,12 +167,13 @@ class ArticlesController extends Controller
                 'slug' => $slug,
                 'excerpt' => $excerpt ?: null,
                 'content' => $content,
-                'status' => 'draft',
+                'status' => $status,
                 'cover_image_id' => $cover_image_id,
                 'author_id' => Auth::getUser()['id'],
                 'category_id' => $category_id,
                 'game_id' => $game_id,
-                'featured_position' => $featured_position
+                'featured_position' => $featured_position,
+                'published_at' => $published_at
             ];
             
             $articleId = Article::create($articleData);
@@ -153,9 +191,10 @@ class ArticlesController extends Controller
             }
             
             // Log de l'activité
-            Auth::logActivity('article_created', "Article créé : $title");
+            $statusText = $status === 'published' ? 'publié' : ($status === 'archived' ? 'archivé' : 'créé en brouillon');
+            Auth::logActivity(Auth::getUserId(), "Article $statusText : $title");
             
-            $this->setFlash('success', 'Article créé avec succès !');
+            $this->setFlash('success', "Article $statusText avec succès !");
             $this->redirect('/admin/articles');
             
         } catch (Exception $e) {
@@ -446,5 +485,71 @@ class ArticlesController extends Controller
             default:
                 return "Position $position";
         }
+    }
+
+    /**
+     * Gérer l'upload d'une image
+     */
+    private function handleImageUpload(array $file): int
+    {
+        // Validation du fichier
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        $maxSize = 4 * 1024 * 1024; // 4MB
+        
+        if (!in_array($file['type'], $allowedTypes)) {
+            throw new Exception('Type de fichier non autorisé. Utilisez JPG, PNG ou WebP.');
+        }
+        
+        if ($file['size'] > $maxSize) {
+            throw new Exception('Fichier trop volumineux. Taille maximum : 4MB.');
+        }
+        
+        // Vérifier le MIME type réel
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        if (!in_array($mimeType, $allowedTypes)) {
+            throw new Exception('Type de fichier invalide détecté.');
+        }
+        
+        // Générer un nom de fichier unique
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid() . '_' . time() . '.' . $extension;
+        
+        // Chemin de destination
+        $uploadDir = __DIR__ . '/../../../public/uploads/';
+        $filepath = $uploadDir . $filename;
+        
+        // Créer le dossier s'il n'existe pas
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // Déplacer le fichier
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            throw new Exception('Erreur lors de l\'upload du fichier.');
+        }
+        
+        // Enregistrer dans la base de données
+        $sql = "INSERT INTO media (filename, original_name, mime_type, size, uploaded_by) VALUES (?, ?, ?, ?, ?)";
+        $params = [
+            $filename,
+            $file['name'],
+            $mimeType,
+            $file['size'],
+            Auth::getUser()['id']
+        ];
+        
+        Database::query($sql, $params);
+        $mediaId = (int)Database::lastInsertId();
+        
+        if (!$mediaId) {
+            // Supprimer le fichier si l'insertion échoue
+            unlink($filepath);
+            throw new Exception('Erreur lors de l\'enregistrement en base de données.');
+        }
+        
+        return $mediaId;
     }
 }
