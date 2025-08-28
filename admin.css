@@ -154,18 +154,22 @@ body {
    ======================================== */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--admin-spacing-lg);
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--admin-spacing-md);
     margin-bottom: var(--admin-spacing-xl);
 }
 
 .stat-card {
     background: var(--admin-card-bg);
-    padding: var(--admin-spacing-lg);
+    padding: var(--admin-spacing-md);
     border-radius: 10px;
     text-align: center;
     border: 1px solid var(--admin-border);
     transition: transform 0.3s, box-shadow 0.3s;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .stat-card:hover {
@@ -174,7 +178,7 @@ body {
 }
 
 .stat-number {
-    font-size: 2.5em;
+    font-size: 2.2em;
     color: var(--admin-primary);
     margin: 0;
     font-weight: bold;
@@ -484,7 +488,8 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--admin-spacing-sm);
     }
     
     .user-details {
@@ -529,6 +534,10 @@ body {
         font-size: 1.8em;
     }
     
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
     .stat-number {
         font-size: 2em;
     }
@@ -544,7 +553,7 @@ body {
    ======================================== */
 .upload-section {
     margin: 20px 0;
-    padding: 20px;
+    padding: 15px;
     background: var(--card-bg);
     border-radius: 10px;
     border: 1px solid var(--border-color);
@@ -553,7 +562,7 @@ body {
 .upload-area {
     border: 2px dashed var(--border-color);
     border-radius: 10px;
-    padding: 40px;
+    padding: 25px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -567,22 +576,22 @@ body {
 }
 
 .upload-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
+    font-size: 36px;
+    margin-bottom: 12px;
     color: var(--text-muted);
 }
 
 .upload-text {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 500;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: var(--text-color);
 }
 
 .upload-hint {
     color: var(--text-muted);
-    font-size: 14px;
-    margin-top: 10px;
+    font-size: 13px;
+    margin-top: 8px;
 }
 
 .file-input {

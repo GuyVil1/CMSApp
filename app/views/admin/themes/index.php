@@ -4,517 +4,121 @@
  */
 ?>
 
-<div class="admin-container">
-    <div class="admin-header">
-        <div class="header-left">
-            <div class="header-icon">🎨</div>
-            <div class="header-text">
-                <h1>Gestion des thèmes</h1>
-                <p>Gérez l'apparence de votre site avec des thèmes personnalisés</p>
-            </div>
-        </div>
-        <a href="/admin/dashboard" class="back-btn">← Retour au dashboard</a>
-    </div>
-
-    <div class="themes-grid">
-        <?php foreach ($themes as $theme): ?>
-            <div class="theme-card <?php echo $theme['name'] === $currentTheme['name'] ? 'active' : ''; ?>">
-                <div class="theme-preview">
-                    <div class="theme-preview-header">
-                        <div class="preview-title">Aperçu du thème</div>
-                    </div>
-                    <div class="theme-preview-content">
-                        <div class="preview-banner-left"></div>
-                        <div class="preview-content-center">
-                            <div class="preview-content-header">
-                                <div class="preview-logo">🎮</div>
-                                <div class="preview-text">
-                                    <h4><?php echo htmlspecialchars($theme['display_name']); ?></h4>
-                                    <p>Aperçu du contenu</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="preview-banner-right"></div>
-                    </div>
-                </div>
-                
-                <div class="theme-info">
-                    <h3><?php echo htmlspecialchars($theme['display_name']); ?></h3>
-                    <?php if ($theme['name'] === $currentTheme['name']): ?>
-                        <span class="theme-status active">✅ Actif</span>
-                    <?php else: ?>
-                        <span class="theme-status inactive">⏸️ Inactif</span>
-                    <?php endif; ?>
-                </div>
-                
-                <div class="theme-actions">
-                    <?php if ($theme['name'] !== $currentTheme['name']): ?>
-                        <button class="btn btn-primary" onclick="openThemeModal('<?php echo htmlspecialchars($theme['name']); ?>')">
-                            Appliquer
-                        </button>
-                    <?php else: ?>
-                        <button class="btn btn-secondary" disabled>
-                            Thème actuel
-                        </button>
-                    <?php endif; ?>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-
-    <?php if (empty($themes)): ?>
-        <div class="no-themes">
-            <div class="no-themes-icon">🎨</div>
-            <h3>Aucun thème trouvé</h3>
-            <p>Créez des dossiers dans <code>themes/</code> avec des fichiers <code>left.png</code> et <code>right.png</code></p>
-        </div>
-    <?php endif; ?>
-</div>
-
-<!-- Modal d'application de thème -->
-<div id="themeModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>🎨 Appliquer un thème</h2>
-            <span class="close" onclick="closeThemeModal()">&times;</span>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des thèmes - GameNews Belgium</title>
+    <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Gestion des thèmes</h1>
+            <p>Gérez l'apparence de votre site avec des thèmes personnalisés</p>
         </div>
         
-        <form id="themeForm" method="POST" action="/admin/themes/apply">
-            <input type="hidden" id="themeName" name="theme_name" value="">
-            
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" id="isPermanent" name="is_permanent" value="1">
-                    Thème permanent (devient le thème par défaut)
-                </label>
-                <small>⚠️ Attention : Cette action remplacera définitivement le thème par défaut</small>
+        <div class="actions" style="margin-bottom: var(--admin-spacing-lg);">
+            <a href="/admin/dashboard" class="btn">← Retour au dashboard</a>
+        </div>
+
+        <div class="stats-grid">
+            <?php foreach ($themes as $theme): ?>
+                <div class="stat-card <?php echo $theme['name'] === $currentTheme['name'] ? 'active' : ''; ?>" style="position: relative; overflow: hidden;">
+                    <?php if ($theme['name'] === $currentTheme['name']): ?>
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--admin-primary);"></div>
+                    <?php endif; ?>
+                    
+                    <div class="theme-preview" style="margin: -15px -15px 15px -15px; background: var(--admin-input-bg); border-radius: 10px 10px 0 0; padding: 15px;">
+                        <div class="preview-title" style="color: var(--admin-text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">Aperçu du thème</div>
+                        <div class="preview-content" style="display: flex; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid var(--admin-border);">
+                            <div class="preview-banner-left" style="width: 20%; background: var(--admin-bg); border-right: 1px solid var(--admin-border);"></div>
+                            <div class="preview-content-center" style="flex: 1; background: var(--admin-card-bg); display: flex; align-items: center; justify-content: center; padding: 10px;">
+                                <div class="preview-content-header" style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="preview-logo" style="width: 30px; height: 30px; background: var(--admin-primary); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--admin-dark);">🎮</div>
+                                    <div class="preview-text">
+                                        <h4 style="color: var(--admin-text); font-size: 14px; font-weight: 600; margin: 0 0 2px 0;"><?php echo htmlspecialchars($theme['display_name']); ?></h4>
+                                        <p style="color: var(--admin-text-muted); font-size: 12px; margin: 0;">Aperçu du contenu</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="preview-banner-right" style="width: 20%; background: var(--admin-bg); border-left: 1px solid var(--admin-border);"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="theme-info" style="text-align: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0 0 10px 0; color: var(--admin-text); font-size: 18px; font-weight: 600;"><?php echo htmlspecialchars($theme['display_name']); ?></h3>
+                        <?php if ($theme['name'] === $currentTheme['name']): ?>
+                            <span class="theme-status active" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--admin-success); color: white; border: 1px solid var(--admin-success);">✅ Actif</span>
+                        <?php else: ?>
+                            <span class="theme-status inactive" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--admin-input-bg); color: var(--admin-text-muted); border: 1px solid var(--admin-border);">⏸️ Inactif</span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="theme-actions" style="text-align: center;">
+                        <?php if ($theme['name'] !== $currentTheme['name']): ?>
+                            <button class="btn" onclick="openThemeModal('<?php echo htmlspecialchars($theme['name']); ?>')">
+                                Appliquer
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary" disabled>
+                                Thème actuel
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if (empty($themes)): ?>
+            <div class="form-container" style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: var(--admin-spacing-md); color: var(--admin-primary);">🎨</div>
+                <h3 style="color: var(--admin-text); margin-bottom: var(--admin-spacing-md);">Aucun thème trouvé</h3>
+                <p style="color: var(--admin-text-muted);">Créez des dossiers dans <code style="background: var(--admin-input-bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; color: var(--admin-primary);">themes/</code> avec des fichiers <code style="background: var(--admin-input-bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; color: var(--admin-primary);">left.png</code> et <code style="background: var(--admin-input-bg); padding: 0.25rem 0.5rem; border-radius: 4px; font-family: 'Courier New', monospace; color: var(--admin-primary);">right.png</code></p>
             </div>
-            
-            <div class="form-group" id="expiresGroup">
-                <label for="expiresAt">Date de fin (optionnel)</label>
-                <input type="datetime-local" id="expiresAt" name="expires_at" 
-                       min="<?php echo date('Y-m-d\TH:i'); ?>">
-                <small>Si non renseigné, le thème sera permanent</small>
-            </div>
-            
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeThemeModal()">
-                    Annuler
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    Appliquer le thème
-                </button>
-            </div>
-        </form>
+        <?php endif; ?>
     </div>
-</div>
 
-<style>
-:root {
-    --belgium-red: #CC0000;
-    --belgium-yellow: #E6B800;
-    --belgium-black: #000000;
-    --admin-bg: #0f0f0f;
-    --admin-card: #1a1a1a;
-    --admin-border: #333333;
-    --admin-text: #ffffff;
-    --admin-text-muted: #cccccc;
-    --admin-accent: #E6B800;
-    --gradient-bg: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #2d2d2d 100%);
-    --card-gradient: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%);
-    --yellow-gradient: linear-gradient(135deg, #E6B800 0%, #FFD700 100%);
-    --red-gradient: linear-gradient(135deg, #CC0000 0%, #FF0000 100%);
-}
+    <!-- Modal d'application de thème -->
+    <div id="themeModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
+        <div class="modal-content" style="background-color: var(--admin-light); margin: 5% auto; padding: 0; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border: 1px solid var(--admin-border);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: var(--admin-spacing-lg); border-bottom: 1px solid var(--admin-border);">
+                <h2 style="margin: 0; color: var(--admin-primary);">🎨 Appliquer un thème</h2>
+                <span class="close" onclick="closeThemeModal()" style="color: var(--admin-text-muted); font-size: 28px; font-weight: bold; cursor: pointer; line-height: 1; transition: color 0.3s ease;">&times;</span>
+            </div>
+            
+            <form id="themeForm" method="POST" action="/admin/themes/apply" style="padding: var(--admin-spacing-lg);">
+                <input type="hidden" id="themeName" name="theme_name" value="">
+                
+                <div class="form-group" style="margin-bottom: var(--admin-spacing-lg);">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--admin-text);">
+                        <input type="checkbox" id="isPermanent" name="is_permanent" value="1" style="margin-right: 0.5rem; accent-color: var(--admin-primary);">
+                        Thème permanent (devient le thème par défaut)
+                    </label>
+                    <small style="display: block; margin-top: 0.5rem; color: var(--admin-text-muted); font-size: 0.875rem;">⚠️ Attention : Cette action remplacera définitivement le thème par défaut</small>
+                </div>
+                
+                <div class="form-group" id="expiresGroup" style="margin-bottom: var(--admin-spacing-lg);">
+                    <label for="expiresAt" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--admin-text);">Date de fin (optionnel)</label>
+                    <input type="datetime-local" id="expiresAt" name="expires_at" 
+                           min="<?php echo date('Y-m-d\TH:i'); ?>" style="width: 100%; padding: 0.75rem; border: 1px solid var(--admin-border); border-radius: 6px; font-size: 1rem; background: var(--admin-input-bg); color: var(--admin-text);">
+                    <small style="display: block; margin-top: 0.5rem; color: var(--admin-text-muted); font-size: 0.875rem;">Si non renseigné, le thème sera permanent</small>
+                </div>
+                
+                <div class="modal-actions" style="display: flex; gap: var(--admin-spacing-md); justify-content: flex-end; margin-top: var(--admin-spacing-lg); padding-top: var(--admin-spacing-lg); border-top: 1px solid var(--admin-border);">
+                    <button type="button" class="btn btn-secondary" onclick="closeThemeModal()">
+                        Annuler
+                    </button>
+                    <button type="submit" class="btn">
+                        Appliquer le thème
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-.admin-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: var(--admin-bg);
-    min-height: 100vh;
-}
 
-.admin-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background: var(--admin-card);
-    border-radius: 12px;
-    border: 1px solid var(--admin-border);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.header-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--belgium-yellow);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: var(--belgium-black);
-}
-
-.header-text h1 {
-    color: var(--admin-text);
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.header-text p {
-    color: var(--admin-text-muted);
-    font-size: 14px;
-}
-
-.back-btn {
-    background: var(--belgium-yellow);
-    color: var(--belgium-black);
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.back-btn:hover {
-    background: #d4a700;
-    transform: translateY(-2px);
-}
-
-.themes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.theme-card {
-    background: var(--admin-card);
-    border: 2px solid var(--admin-border);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.theme-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
-.theme-card.active {
-    border-color: var(--belgium-yellow);
-    box-shadow: 0 0 0 3px rgba(230, 184, 0, 0.2);
-}
-
-.theme-preview {
-    background: var(--admin-card);
-    border-bottom: 1px solid var(--admin-border);
-}
-
-.theme-preview-header {
-    padding: 1rem;
-    background: var(--admin-bg);
-    border-bottom: 1px solid var(--admin-border);
-}
-
-.preview-title {
-    color: var(--admin-text-muted);
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.theme-preview-content {
-    display: flex;
-    height: 120px;
-    position: relative;
-}
-
-.preview-banner-left,
-.preview-banner-right {
-    width: 15%;
-    background: var(--admin-bg);
-    border: 1px solid var(--admin-border);
-    position: relative;
-}
-
-.preview-content-center {
-    flex: 1;
-    background: var(--admin-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-left: 1px solid var(--admin-border);
-    border-right: 1px solid var(--admin-border);
-}
-
-.preview-content-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-}
-
-.preview-logo {
-    width: 40px;
-    height: 40px;
-    background: var(--belgium-yellow);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: var(--belgium-black);
-}
-
-.preview-text h4 {
-    color: var(--admin-text);
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0 0 0.25rem 0;
-}
-
-.preview-text p {
-    color: var(--admin-text-muted);
-    font-size: 14px;
-    margin: 0;
-}
-
-.theme-info {
-    padding: 1.5rem;
-    text-align: center;
-    background: var(--admin-card);
-}
-
-.theme-info h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--admin-text);
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.theme-status {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    background: var(--admin-bg);
-    border: 1px solid var(--admin-border);
-}
-
-.theme-status.active {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.theme-status.inactive {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.theme-actions {
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    text-align: center;
-    background: var(--admin-card);
-}
-
-.no-themes {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--admin-card);
-    border: 2px dashed var(--admin-border);
-    border-radius: 12px;
-}
-
-.no-themes-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-}
-
-.no-themes h3 {
-    color: var(--admin-text);
-    margin-bottom: 1rem;
-}
-
-.no-themes p {
-    color: var(--admin-text-muted);
-}
-
-.no-themes code {
-    background: var(--admin-bg);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'Courier New', monospace;
-    color: var(--belgium-yellow);
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-}
-
-.modal-content {
-    background-color: var(--admin-card);
-    margin: 5% auto;
-    padding: 0;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    border: 1px solid var(--admin-border);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--admin-border);
-}
-
-.modal-header h2 {
-    margin: 0;
-    color: var(--admin-text);
-}
-
-.close {
-    color: var(--admin-text-muted);
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.3s ease;
-}
-
-.close:hover {
-    color: var(--admin-text);
-}
-
-#themeForm {
-    padding: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--admin-text);
-}
-
-.form-group input[type="checkbox"] {
-    margin-right: 0.5rem;
-    accent-color: var(--belgium-yellow);
-}
-
-.form-group input[type="datetime-local"] {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--admin-border);
-    border-radius: 6px;
-    font-size: 1rem;
-    background: var(--admin-bg);
-    color: var(--admin-text);
-}
-
-.form-group small {
-    display: block;
-    margin-top: 0.5rem;
-    color: var(--admin-text-muted);
-    font-size: 0.875rem;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 2rem;
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn-primary {
-    background: var(--belgium-red);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #990000;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background: var(--admin-border);
-    color: var(--admin-text);
-}
-
-.btn-secondary:hover {
-    background: #505050;
-    transform: translateY(-2px);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-@media (max-width: 768px) {
-    .admin-header {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-    
-    .themes-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .modal-actions {
-        flex-direction: column;
-    }
-}
-</style>
 
 <script>
 function openThemeModal(themeName) {
@@ -545,3 +149,5 @@ window.onclick = function(event) {
     }
 }
 </script>
+</body>
+</html>
