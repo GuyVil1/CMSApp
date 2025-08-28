@@ -121,6 +121,23 @@
             background: #990000;
         }
         
+        .logout-btn {
+            background: var(--belgium-black);
+            color: white;
+            border: 1px solid var(--belgium-yellow);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .logout-btn:hover {
+            background: var(--belgium-yellow);
+            color: var(--belgium-black);
+        }
+        
         /* Layout principal avec bannières de fond */
         .main-layout {
             position: relative;
@@ -771,7 +788,10 @@
                 </h1>
                 
                 <?php if ($isLoggedIn): ?>
-                    <a href="/admin/dashboard" class="login-btn">Dashboard</a>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <a href="/admin/dashboard" class="login-btn">Dashboard</a>
+                        <a href="/auth/logout" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Se déconnecter</a>
+                    </div>
                 <?php else: ?>
                     <a href="/auth/login" class="login-btn">Se connecter</a>
                 <?php endif; ?>

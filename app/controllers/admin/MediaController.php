@@ -65,6 +65,12 @@ class MediaController extends \Controller
         */
         
         try {
+            // Vérifier que l'extension GD est disponible
+            if (!extension_loaded('gd')) {
+                error_log("Extension GD non disponible");
+                throw new \Exception('Extension GD non disponible sur le serveur');
+            }
+            
             error_log("Vérification des fichiers uploadés...");
             if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
                 $error = $_FILES['file']['error'] ?? 'Fichier non défini';
@@ -84,16 +90,19 @@ class MediaController extends \Controller
                 mkdir($uploadDir, 0755, true);
             }
             
-            // Vérifier le type MIME
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeType = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-            
-            // Types autorisés
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-            if (!in_array($mimeType, $allowedTypes)) {
-                throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
-            }
+                         // Vérifier le type MIME
+             $finfo = finfo_open(FILEINFO_MIME_TYPE);
+             $mimeType = finfo_file($finfo, $file['tmp_name']);
+             finfo_close($finfo);
+             
+             error_log("Type MIME détecté: " . $mimeType);
+             
+             // Types autorisés
+             $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+             if (!in_array($mimeType, $allowedTypes)) {
+                 error_log("Type MIME non autorisé: " . $mimeType);
+                 throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
+             }
             
             // Vérifier la taille (4MB max)
             $maxSize = 4 * 1024 * 1024;
@@ -111,23 +120,32 @@ class MediaController extends \Controller
                 throw new \Exception('Erreur lors du déplacement du fichier');
             }
             
-            // Créer la vignette si c'est une image
-            $this->createThumbnail($filepath, $filename);
+                         // Créer la vignette si c'est une image (temporairement désactivé pour diagnostic)
+             try {
+                 $this->createThumbnail($filepath, $filename);
+             } catch (\Exception $e) {
+                 error_log("Erreur création vignette: " . $e->getMessage());
+                 // Continuer sans vignette
+             }
             
-            // Enregistrer en base de données
-            $mediaData = [
-                'filename' => $filename,
-                'original_name' => $file['name'],
-                'mime_type' => $mimeType,
-                'size' => $file['size'],
-                'uploaded_by' => \Auth::getUserId()
-            ];
-            
-            $media = \Media::create($mediaData);
-            
-            if (!$media) {
-                throw new \Exception('Erreur lors de l\'enregistrement en base de données');
-            }
+                         // Enregistrer en base de données
+             $mediaData = [
+                 'filename' => $filename,
+                 'original_name' => $file['name'],
+                 'mime_type' => $mimeType,
+                 'size' => $file['size'],
+                 'uploaded_by' => \Auth::getUserId()
+             ];
+             
+             error_log("Tentative d'enregistrement en base de données...");
+             $media = \Media::create($mediaData);
+             
+             if (!$media) {
+                 error_log("Échec de l'enregistrement en base de données");
+                 throw new \Exception('Erreur lors de l\'enregistrement en base de données');
+             }
+             
+             error_log("Média enregistré avec succès, ID: " . $media->getId());
             
             // Stocker en cache temporaire (session)
             $this->storeInTempCache($media);
@@ -226,6 +244,8 @@ class MediaController extends \Controller
      */
     private function createThumbnail(string $filepath, string $filename): void
     {
+        error_log("Création vignette pour: " . $filename);
+        
         $uploadDir = __DIR__ . '/../../../public/uploads/';
         $thumbnailName = 'thumb_' . $filename;
         $thumbnailPath = $uploadDir . $thumbnailName;
@@ -237,8 +257,11 @@ class MediaController extends \Controller
         // Obtenir les dimensions de l'image originale
         $imageInfo = getimagesize($filepath);
         if (!$imageInfo) {
+            error_log("Impossible de lire les dimensions de l'image: " . $filepath);
             return;
         }
+        
+        error_log("Type MIME détecté: " . $imageInfo['mime']);
         
         $originalWidth = $imageInfo[0];
         $originalHeight = $imageInfo[1];
@@ -251,7 +274,11 @@ class MediaController extends \Controller
                 $sourceImage = imagecreatefromjpeg($filepath);
                 break;
             case 'image/png':
+                error_log("Tentative de création d'image PNG depuis: " . $filepath);
                 $sourceImage = imagecreatefrompng($filepath);
+                if (!$sourceImage) {
+                    error_log("Échec de création d'image PNG. Erreur GD: " . error_get_last()['message'] ?? 'Inconnue');
+                }
                 break;
             case 'image/webp':
                 $sourceImage = imagecreatefromwebp($filepath);
@@ -262,6 +289,7 @@ class MediaController extends \Controller
         }
         
         if (!$sourceImage) {
+            error_log("Impossible de créer l'image source pour: " . $filepath);
             return;
         }
         
@@ -290,7 +318,13 @@ class MediaController extends \Controller
                 imagejpeg($thumbnail, $thumbnailPath, 85);
                 break;
             case 'image/png':
-                imagepng($thumbnail, $thumbnailPath, 8);
+                error_log("Sauvegarde vignette PNG vers: " . $thumbnailPath);
+                $result = imagepng($thumbnail, $thumbnailPath, 8);
+                if (!$result) {
+                    error_log("Échec de sauvegarde vignette PNG. Erreur GD: " . error_get_last()['message'] ?? 'Inconnue');
+                } else {
+                    error_log("Vignette PNG sauvegardée avec succès");
+                }
                 break;
             case 'image/webp':
                 imagewebp($thumbnail, $thumbnailPath, 85);

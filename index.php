@@ -95,8 +95,8 @@ function route($uri) {
         }
         require_once $controllerFile;
         
-        // Gestion spéciale pour les actions avec ID (publish, draft, archive, delete)
-        if (in_array($action, ['publish', 'draft', 'archive', 'delete']) && isset($parts[3])) {
+        // Gestion spéciale pour les actions avec ID (publish, draft, archive, delete, edit, update)
+        if (in_array($action, ['publish', 'draft', 'archive', 'delete', 'edit', 'update']) && isset($parts[3])) {
             $action = $action;
             $params = [(int)$parts[3]]; // Convertir l'ID en int
         } else {

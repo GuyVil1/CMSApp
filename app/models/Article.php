@@ -157,7 +157,8 @@ class Article
             Database::execute("DELETE FROM article_tag WHERE article_id = ?", [$this->id]);
             
             // Supprimer l'article
-            return Database::execute("DELETE FROM articles WHERE id = ?", [$this->id]);
+            $result = Database::execute("DELETE FROM articles WHERE id = ?", [$this->id]);
+            return $result > 0; // Retourner true si au moins une ligne a été supprimée
         } catch (Exception $e) {
             error_log("Erreur suppression article: " . $e->getMessage());
             return false;

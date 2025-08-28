@@ -19,7 +19,7 @@ class AuthController extends Controller
     {
         // Si déjà connecté, rediriger
         if (Auth::isLoggedIn()) {
-            $this->redirectTo('/admin');
+            $this->redirectTo('/');
         }
         
         $error = '';
@@ -37,7 +37,7 @@ class AuthController extends Controller
             } else {
                 // Tenter la connexion
                 if (Auth::login($login, $password)) {
-                    $this->redirectTo('/admin');
+                    $this->redirectTo('/');
                 } else {
                     $error = 'Identifiants incorrects';
                 }
@@ -66,7 +66,7 @@ class AuthController extends Controller
     {
         // Si déjà connecté, rediriger
         if (Auth::isLoggedIn()) {
-            $this->redirectTo('/admin');
+            $this->redirectTo('/');
         }
         
         $error = '';

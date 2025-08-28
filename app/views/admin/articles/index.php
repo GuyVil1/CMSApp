@@ -242,7 +242,11 @@
     <div class="container">
         <div class="header">
             <h1>📝 Gestion des articles</h1>
-            <a href="/admin/articles/create" class="btn">➕ Nouvel article</a>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="/" class="btn btn-info">🏠 Accueil</a>
+                <a href="/admin/dashboard" class="btn btn-warning">📊 Tableau de bord</a>
+                <a href="/admin/articles/create" class="btn btn-success">➕ Nouvel article</a>
+            </div>
         </div>
 
         <!-- Messages flash -->

@@ -178,7 +178,7 @@ class ArticlesController extends \Controller
             $articleId = \Article::create($articleData);
             
             if (!$articleId) {
-                throw new Exception('Erreur lors de la création de l\'article');
+                throw new \Exception('Erreur lors de la création de l\'article');
             }
             
             // Gérer le remplacement automatique si une position en avant est sélectionnée
@@ -212,7 +212,7 @@ class ArticlesController extends \Controller
      */
     public function edit(int $id): void
     {
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -221,7 +221,7 @@ class ArticlesController extends \Controller
         
         // Charger les données nécessaires
         $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
-        $games = \Database::query("SELECT id, title FROM games ORDER BY name");
+        $games = \Database::query("SELECT id, title FROM games ORDER BY title");
         $tags = \Database::query("SELECT id, name FROM tags ORDER BY name");
         
         // Récupérer les tags de l'article
@@ -251,7 +251,7 @@ class ArticlesController extends \Controller
             return;
         }
         
-        $article = Article::findById($id);
+        $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
             $this->redirect('/admin/articles');
@@ -270,12 +270,33 @@ class ArticlesController extends \Controller
             $tags = $_POST['tags'] ?? [];
             
             if (empty($title) || empty($content)) {
-                throw new Exception('Le titre et le contenu sont obligatoires');
+                throw new \Exception('Le titre et le contenu sont obligatoires');
+            }
+            
+            // Gestion de l'upload d'image d'illustration
+            $uploadedImageId = null;
+            if (isset($_FILES['cover_image_file']) && $_FILES['cover_image_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadedImageId = $this->handleImageUpload($_FILES['cover_image_file']);
             }
             
             // Validation de l'image de couverture
-            if (empty($cover_image_id)) {
-                throw new Exception('L\'image de couverture est obligatoire');
+            if (empty($cover_image_id) && empty($uploadedImageId)) {
+                // Si aucun jeu n'est sélectionné, essayer de récupérer sa cover
+                if ($game_id) {
+                    $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
+                    if ($game && $game['cover_image_id']) {
+                        $cover_image_id = $game['cover_image_id'];
+                    } else {
+                        throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
+                    }
+                } else {
+                    throw new \Exception('L\'image de couverture est obligatoire');
+                }
+            }
+            
+            // Utiliser l'image uploadée si disponible
+            if ($uploadedImageId) {
+                $cover_image_id = $uploadedImageId;
             }
             
             // Vérifier que l'image existe
@@ -287,7 +308,7 @@ class ArticlesController extends \Controller
             // Vérifier la position en avant
             if ($featured_position) {
                 if ($featured_position < 1 || $featured_position > 6) {
-                    throw new Exception('La position en avant doit être comprise entre 1 et 6');
+                    throw new \Exception('La position en avant doit être comprise entre 1 et 6');
                 }
                 // Pas de vérification de disponibilité - remplacement automatique autorisé
             }
@@ -322,14 +343,14 @@ class ArticlesController extends \Controller
             ];
             
             if (!$article->update($articleData)) {
-                throw new Exception('Erreur lors de la mise à jour de l\'article');
+                throw new \Exception('Erreur lors de la mise à jour de l\'article');
             }
             
             // Mettre à jour les tags
             $article->addTags($tags);
             
             // Log de l'activité
-            \Auth::logActivity('article_updated', "Article mis à jour : $title");
+            \Auth::logActivity(\Auth::getUserId(), "Article mis à jour : $title");
             
             $this->setFlash('success', 'Article mis à jour avec succès !');
             $this->redirect('/admin/articles');
@@ -365,7 +386,7 @@ class ArticlesController extends \Controller
             }
             
             // Log de l'activité
-            \Auth::logActivity('article_deleted', "Article supprimé : {$article->getTitle()}");
+            \Auth::logActivity(\Auth::getUserId(), "Article supprimé : {$article->getTitle()}");
             
             $this->setFlash('success', 'Article supprimé avec succès !');
             $this->redirect('/admin/articles');
@@ -442,7 +463,7 @@ class ArticlesController extends \Controller
         
         try {
             if ($article->archive()) {
-                \Auth::logActivity('article_archived', "Article archivé : " . $article->getTitle());
+                \Auth::logActivity(\Auth::getUserId(), "Article archivé : " . $article->getTitle());
                 $this->setFlash('success', 'Article archivé !');
             } else {
                 throw new \Exception('Erreur lors de l\'archivage');
@@ -543,11 +564,11 @@ class ArticlesController extends \Controller
         $maxSize = 4 * 1024 * 1024; // 4MB
         
         if (!in_array($file['type'], $allowedTypes)) {
-            throw new Exception('Type de fichier non autorisé. Utilisez JPG, PNG ou WebP.');
+            throw new \Exception('Type de fichier non autorisé. Utilisez JPG, PNG ou WebP.');
         }
         
         if ($file['size'] > $maxSize) {
-            throw new Exception('Fichier trop volumineux. Taille maximum : 4MB.');
+            throw new \Exception('Fichier trop volumineux. Taille maximum : 4MB.');
         }
         
         // Vérifier le MIME type réel
@@ -556,7 +577,7 @@ class ArticlesController extends \Controller
         finfo_close($finfo);
         
         if (!in_array($mimeType, $allowedTypes)) {
-            throw new Exception('Type de fichier invalide détecté.');
+            throw new \Exception('Type de fichier invalide détecté.');
         }
         
         // Générer un nom de fichier unique
@@ -574,7 +595,7 @@ class ArticlesController extends \Controller
         
         // Déplacer le fichier
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-            throw new Exception('Erreur lors de l\'upload du fichier.');
+            throw new \Exception('Erreur lors de l\'upload du fichier.');
         }
         
         // Enregistrer dans la base de données
