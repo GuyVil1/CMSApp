@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GameNews - L'actualité jeux vidéo en Belgique</title>
     <meta name="description" content="Votre source #1 pour l'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l'univers gaming depuis 2020.">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- CSS avec thème belge -->
     <style>
@@ -39,11 +40,18 @@
             padding: 0 1rem;
         }
         
-        /* Header avec thème belge */
+        /* Header avec thème belge - couleurs correctes et pleine largeur */
         .header {
-            background: linear-gradient(135deg, var(--belgium-red) 0%, var(--belgium-yellow) 35%, var(--belgium-black) 100%);
+            background: linear-gradient(135deg, var(--belgium-black) 0%, var(--belgium-yellow) 35%, var(--belgium-red) 100%);
             border-bottom: 3px solid var(--belgium-yellow);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100vw; /* Pleine largeur de l'écran */
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            z-index: 10; /* Au-dessus des bannières latérales */
         }
         
         .header-content {
@@ -113,36 +121,62 @@
             background: #990000;
         }
         
-        /* Layout principal */
+        /* Layout principal avec bannières de fond */
         .main-layout {
-            display: flex;
-            justify-content: center;
+            position: relative;
             min-height: calc(100vh - 200px);
         }
         
-        .sidebar {
-            display: none;
-            width: 320px;
-            padding: 1rem;
-            position: sticky;
-            top: 1rem;
-            height: fit-content;
+        /* Bannières thématiques de fond - 28% total (14% chaque côté) */
+        .theme-banner-left {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 14vw; /* 14% de la largeur de l'écran */
+            height: 1080px; /* Hauteur fixe pour les images */
+            background: url('/theme-image.php?theme=<?php echo htmlspecialchars($currentTheme['name']); ?>&side=left') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed; /* Effet parallax */
+            z-index: 1;
         }
         
-        @media (min-width: 1536px) {
-            .sidebar {
-                display: block;
-            }
+        .theme-banner-right {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 14vw; /* 14% de la largeur de l'écran */
+            height: 1080px; /* Hauteur fixe pour les images */
+            background: url('/theme-image.php?theme=<?php echo htmlspecialchars($currentTheme['name']); ?>&side=right') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed; /* Effet parallax */
+            z-index: 1;
         }
         
         .main-content {
-            width: 75%;
-            padding: 1.5rem 1rem;
+            position: relative;
+            z-index: 2;
+            width: 68vw; /* 68% de la largeur de l'écran */
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            background: white;
+            min-height: calc(100vh - 200px);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1); /* Ombre pour séparer du fond */
+            border-radius: 8px 8px 0 0; /* Coins arrondis en haut */
+            /* Centrer parfaitement le contenu */
+            margin-left: 16vw; /* 14% + 2% d'espace */
+            margin-right: 16vw; /* 14% + 2% d'espace */
         }
         
-        @media (min-width: 1536px) {
+        /* Responsive - masquer les bannières sur mobile */
+        @media (max-width: 1400px) {
+            .theme-banner-left,
+            .theme-banner-right {
+                display: none;
+            }
+            
             .main-content {
-                width: 75%;
+                width: 100%;
+                padding: 1.5rem 1rem;
             }
         }
         
@@ -537,31 +571,21 @@
             overflow: hidden;
         }
         
-        /* Sidebar */
-        .sidebar-banner {
-            background: var(--muted);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
+        /* Bannières thématiques de fond - styles pour PNG */
+
         
-        .sidebar-banner h3 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .sidebar-banner p {
-            color: #666;
-            font-size: 0.875rem;
-        }
-        
-        /* Footer */
+        /* Footer avec thème belge - pleine largeur */
         .footer {
-            background: linear-gradient(135deg, var(--belgium-red) 0%, var(--belgium-yellow) 35%, var(--belgium-black) 100%);
+            background: linear-gradient(135deg, var(--belgium-black) 0%, var(--belgium-yellow) 35%, var(--belgium-red) 100%);
             color: white;
             margin-top: 4rem;
+            width: 100vw; /* Pleine largeur de l'écran */
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            z-index: 10; /* Au-dessus des bannières latérales */
         }
         
         .footer-content {
@@ -755,16 +779,12 @@
         </div>
     </header>
 
+    <!-- Bannières thématiques de fond -->
+    <div class="theme-banner-left"></div>
+    <div class="theme-banner-right"></div>
+
     <!-- Layout principal -->
     <div class="main-layout">
-        <!-- Bannière gauche -->
-        <aside class="sidebar">
-            <div class="sidebar-banner">
-                <h3>📢 Publicité</h3>
-                <p>Espace publicitaire disponible</p>
-            </div>
-        </aside>
-
         <!-- Contenu principal -->
         <main class="main-content">
             <!-- Section Articles en avant -->
@@ -983,14 +1003,6 @@
                 </div>
             </section>
         </main>
-
-        <!-- Bannière droite -->
-        <aside class="sidebar">
-            <div class="sidebar-banner">
-                <h3>📢 Publicité</h3>
-                <p>Espace publicitaire disponible</p>
-            </div>
-        </aside>
     </div>
 
     <!-- Footer avec thème belge -->

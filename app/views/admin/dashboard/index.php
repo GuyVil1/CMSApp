@@ -148,6 +148,7 @@
             <a href="/admin/articles" class="btn">📝 Gérer les articles</a>
             <a href="/admin/articles/create" class="btn btn-success">➕ Nouvel article</a>
             <a href="/admin/media" class="btn btn-secondary">🖼️ Gérer les médias</a>
+            <a href="/admin/themes" class="btn btn-secondary">🎨 Gérer les thèmes</a>
             <a href="/admin/users" class="btn btn-secondary">👥 Gérer les utilisateurs</a>
             <a href="/admin/games" class="btn btn-secondary">🎮 Gérer les jeux</a>
             <a href="/" class="btn">🏠 Retour au site</a>

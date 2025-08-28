@@ -21,6 +21,9 @@ class HomeController extends Controller
     public function index(): void
     {
         try {
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
             // Récupérer les articles en vedette (featured_position = 1)
             $featuredArticles = $this->getFeaturedArticles();
             
@@ -37,6 +40,7 @@ class HomeController extends Controller
             $trailers = $this->getTrailers();
             
             $this->render('home/index', [
+                'currentTheme' => $currentTheme,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
                 'popularCategories' => $popularCategories,
@@ -176,5 +180,42 @@ class HomeController extends Controller
         ";
         
         return Database::query($sql);
+    }
+    
+    /**
+     * Récupérer le thème actuel
+     */
+    private function getCurrentTheme(): array
+    {
+        $configFile = __DIR__ . '/../../config/theme.json';
+        
+        if (file_exists($configFile)) {
+            $config = json_decode(file_get_contents($configFile), true);
+            
+            // Vérifier si le thème a expiré
+            if ($config && isset($config['expires_at']) && $config['expires_at']) {
+                $expiresAt = strtotime($config['expires_at']);
+                if ($expiresAt < time()) {
+                    // Le thème a expiré, revenir au thème par défaut
+                    $config['current_theme'] = $config['default_theme'];
+                    $config['is_permanent'] = true;
+                    $config['expires_at'] = null;
+                    
+                    // Sauvegarder la configuration mise à jour
+                    file_put_contents($configFile, json_encode($config, JSON_PRETTY_PRINT));
+                }
+            }
+            
+            if ($config) {
+                return [
+                    'name' => $config['current_theme'] ?? 'defaut',
+                    'is_permanent' => $config['is_permanent'] ?? true,
+                    'expires_at' => $config['expires_at'] ?? null,
+                    'applied_at' => $config['applied_at'] ?? null
+                ];
+            }
+        }
+        
+        return ['name' => 'defaut', 'is_permanent' => true, 'expires_at' => null, 'applied_at' => null];
     }
 }
