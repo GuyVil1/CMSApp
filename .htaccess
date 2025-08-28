@@ -1,11 +1,16 @@
-# Activer la réécriture d'URL
+# Forcer l'activation de la réécriture
+Options +FollowSymLinks
 RewriteEngine On
 RewriteBase /
+
+# Permettre l'accès aux fichiers statiques (CSS, JS, images, etc.)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^(.*)$ - [L]
 
 # Rediriger tout vers index.php sauf les fichiers/dossiers existants
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [L]
+RewriteRule ^(.*)$ index.php [QSA,L]
 
 # Sécurité basique
 <FilesMatch "\.(env|sql|md|log|ini|phps|fla|psd|sh|inc|bak|htaccess)$">

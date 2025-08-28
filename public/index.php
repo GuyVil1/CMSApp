@@ -70,16 +70,19 @@ function route($uri) {
     
     // Séparer les parties de l'URI
     $parts = explode('/', $uri);
+    
     $controller = ucfirst($parts[0]) . 'Controller';
     $action = $parts[1] ?? 'index';
     
     // Vérifier si le contrôleur existe
     $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+    
     if (!file_exists($controllerFile)) {
         // Essayer avec AdminController
         if (strpos($uri, 'admin') === 0) {
             $adminController = 'Admin\\' . ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
             $controllerFile = __DIR__ . "/../app/controllers/admin/" . ucfirst($parts[1] ?? 'Dashboard') . "Controller.php";
+            
             if (file_exists($controllerFile)) {
                 require_once $controllerFile;
                 $controller = $adminController;
@@ -124,7 +127,39 @@ try {
     
     // Appeler l'action avec les paramètres
     if (!empty($route['params'])) {
-        call_user_func_array([$controller, $action], $route['params']);
+        // Convertir les paramètres selon le type attendu par la méthode
+        $reflection = new ReflectionMethod($controller, $action);
+        $parameters = $reflection->getParameters();
+        $convertedParams = [];
+        
+        foreach ($route['params'] as $index => $param) {
+            if (isset($parameters[$index])) {
+                $parameter = $parameters[$index];
+                $type = $parameter->getType();
+                
+                if ($type && !$type->isBuiltin()) {
+                    // Type personnalisé, laisser tel quel
+                    $convertedParams[] = $param;
+                } elseif ($type && $type->getName() === 'int') {
+                    // Convertir en int
+                    $convertedParams[] = (int)$param;
+                } elseif ($type && $type->getName() === 'float') {
+                    // Convertir en float
+                    $convertedParams[] = (float)$param;
+                } elseif ($type && $type->getName() === 'bool') {
+                    // Convertir en bool
+                    $convertedParams[] = (bool)$param;
+                } else {
+                    // Type string ou pas de type, laisser tel quel
+                    $convertedParams[] = $param;
+                }
+            } else {
+                // Plus de paramètres que d'arguments, ignorer
+                break;
+            }
+        }
+        
+        call_user_func_array([$controller, $action], $convertedParams);
     } else {
         $controller->$action();
     }

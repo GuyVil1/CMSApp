@@ -1,0 +1,814 @@
+/* ========================================
+   CSS TEMPORAIRE - GameNews Belgium
+   ======================================== */
+
+/* ========================================
+   VARIABLES CSS
+   ======================================== */
+:root {
+    /* Couleurs Belgique */
+    --belgium-red: #CC0000;
+    --belgium-yellow: #E6B800;
+    --belgium-black: #000000;
+    
+    /* Couleurs système */
+    --primary: #1a1a1a;
+    --secondary: #2d2d2d;
+    --tertiary: #404040;
+    --border: #e5e5e5;
+    --muted: #f5f5f5;
+    --background: #ffffff;
+    --text: #ffffff;
+    --text-muted: #a0a0a0;
+    
+    /* États & feedback */
+    --success: #44ff44;
+    --error: #ff4444;
+    --warning: #ffaa00;
+    --info: #3498db;
+    
+    /* Espacements */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Ombres */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   RESET CSS
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--primary);
+    background: var(--background);
+}
+
+/* ========================================
+   CONTAINER
+   ======================================== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.header {
+    background: linear-gradient(135deg, var(--belgium-black) 0%, var(--belgium-yellow) 35%, var(--belgium-red) 100%);
+    border-bottom: 3px solid var(--belgium-yellow);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    z-index: 10;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--belgium-yellow);
+    border: 2px solid var(--belgium-black);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo-text h1 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.logo-subtitle {
+    color: var(--belgium-yellow);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.header-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .header-title {
+        display: block;
+    }
+}
+
+.login-btn {
+    background: var(--belgium-red);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.login-btn:hover {
+    background: #990000;
+}
+
+.logout-btn {
+    background: var(--belgium-black);
+    color: white;
+    border: 1px solid var(--belgium-yellow);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
+.main-layout {
+    position: relative;
+    min-height: calc(100vh - 200px);
+}
+
+.main-content {
+    position: relative;
+    z-index: 2;
+    width: 68vw;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    background: white;
+    min-height: calc(100vh - 200px);
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    border-radius: 8px 8px 0 0;
+    margin-left: 16vw;
+    margin-right: 16vw;
+}
+
+/* ========================================
+   BANNIÈRES THÉMATIQUES
+   ======================================== */
+.theme-banner-left {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 14vw;
+    height: 1080px;
+    background: url('/theme-image.php?theme=defaut&side=left') no-repeat center center;
+    background-size: cover;
+    background-attachment: fixed;
+    z-index: 1;
+}
+
+.theme-banner-right {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 14vw;
+    height: 1080px;
+    background: url('/theme-image.php?theme=defaut&side=right') no-repeat center center;
+    background-size: cover;
+    background-attachment: fixed;
+    z-index: 1;
+}
+
+/* ========================================
+   SECTIONS
+   ======================================== */
+.section {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-line {
+    width: 4px;
+    height: 32px;
+}
+
+.section-line.yellow {
+    background: var(--belgium-yellow);
+}
+
+.section-line.red {
+    background: var(--belgium-red);
+}
+
+.section-title {
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* ========================================
+   ARTICLES EN VEDETTE
+   ======================================== */
+.featured-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    max-height: 80vh;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.featured-left {
+    display: grid;
+    grid-template-rows: 2fr 1fr;
+    height: 60vh;
+}
+
+.featured-main {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.featured-main:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.featured-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+}
+
+.featured-content {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+}
+
+.featured-badge {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.featured-title {
+    color: white;
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.featured-excerpt {
+    color: #e5e5e5;
+    font-size: 0.75rem;
+}
+
+.featured-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 2px solid var(--border);
+}
+
+.featured-small {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.featured-small:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.featured-small:first-child {
+    border-right: 2px solid var(--border);
+}
+
+.featured-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured-small .featured-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);
+}
+
+.featured-small .featured-content {
+    bottom: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+}
+
+.featured-small .featured-title {
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+.featured-right {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    height: 60vh;
+    max-height: 60vh;
+}
+
+.featured-right .featured-small {
+    border-bottom: 2px solid var(--border);
+}
+
+.featured-right .featured-small:last-child {
+    border-bottom: none;
+}
+
+/* ========================================
+   SECTION NEWS
+   ======================================== */
+.news-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.news-tabs {
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 0.75rem;
+}
+
+.tabs-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.tab-trigger {
+    padding: 0.75rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.tab-trigger.active {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+.tab-content {
+    display: none;
+    padding: 1rem;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ========================================
+   CARTES D'ARTICLES
+   ======================================== */
+.article-card {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+    margin-bottom: 0.75rem;
+}
+
+.article-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.article-image {
+    width: 112px;
+    height: 96px;
+    flex-shrink: 0;
+}
+
+.article-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.article-content {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.article-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.article-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-test {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-news {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-guide {
+    background: #f3e8ff;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+}
+
+.article-date {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+.article-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-excerpt {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+/* ========================================
+   SECTION TRAILERS
+   ======================================== */
+.trailers-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.trailers-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--belgium-red);
+}
+
+.trailers-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.trailers-container {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.trailer-item {
+    position: relative;
+    height: 64px;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.trailer-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.trailer-item:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+}
+
+.trailer-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.trailer-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+}
+
+.trailer-play {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.trailer-item:hover .trailer-play {
+    opacity: 1;
+}
+
+.trailer-play-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--belgium-yellow);
+}
+
+.trailer-duration {
+    position: absolute;
+    bottom: 0.25rem;
+    right: 0.25rem;
+    background: var(--belgium-red);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+.trailer-title {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    right: 3rem;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer {
+    background: linear-gradient(135deg, var(--belgium-black) 0%, var(--belgium-yellow) 35%, var(--belgium-red) 100%);
+    color: white;
+    margin-top: 4rem;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    z-index: 10;
+}
+
+.footer-content {
+    padding: 3rem 0;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .footer-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.footer-column {
+    border-left: 4px solid var(--belgium-yellow);
+    padding-left: 1rem;
+}
+
+.footer-column:nth-child(2) {
+    border-left-color: var(--belgium-red);
+}
+
+.footer-column:nth-child(3) {
+    border-left-color: white;
+}
+
+.footer-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-title.yellow {
+    color: var(--belgium-yellow);
+}
+
+.footer-title.red {
+    color: var(--belgium-red);
+}
+
+.footer-text {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: all 0.3s;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+    color: var(--belgium-yellow);
+    text-decoration: underline;
+}
+
+.footer-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.footer-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.875rem;
+}
+
+.footer-btn:hover {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    border-color: var(--belgium-yellow);
+}
+
+.footer-newsletter input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.footer-newsletter input::placeholder {
+    color: rgba(255,255,255,0.6);
+}
+
+.footer-newsletter button {
+    width: 100%;
+    background: var(--belgium-red);
+    color: white;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.footer-newsletter button:hover {
+    background: #990000;
+}
+
+.footer-contact {
+    font-size: 0.75rem;
+    opacity: 0.75;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    opacity: 0.75;
+}
+
+.footer-bottom p:last-child {
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 1400px) {
+    .theme-banner-left,
+    .theme-banner-right {
+        display: none;
+    }
+    
+    .main-content {
+        width: 100%;
+        padding: 1.5rem 1rem;
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        width: 100%;
+    }
+    
+    .featured-grid {
+        grid-template-columns: 1fr;
+        max-height: none;
+    }
+    
+    .featured-left {
+        height: auto;
+    }
+    
+    .featured-right {
+        height: auto;
+    }
+    
+    .news-layout {
+        grid-template-columns: 1fr;
+    }
+}

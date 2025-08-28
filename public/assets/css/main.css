@@ -24,9 +24,9 @@
 /* ========================================
    IMPORTS - PAGES
    ======================================== */
-@import url('pages/home.css');
-@import url('pages/admin.css');
 @import url('pages/auth.css');
+@import url('pages/admin.css');
+@import url('pages/home.css');
 
 /* ========================================
    STYLES GLOBAUX
