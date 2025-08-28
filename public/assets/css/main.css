@@ -1,0 +1,256 @@
+/* ========================================
+   MAIN CSS - Belgium Vidéo Gaming
+   ======================================== */
+
+/* ========================================
+   IMPORTS - BASE
+   ======================================== */
+@import url('base/variables.css');
+@import url('base/reset.css');
+@import url('base/typography.css');
+
+/* ========================================
+   IMPORTS - COMPOSANTS
+   ======================================== */
+@import url('components/buttons.css');
+
+/* ========================================
+   IMPORTS - LAYOUT
+   ======================================== */
+@import url('layout/grid.css');
+@import url('layout/header.css');
+@import url('layout/footer.css');
+
+/* ========================================
+   IMPORTS - PAGES
+   ======================================== */
+@import url('pages/home.css');
+@import url('pages/admin.css');
+@import url('pages/auth.css');
+
+/* ========================================
+   STYLES GLOBAUX
+   ======================================== */
+
+/* ========================================
+   CONTAINER PRINCIPAL
+   ======================================== */
+.container {
+    max-width: var(--container-max-width);
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.container-lg {
+    max-width: var(--container-max-width-lg);
+}
+
+/* ========================================
+   UTILITAIRES D'ESPACEMENT
+   ======================================== */
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.mb-5 { margin-bottom: var(--spacing-xl); }
+
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mt-5 { margin-top: var(--spacing-xl); }
+
+.ml-1 { margin-left: var(--spacing-xs); }
+.ml-2 { margin-left: var(--spacing-sm); }
+.ml-3 { margin-left: var(--spacing-md); }
+.ml-4 { margin-left: var(--spacing-lg); }
+.ml-5 { margin-left: var(--spacing-xl); }
+
+.mr-1 { margin-right: var(--spacing-xs); }
+.mr-2 { margin-right: var(--spacing-sm); }
+.mr-3 { margin-right: var(--spacing-md); }
+.mr-4 { margin-right: var(--spacing-lg); }
+.mr-5 { margin-right: var(--spacing-xl); }
+
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }
+
+/* ========================================
+   UTILITAIRES D'AFFICHAGE
+   ======================================== */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-grid { display: grid !important; }
+
+/* ========================================
+   UTILITAIRES DE FLEXBOX
+   ======================================== */
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.justify-start { justify-content: flex-start !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-around { justify-content: space-around !important; }
+.align-start { align-items: flex-start !important; }
+.align-end { align-items: flex-end !important; }
+.align-center { align-items: center !important; }
+.align-baseline { align-items: baseline !important; }
+.align-stretch { align-items: stretch !important; }
+
+/* ========================================
+   UTILITAIRES DE POSITION
+   ======================================== */
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-fixed { position: fixed !important; }
+.position-sticky { position: sticky !important; }
+
+/* ========================================
+   UTILITAIRES DE VISIBILITÉ
+   ======================================== */
+.visible { visibility: visible !important; }
+.invisible { visibility: hidden !important; }
+
+/* ========================================
+   UTILITAIRES DE CURSEUR
+   ======================================== */
+.cursor-pointer { cursor: pointer !important; }
+.cursor-default { cursor: default !important; }
+.cursor-not-allowed { cursor: not-allowed !important; }
+
+/* ========================================
+   UTILITAIRES DE BORDURE
+   ======================================== */
+.border { border: 1px solid var(--border) !important; }
+.border-0 { border: 0 !important; }
+.border-top { border-top: 1px solid var(--border) !important; }
+.border-bottom { border-bottom: 1px solid var(--border) !important; }
+.border-left { border-left: 1px solid var(--border) !important; }
+.border-right { border-right: 1px solid var(--border) !important; }
+
+.rounded { border-radius: var(--border-radius) !important; }
+.rounded-sm { border-radius: var(--border-radius-sm) !important; }
+.rounded-lg { border-radius: var(--border-radius-lg) !important; }
+.rounded-circle { border-radius: 50% !important; }
+
+/* ========================================
+   UTILITAIRES D'OMBRE
+   ======================================== */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow { box-shadow: var(--shadow) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+.shadow-none { box-shadow: none !important; }
+
+/* ========================================
+   UTILITAIRES DE COULEUR DE FOND
+   ======================================== */
+.bg-primary { background-color: var(--primary) !important; }
+.bg-secondary { background-color: var(--secondary) !important; }
+.bg-success { background-color: var(--success) !important; }
+.bg-error { background-color: var(--error) !important; }
+.bg-warning { background-color: var(--warning) !important; }
+.bg-info { background-color: var(--info) !important; }
+.bg-white { background-color: white !important; }
+.bg-transparent { background-color: transparent !important; }
+
+/* ========================================
+   UTILITAIRES DE COULEUR DE TEXTE
+   ======================================== */
+.text-primary { color: var(--primary) !important; }
+.text-secondary { color: var(--secondary) !important; }
+.text-success { color: var(--success) !important; }
+.text-error { color: var(--error) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-info { color: var(--info) !important; }
+.text-white { color: white !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+/* ========================================
+   RESPONSIVE UTILITIES
+   ======================================== */
+@media (max-width: 768px) {
+    .d-md-none { display: none !important; }
+    .d-md-block { display: block !important; }
+    .d-md-flex { display: flex !important; }
+    
+    .text-md-center { text-align: center !important; }
+    .text-md-left { text-align: left !important; }
+    .text-md-right { text-align: right !important; }
+}
+
+@media (max-width: 576px) {
+    .d-sm-none { display: none !important; }
+    .d-sm-block { display: block !important; }
+    .d-sm-flex { display: flex !important; }
+    
+    .text-sm-center { text-align: center !important; }
+    .text-sm-left { text-align: left !important; }
+    .text-sm-right { text-align: right !important; }
+}
+
+/* ========================================
+   ANIMATIONS GLOBALES
+   ======================================== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-normal) ease-in-out;
+}
+
+.slide-in-up {
+    animation: slideInUp var(--transition-normal) ease-out;
+}
+
+.slide-in-down {
+    animation: slideInDown var(--transition-normal) ease-out;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+    .no-print { display: none !important; }
+    
+    body {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .btn, .login-btn, .logout-btn {
+        display: none !important;
+    }
+}

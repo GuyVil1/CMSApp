@@ -1,0 +1,287 @@
+/* ========================================
+   BOUTONS - Belgium Vidéo Gaming
+   ======================================== */
+
+/* ========================================
+   BOUTON DE BASE
+   ======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   VARIANTES DE COULEURS
+   ======================================== */
+.btn-primary {
+    background: var(--belgium-red);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #990000;
+}
+
+.btn-secondary {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+.btn-secondary:hover {
+    background: #d4a017;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #33cc33;
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #e69900;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #cc3333;
+}
+
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-info:hover {
+    background: #2980b9;
+}
+
+/* ========================================
+   BOUTONS SPÉCIFIQUES
+   ======================================== */
+.login-btn {
+    background: var(--belgium-red);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: background var(--transition-normal);
+}
+
+.login-btn:hover {
+    background: #990000;
+}
+
+.logout-btn {
+    background: var(--belgium-black);
+    color: white;
+    border: 1px solid var(--belgium-yellow);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+}
+
+.logout-btn:hover {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+/* ========================================
+   TAILLES DE BOUTONS
+   ======================================== */
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+}
+
+.btn-lg {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: var(--font-size-base);
+}
+
+.btn-xl {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: var(--font-size-lg);
+}
+
+/* ========================================
+   BOUTONS D'ACTION
+   ======================================== */
+.article-actions,
+.media-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.article-actions .btn,
+.media-actions .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+}
+
+/* ========================================
+   BOUTONS DE TOOLBAR
+   ======================================== */
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.toolbar-btn:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+}
+
+.toolbar-btn.active {
+    background: var(--belgium-yellow);
+    border-color: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+/* ========================================
+   BOUTONS DE TAB
+   ======================================== */
+.tab-trigger {
+    padding: var(--spacing-md);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-normal);
+    color: var(--text-muted);
+}
+
+.tab-trigger.active {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+.tab-trigger:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+}
+
+/* ========================================
+   BOUTONS DÉSACTIVÉS
+   ======================================== */
+.btn:disabled,
+.btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn:disabled:hover,
+.btn.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ========================================
+   BOUTONS AVEC ICÔNES
+   ======================================== */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.btn-icon.btn-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.btn-icon.btn-lg {
+    width: 48px;
+    height: 48px;
+}
+
+/* ========================================
+   BOUTONS DE PAGINATION
+   ======================================== */
+.pagination .btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.pagination .btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.pagination .btn.current {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    border-color: var(--belgium-yellow);
+}
+
+/* ========================================
+   RESPONSIVE BOUTONS
+   ======================================== */
+@media (max-width: 768px) {
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    .article-actions,
+    .media-actions {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .article-actions .btn,
+    .media-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

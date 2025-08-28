@@ -1,0 +1,201 @@
+/* ========================================
+   TYPOGRAPHIE - Belgium Vidéo Gaming
+   ======================================== */
+
+/* ========================================
+   TITRES
+   ======================================== */
+.title {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--primary);
+}
+
+.subtitle {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-normal);
+    color: var(--text-muted);
+}
+
+.section-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary);
+    margin-bottom: var(--spacing-md);
+}
+
+/* ========================================
+   TITRES D'ARTICLES
+   ======================================== */
+.article-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    margin-bottom: var(--spacing-sm);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.featured-title {
+    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-xs);
+}
+
+.trailers-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--primary);
+}
+
+/* ========================================
+   EXTRAITS ET DESCRIPTIONS
+   ======================================== */
+.article-excerpt {
+    font-size: var(--font-size-sm);
+    color: #666;
+    line-height: var(--line-height-relaxed);
+}
+
+.featured-excerpt {
+    color: #e5e5e5;
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
+}
+
+.trailer-title {
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ========================================
+   LOGO ET BRANDING
+   ======================================== */
+.logo-text h1 {
+    color: white;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+}
+
+.logo-subtitle {
+    color: var(--belgium-yellow);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.header-title {
+    color: white;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    text-align: center;
+}
+
+/* ========================================
+   STATISTIQUES
+   ======================================== */
+.stat-number {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--belgium-yellow);
+    margin-bottom: var(--spacing-sm);
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ========================================
+   DATES ET MÉTADONNÉES
+   ======================================== */
+.article-date {
+    font-size: var(--font-size-xs);
+    color: #666;
+    font-weight: var(--font-weight-normal);
+}
+
+.trailer-duration {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: white;
+}
+
+/* ========================================
+   UTILITAIRES DE TEXTE
+   ======================================== */
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-primary {
+    color: var(--primary);
+}
+
+.text-white {
+    color: white;
+}
+
+/* ========================================
+   TAILLES DE POLICE UTILITAIRES
+   ======================================== */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+.text-3xl { font-size: var(--font-size-3xl); }
+.text-4xl { font-size: var(--font-size-4xl); }
+
+/* ========================================
+   POIDS DE POLICE UTILITAIRES
+   ======================================== */
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+/* ========================================
+   RESPONSIVE TYPOGRAPHY
+   ======================================== */
+@media (max-width: 768px) {
+    .title {
+        font-size: var(--font-size-3xl);
+    }
+    
+    .section-title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .featured-title {
+        font-size: var(--font-size-base);
+    }
+    
+    .article-title {
+        font-size: var(--font-size-base);
+    }
+}

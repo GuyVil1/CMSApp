@@ -1,0 +1,115 @@
+/* ========================================
+   RESET CSS - Belgium Vidéo Gaming
+   ======================================== */
+
+/* Reset moderne basé sur modern-normalize */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Supprimer les marges par défaut */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+/* Améliorer le rendu du texte */
+html {
+    line-height: var(--line-height-normal);
+    -webkit-text-size-adjust: 100%;
+    -moz-tab-size: 4;
+    tab-size: 4;
+}
+
+/* Corps de page */
+body {
+    font-family: var(--font-family);
+    line-height: var(--line-height-normal);
+    color: var(--primary);
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Éléments de contenu */
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+/* Listes */
+ul, ol {
+    list-style: none;
+}
+
+/* Liens */
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+/* Images */
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* Formulaires */
+input, button, textarea, select {
+    font: inherit;
+    color: inherit;
+}
+
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Tableaux */
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* Citations */
+blockquote, q {
+    quotes: none;
+}
+
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
+
+/* Code */
+code, kbd, samp, pre {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 1em;
+}
+
+/* Améliorer l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible pour l'accessibilité */
+:focus-visible {
+    outline: 2px solid var(--belgium-yellow);
+    outline-offset: 2px;
+}
+
+/* Sélection de texte */
+::selection {
+    background-color: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
