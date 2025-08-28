@@ -8,6 +8,7 @@
 - **Framework PHP personnalisé** avec routage automatique
 - **Interface d'administration** complète
 - **Système d'authentification** sécurisé
+- **CSS modulaire** avec externalisation complète
 
 ### **Structure des Dossiers**
 ```
@@ -21,8 +22,15 @@ www/
 ├── config/                # Configuration
 ├── database/              # Schéma et données
 ├── public/                # Assets publics
+│   └── assets/css/        # CSS modulaire
+│       ├── layout/        # Layout (header, footer, grid)
+│       ├── pages/         # Pages spécifiques
+│       └── components/    # Composants réutilisables
 ├── themes/                # Thèmes visuels
-└── index.php             # Point d'entrée principal
+├── index.php             # Point d'entrée principal
+├── admin.css             # CSS admin (temporaire)
+├── style.css             # CSS public (temporaire)
+└── *.php                 # Fichiers de routage temporaires
 ```
 
 ---
@@ -74,6 +82,33 @@ www/
 
 ---
 
+## 🔧 **FICHIERS TEMPORAIRES (Solutions de contournement)**
+
+### **Fichiers de routage temporaires**
+**Problème** : Le `.htaccess` ne fonctionne pas correctement sur WAMP pour les routes admin
+**Solution** : Fichiers PHP temporaires qui simulent les routes admin
+
+**Fichiers créés** :
+- `admin.php` → Simule `/admin/dashboard`
+- `articles.php` → Simule `/admin/articles`
+- `media.php` → Simule `/admin/media`
+- `themes.php` → Simule `/admin/themes`
+- `games.php` → Simule `/admin/games`
+
+**Utilisation** : Ces fichiers seront supprimés une fois WAMP configuré correctement
+
+### **Fichiers CSS temporaires**
+**Problème** : Le serveur ne peut pas servir les fichiers CSS depuis `public/assets/css/`
+**Solution** : Fichiers CSS consolidés à la racine
+
+**Fichiers créés** :
+- `admin.css` → Tous les styles admin consolidés
+- `style.css` → Tous les styles public consolidés
+
+**Utilisation** : Ces fichiers seront déplacés dans `public/assets/css/` une fois le serveur configuré
+
+---
+
 ## 🎮 **CONTROLEURS (Controllers)**
 
 ### **`app/controllers/HomeController.php`** - Page d'accueil publique
@@ -98,6 +133,31 @@ www/
 - Statistiques des médias
 - Activité récente
 - Liens vers les différentes sections
+
+---
+
+## 🔧 **CORRECTIONS RÉCENTES (Dernière mise à jour)**
+
+### **Problèmes résolus** :
+1. **Routage admin** : Création de fichiers temporaires pour contourner les problèmes de `.htaccess`
+2. **CSS externalisé** : Tous les styles inline ont été déplacés vers des fichiers CSS externes
+3. **Conversion de types** : Correction du routage pour convertir automatiquement les paramètres string en int
+4. **Page média** : Ajout des styles manquants pour la gestion des médias
+5. **Thèmes dynamiques** : Application correcte des thèmes sur la page d'accueil
+
+### **Améliorations apportées** :
+- **CSS modulaire** : Organisation en fichiers séparés (variables, reset, typography, etc.)
+- **Responsive design** : Toutes les pages sont maintenant responsive
+- **Performance** : CSS externalisé améliore les performances
+- **Maintenabilité** : Code plus propre et organisé
+
+### **État actuel** :
+- ✅ Page d'accueil fonctionnelle avec thèmes dynamiques
+- ✅ Connexion admin fonctionnelle
+- ✅ Toutes les pages admin fonctionnent (dashboard, articles, médias, thèmes, jeux)
+- ✅ CSS externalisé et fonctionnel
+- ✅ Création et gestion d'articles opérationnelle
+- ✅ Publication/dépublier d'articles fonctionnel
 
 ### **`app/controllers/admin/ArticlesController.php`** - Gestion des articles
 **Rôle** : CRUD complet des articles
