@@ -2,276 +2,243 @@
 declare(strict_types=1);
 
 /**
- * Modèle Tag - Gestion des tags d'articles
+ * Modèle Tag - Gestion des tags
  */
 
 require_once __DIR__ . '/../../core/Database.php';
 
 class Tag
 {
-    private int $id;
-    private string $name;
-    private string $slug;
-    
-    public function __construct(array $data = [])
+    private static $db;
+
+    /**
+     * Initialiser la connexion à la base de données
+     */
+    private static function initDb(): void
     {
-        if (!empty($data)) {
-            $this->hydrate($data);
+        if (!self::$db) {
+            self::$db = new Database();
         }
     }
-    
-    private function hydrate(array $data): void
-    {
-        $this->id = (int)($data['id'] ?? 0);
-        $this->name = $data['name'] ?? '';
-        $this->slug = $data['slug'] ?? '';
-    }
-    
+
     /**
-     * Trouver un tag par ID
-     */
-    public static function find(int $id): ?self
-    {
-        $sql = "SELECT * FROM tags WHERE id = ?";
-        $data = Database::queryOne($sql, [$id]);
-        
-        return $data ? new self($data) : null;
-    }
-    
-    /**
-     * Trouver un tag par slug
-     */
-    public static function findBySlug(string $slug): ?self
-    {
-        $sql = "SELECT * FROM tags WHERE slug = ?";
-        $data = Database::queryOne($sql, [$slug]);
-        
-        return $data ? new self($data) : null;
-    }
-    
-    /**
-     * Trouver tous les tags
+     * Récupérer tous les tags
      */
     public static function findAll(): array
     {
-        $sql = "SELECT * FROM tags ORDER BY name ASC";
-        $results = Database::query($sql);
-        
-        return array_map(fn($data) => new self($data), $results);
+        self::initDb();
+
+        $query = "SELECT * FROM tags ORDER BY name ASC";
+        return self::$db->query($query);
     }
-    
+
     /**
-     * Trouver les tags populaires (avec le plus d'articles)
+     * Récupérer un tag par son ID
      */
-    public static function findPopular(int $limit = 10): array
+    public static function findById(int $id): ?array
     {
-        $sql = "SELECT t.*, COUNT(at.article_id) as articles_count 
-                FROM tags t 
-                LEFT JOIN article_tag at ON t.id = at.tag_id 
-                LEFT JOIN articles a ON at.article_id = a.id AND a.status = 'published'
-                GROUP BY t.id 
-                HAVING articles_count > 0 
-                ORDER BY articles_count DESC 
-                LIMIT ?";
-        
-        $results = Database::query($sql, [$limit]);
-        
-        return array_map(fn($data) => new self($data), $results);
+        self::initDb();
+
+        $query = "SELECT * FROM tags WHERE id = ?";
+        $result = self::$db->query($query, [$id]);
+
+        return $result ? $result[0] : null;
     }
-    
+
+    /**
+     * Récupérer un tag par son slug
+     */
+    public static function findBySlug(string $slug): ?array
+    {
+        self::initDb();
+
+        $query = "SELECT * FROM tags WHERE slug = ?";
+        $result = self::$db->query($query, [$slug]);
+
+        return $result ? $result[0] : null;
+    }
+
+    /**
+     * Récupérer un tag par son nom
+     */
+    public static function findByName(string $name): ?array
+    {
+        self::initDb();
+
+        $query = "SELECT * FROM tags WHERE name = ?";
+        $result = self::$db->query($query, [$name]);
+
+        return $result ? $result[0] : null;
+    }
+
     /**
      * Créer un nouveau tag
      */
-    public static function create(array $data): ?self
+    public static function create(array $data): ?int
     {
-        $sql = "INSERT INTO tags (name, slug) VALUES (?, ?)";
-        
-        $params = [
-            $data['name'],
-            $data['slug']
-        ];
-        
-        if (Database::execute($sql, $params)) {
-            $id = Database::lastInsertId();
-            return self::find($id);
+        self::initDb();
+
+        $query = "INSERT INTO tags (name, slug) VALUES (?, ?)";
+        $params = [$data['name'], $data['slug']];
+
+        if (self::$db->execute($query, $params)) {
+            return self::$db->lastInsertId();
         }
-        
+
         return null;
     }
-    
+
     /**
      * Mettre à jour un tag
      */
-    public function update(array $data): bool
+    public static function update(int $id, array $data): bool
     {
-        $sql = "UPDATE tags SET name = ?, slug = ? WHERE id = ?";
-        
-        $params = [
-            $data['name'] ?? $this->name,
-            $data['slug'] ?? $this->slug,
-            $this->id
-        ];
-        
-        return Database::execute($sql, $params) > 0;
+        self::initDb();
+
+        $query = "UPDATE tags SET name = ?, slug = ? WHERE id = ?";
+        $params = [$data['name'], $data['slug'], $id];
+
+        return self::$db->execute($query, $params);
     }
-    
+
     /**
      * Supprimer un tag
      */
-    public function delete(): bool
+    public static function delete(int $id): bool
     {
-        // Supprimer d'abord les associations avec les articles
-        $sql = "DELETE FROM article_tag WHERE tag_id = ?";
-        Database::execute($sql, [$this->id]);
-        
-        // Puis supprimer le tag
-        $sql = "DELETE FROM tags WHERE id = ?";
-        return Database::execute($sql, [$this->id]) > 0;
+        self::initDb();
+
+        $query = "DELETE FROM tags WHERE id = ?";
+        $affectedRows = self::$db->execute($query, [$id]);
+        return $affectedRows > 0;
     }
-    
+
     /**
-     * Obtenir les articles avec ce tag
+     * Compter le nombre total de tags
      */
-    public function getArticles(int $limit = 20, int $offset = 0): array
+    public static function count(): int
     {
-        $sql = "SELECT a.*, u.login as author_name, m.filename as cover_image 
-                FROM articles a 
-                INNER JOIN article_tag at ON a.id = at.article_id 
-                LEFT JOIN users u ON a.author_id = u.id 
-                LEFT JOIN media m ON a.cover_image_id = m.id 
-                WHERE at.tag_id = ? AND a.status = 'published' 
-                ORDER BY a.published_at DESC 
-                LIMIT ? OFFSET ?";
-        
-        $results = Database::query($sql, [$this->id, $limit, $offset]);
-        
-        return array_map(fn($data) => new Article($data), $results);
+        self::initDb();
+
+        $query = "SELECT COUNT(*) as count FROM tags";
+        $result = self::$db->query($query);
+
+        return $result ? (int)$result[0]['count'] : 0;
     }
-    
+
     /**
-     * Compter les articles avec ce tag
+     * Récupérer les tags avec le nombre d'articles
      */
-    public function getArticlesCount(): int
+    public static function findAllWithArticleCount(): array
     {
-        $sql = "SELECT COUNT(*) as total 
-                FROM articles a 
-                INNER JOIN article_tag at ON a.id = at.article_id 
-                WHERE at.tag_id = ? AND a.status = 'published'";
-        $result = Database::queryOne($sql, [$this->id]);
-        
-        return (int)($result['total'] ?? 0);
+        self::initDb();
+
+        $query = "SELECT t.*, COUNT(at.article_id) as article_count 
+                  FROM tags t 
+                  LEFT JOIN article_tag at ON t.id = at.tag_id 
+                  GROUP BY t.id 
+                  ORDER BY t.name ASC";
+
+        return self::$db->query($query);
     }
-    
+
     /**
-     * Ajouter ce tag à un article
+     * Vérifier si un tag existe
      */
-    public function addToArticle(int $articleId): bool
+    public static function exists(int $id): bool
     {
-        // Vérifier si l'association existe déjà
-        $sql = "SELECT COUNT(*) as total FROM article_tag WHERE article_id = ? AND tag_id = ?";
-        $result = Database::queryOne($sql, [$articleId, $this->id]);
-        
-        if ((int)($result['total'] ?? 0) > 0) {
-            return true; // Déjà associé
+        self::initDb();
+
+        $query = "SELECT COUNT(*) as count FROM tags WHERE id = ?";
+        $result = self::$db->query($query, [$id]);
+
+        return $result && $result[0]['count'] > 0;
+    }
+
+    /**
+     * Vérifier si un slug existe
+     */
+    public static function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        self::initDb();
+
+        $query = "SELECT COUNT(*) as count FROM tags WHERE slug = ?";
+        $params = [$slug];
+
+        if ($excludeId) {
+            $query .= " AND id != ?";
+            $params[] = $excludeId;
         }
-        
-        $sql = "INSERT INTO article_tag (article_id, tag_id) VALUES (?, ?)";
-        return Database::execute($sql, [$articleId, $this->id]) > 0;
+
+        $result = self::$db->query($query, $params);
+
+        return $result && $result[0]['count'] > 0;
     }
-    
+
     /**
-     * Retirer ce tag d'un article
+     * Compter les tags avec conditions
      */
-    public function removeFromArticle(int $articleId): bool
+    public static function countWithConditions(string $query, array $params = []): int
     {
-        $sql = "DELETE FROM article_tag WHERE article_id = ? AND tag_id = ?";
-        return Database::execute($sql, [$articleId, $this->id]) > 0;
+        self::initDb();
+
+        $result = self::$db->query($query, $params);
+        return $result ? (int)$result[0]['total'] : 0;
     }
-    
+
     /**
-     * Obtenir les tags d'un article
+     * Trouver des tags avec requête personnalisée
      */
-    public static function getArticleTags(int $articleId): array
+    public static function findWithQuery(string $query, array $params = []): array
     {
-        $sql = "SELECT t.* FROM tags t 
-                INNER JOIN article_tag at ON t.id = at.tag_id 
-                WHERE at.article_id = ? 
-                ORDER BY t.name ASC";
-        
-        $results = Database::query($sql, [$articleId]);
-        
-        return array_map(fn($data) => new self($data), $results);
+        self::initDb();
+
+        return self::$db->query($query, $params);
     }
-    
+
     /**
-     * Ajouter des tags à un article
-     */
-    public static function addTagsToArticle(int $articleId, array $tagIds): bool
-    {
-        // Supprimer d'abord les associations existantes
-        $sql = "DELETE FROM article_tag WHERE article_id = ?";
-        Database::execute($sql, [$articleId]);
-        
-        // Ajouter les nouvelles associations
-        foreach ($tagIds as $tagId) {
-            $sql = "INSERT INTO article_tag (article_id, tag_id) VALUES (?, ?)";
-            Database::execute($sql, [$articleId, $tagId]);
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Rechercher des tags
-     */
-    public static function search(string $query, int $limit = 20): array
-    {
-        $sql = "SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC LIMIT ?";
-        $searchTerm = "%{$query}%";
-        $results = Database::query($sql, [$searchTerm, $limit]);
-        
-        return array_map(fn($data) => new self($data), $results);
-    }
-    
-    /**
-     * Générer un slug à partir du nom
+     * Générer un slug à partir d'un nom
      */
     public static function generateSlug(string $name): string
     {
-        $slug = strtolower(trim($name));
+        // Convertir en minuscules
+        $slug = strtolower($name);
+        
+        // Remplacer les caractères spéciaux par des tirets
         $slug = preg_replace('/[^a-z0-9\s-]/', '', $slug);
+        
+        // Remplacer les espaces par des tirets
         $slug = preg_replace('/[\s-]+/', '-', $slug);
+        
+        // Supprimer les tirets en début et fin
         $slug = trim($slug, '-');
         
         return $slug;
     }
-    
+
     /**
-     * Vérifier si un slug existe déjà
+     * Récupérer les tags d'un article
      */
-    public static function slugExists(string $slug, int $excludeId = 0): bool
+    public static function findByArticleId(int $articleId): array
     {
-        $sql = "SELECT COUNT(*) as total FROM tags WHERE slug = ? AND id != ?";
-        $result = Database::queryOne($sql, [$slug, $excludeId]);
-        
-        return (int)($result['total'] ?? 0) > 0;
+        self::initDb();
+
+        $query = "SELECT t.* FROM tags t 
+                  JOIN article_tag at ON t.id = at.tag_id 
+                  WHERE at.article_id = ? 
+                  ORDER BY t.name ASC";
+
+        return self::$db->query($query, [$articleId]);
     }
-    
-    // Getters
-    public function getId(): int { return $this->id; }
-    public function getName(): string { return $this->name; }
-    public function getSlug(): string { return $this->slug; }
-    
+
     /**
-     * Convertir en tableau pour l'API
+     * Rechercher des tags par nom
      */
-    public function toArray(): array
+    public static function search(string $search): array
     {
-        return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'slug' => $this->slug,
-            'articles_count' => $this->getArticlesCount()
-        ];
+        self::initDb();
+
+        $query = "SELECT * FROM tags WHERE name LIKE ? ORDER BY name ASC";
+        return self::$db->query($query, ["%{$search}%"]);
     }
 }

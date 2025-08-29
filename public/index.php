@@ -6,8 +6,10 @@ declare(strict_types=1);
  * Front controller - routeur minimal
  */
 
-// Démarrer la session
-session_start();
+// Démarrer la session (seulement si pas déjà démarrée)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Charger la configuration
 require_once __DIR__ . '/../config/config.php';

@@ -31,10 +31,7 @@
                 <div class="stat-number"><?= $totalUsers ?></div>
                 <div class="stat-label">Total Utilisateurs</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number"><?= $activeUsers ?></div>
-                <div class="stat-label">Utilisateurs Actifs</div>
-            </div>
+
             <div class="stat-card">
                 <div class="stat-number"><?= $adminUsers ?></div>
                 <div class="stat-label">Administrateurs</div>
@@ -57,13 +54,7 @@
                         <option value="member" <?= $role === 'member' ? 'selected' : '' ?>>Member</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <select name="status" class="form-select">
-                        <option value="">Tous les statuts</option>
-                        <option value="active" <?= $status === 'active' ? 'selected' : '' ?>>Actif</option>
-                        <option value="inactive" <?= $status === 'inactive' ? 'selected' : '' ?>>Inactif</option>
-                    </select>
-                </div>
+
                 <button type="submit" class="btn btn-primary">Filtrer</button>
                 <a href="/admin/users" class="btn btn-secondary">Réinitialiser</a>
             </form>
@@ -78,7 +69,6 @@
                         <th>Login</th>
                         <th>Email</th>
                         <th>Rôle</th>
-                        <th>Statut</th>
                         <th>Créé le</th>
                         <th>Dernière connexion</th>
                         <th>Actions</th>
@@ -87,7 +77,7 @@
                 <tbody>
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="8" class="text-center">Aucun utilisateur trouvé</td>
+                            <td colspan="7" class="text-center">Aucun utilisateur trouvé</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($users as $user): ?>
@@ -100,22 +90,12 @@
                                         <?= ucfirst($user['role_name']) ?>
                                     </span>
                                 </td>
-                                                                 <td>
-                                     <span class="status-badge status-active">
-                                         Actif
-                                     </span>
-                                 </td>
                                 <td><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></td>
                                 <td>
                                     <?= $user['last_login'] ? date('d/m/Y H:i', strtotime($user['last_login'])) : 'Jamais' ?>
                                 </td>
                                 <td class="actions">
                                     <a href="/users.php?action=edit&id=<?= $user['id'] ?>" class="btn btn-sm btn-info">Modifier</a>
-                                                                         <button class="btn btn-sm btn-warning toggle-status" 
-                                             data-id="<?= $user['id'] ?>" 
-                                             data-status="1">
-                                         Désactiver
-                                     </button>
                                     <button class="btn btn-sm btn-danger delete-user" data-id="<?= $user['id'] ?>">
                                         Supprimer
                                     </button>
@@ -131,14 +111,14 @@
         <?php if ($totalPages > 1): ?>
             <div class="pagination">
                 <?php if ($currentPage > 1): ?>
-                    <a href="?page=<?= $currentPage - 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($role) ?>&status=<?= urlencode($status) ?>" 
+                    <a href="?page=<?= $currentPage - 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($role) ?>" 
                        class="btn btn-secondary">← Précédent</a>
                 <?php endif; ?>
                 
-                <span class="page-info">Page <?= $currentPage ?> sur <?= $totalPages ?></span>
+                                        <span class="page-info">Page <?= $currentPage ?> sur <?= $totalPages ?></span>
                 
                 <?php if ($currentPage < $totalPages): ?>
-                    <a href="?page=<?= $currentPage + 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($role) ?>&status=<?= urlencode($status) ?>" 
+                    <a href="?page=<?= $currentPage + 1 ?>&search=<?= urlencode($search) ?>&role=<?= urlencode($role) ?>" 
                        class="btn btn-secondary">Suivant →</a>
                 <?php endif; ?>
             </div>
@@ -148,32 +128,6 @@
     <script>
         // Gestion des actions AJAX
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle statut
-            document.querySelectorAll('.toggle-status').forEach(button => {
-                button.addEventListener('click', function() {
-                    const userId = this.dataset.id;
-                    const currentStatus = this.dataset.status;
-                    
-                    if (confirm('Êtes-vous sûr de vouloir modifier le statut de cet utilisateur ?')) {
-                        fetch('/users.php?action=toggle-status&id=' + userId, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: 'csrf_token=<?= Auth::generateCsrfToken() ?>'
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                location.reload();
-                            } else {
-                                alert('Erreur: ' + data.error);
-                            }
-                        });
-                    }
-                });
-            });
-
             // Suppression
             document.querySelectorAll('.delete-user').forEach(button => {
                 button.addEventListener('click', function() {
@@ -187,13 +141,22 @@
                             },
                             body: 'csrf_token=<?= Auth::generateCsrfToken() ?>'
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Erreur HTTP: ' + response.status);
+                            }
+                            return response.json();
+                        })
                         .then(data => {
                             if (data.success) {
                                 location.reload();
                             } else {
-                                alert('Erreur: ' + data.error);
+                                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
                             }
+                        })
+                        .catch(error => {
+                            console.error('Erreur:', error);
+                            alert('Erreur lors de la suppression: ' + error.message);
                         });
                     }
                 });

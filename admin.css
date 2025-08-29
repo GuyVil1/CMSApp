@@ -473,6 +473,151 @@ body {
 /* ========================================
    RESPONSIVE
    ======================================== */
+
+/* ========================================
+   STYLES POUR LES TAGS
+   ======================================== */
+.tags-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--admin-card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: var(--admin-spacing-lg);
+}
+
+.tags-table th,
+.tags-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+    vertical-align: middle;
+}
+
+.tags-table th {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, #ffed4e 100%);
+    color: var(--admin-dark);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 1px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.tags-table tr {
+    transition: all 0.3s ease;
+}
+
+.tags-table tr:hover {
+    background: rgba(255, 215, 0, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.1);
+}
+
+.tags-table tr:last-child td {
+    border-bottom: none;
+}
+
+.tags-table code {
+    background: linear-gradient(135deg, var(--admin-secondary) 0%, #c0392b 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+}
+
+.badge {
+    background: linear-gradient(135deg, var(--admin-primary) 0%, #ffed4e 100%);
+    color: var(--admin-dark);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4);
+}
+
+/* Styles pour les badges de statut */
+.badge-success {
+    background: linear-gradient(135deg, var(--admin-success) 0%, #2ecc71 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+}
+
+.badge-muted {
+    background: linear-gradient(135deg, var(--admin-text-muted) 0%, #95a5a6 100%);
+    color: var(--admin-dark);
+    box-shadow: 0 2px 4px rgba(149, 165, 166, 0.3);
+}
+
+/* Styles spécifiques pour les actions des tags */
+.tags-table .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.tags-table .actions .btn {
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.tags-table .actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive pour le tableau des tags */
+@media (max-width: 768px) {
+    .tags-table {
+        font-size: 0.9rem;
+    }
+    
+    .tags-table th,
+    .tags-table td {
+        padding: 12px 8px;
+    }
+    
+    .tags-table .actions {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .tags-table .actions .btn {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+    
+    .tags-table code {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+}
 @media (max-width: 768px) {
     .container {
         padding: 0 10px;

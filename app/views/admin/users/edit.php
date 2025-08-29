@@ -84,15 +84,7 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Statut</label>
-                        <div class="form-checkbox">
-                            <input type="checkbox" id="is_active" name="is_active" value="1" 
-                                   <?= (isset($_POST['is_active']) ? $_POST['is_active'] : $user['is_active']) ? 'checked' : '' ?>>
-                            <label for="is_active">Utilisateur actif</label>
-                        </div>
-                        <small>Un utilisateur inactif ne peut pas se connecter</small>
-                    </div>
+
                 </div>
 
                 <div class="form-section">

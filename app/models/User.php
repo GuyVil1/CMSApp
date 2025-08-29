@@ -202,10 +202,7 @@ class User
             }
             
             // Mettre à jour le statut actif
-            if (isset($data['is_active'])) {
-                $updates[] = 'is_active = ?';
-                $params[] = $data['is_active'] ? 1 : 0;
-            }
+            
             
             if (empty($updates)) {
                 return true; // Aucune modification

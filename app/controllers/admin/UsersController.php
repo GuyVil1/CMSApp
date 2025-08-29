@@ -81,7 +81,6 @@ class UsersController extends \Controller
         $users = \User::findWithQuery($query, $params);
         
         // Statistiques
-        $activeUsers = $totalUsers; // Tous les utilisateurs sont actifs par défaut
         $adminUsers = \User::countWithConditions("SELECT COUNT(*) as total FROM users u LEFT JOIN roles r ON u.role_id = r.id WHERE r.name = 'admin'");
         
         $this->render('admin/users/index', [
@@ -89,11 +88,9 @@ class UsersController extends \Controller
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalUsers' => $totalUsers,
-            'activeUsers' => $activeUsers,
             'adminUsers' => $adminUsers,
             'search' => $search,
-            'role' => $role,
-            'status' => ''
+            'role' => $role
         ]);
     }
     
@@ -274,8 +271,14 @@ class UsersController extends \Controller
      */
     public function delete(int $id): void
     {
+        // Debug: vérifier la méthode HTTP
+        error_log("Méthode HTTP: " . $_SERVER['REQUEST_METHOD']);
+        error_log("POST data: " . print_r($_POST, true));
+        
         if (!$this->isPost()) {
-            $this->redirectTo('/admin/users');
+            http_response_code(405);
+            echo json_encode(['success' => false, 'error' => 'Méthode non autorisée']);
+            return;
         }
         
         // Validation CSRF

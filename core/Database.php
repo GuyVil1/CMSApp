@@ -87,9 +87,9 @@ class Database
     /**
      * Obtenir l'ID de la dernière insertion
      */
-    public static function lastInsertId(): string
+    public static function lastInsertId(): int
     {
-        return self::getInstance()->lastInsertId();
+        return (int)self::getInstance()->lastInsertId();
     }
     
     /**
