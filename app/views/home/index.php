@@ -43,7 +43,10 @@
                         <a href="/auth/logout" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Se déconnecter</a>
                     </div>
                 <?php else: ?>
-                    <a href="/auth/login" class="login-btn">Se connecter</a>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <a href="/auth/login" class="login-btn">Se connecter</a>
+                        <a href="/auth/register" class="register-btn">S'inscrire</a>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

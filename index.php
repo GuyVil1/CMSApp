@@ -1,19 +1,37 @@
 <?php
-declare(strict_types=1);
+// Redirection vers le dossier public
+$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
 
-/**
- * Point d'entrée principal - Belgium Vidéo Gaming
- * Redirection vers le dossier public
- */
+// Si c'est la racine, rediriger vers la page d'accueil
+if ($request_uri === '/') {
+    require_once __DIR__ . '/public/index.php';
+    exit;
+}
 
-// Rediriger vers le dossier public
-$public_path = __DIR__ . '/public/index.php';
+// Pour toutes les autres routes, rediriger vers public
+$public_path = __DIR__ . '/public' . $request_uri;
 
 if (file_exists($public_path)) {
-    // Inclure le fichier public/index.php
-    require_once $public_path;
-} else {
-    // Fallback si le fichier public n'existe pas
-    echo "Erreur : Le fichier public/index.php n'existe pas";
+    // Si c'est un fichier statique, le servir directement
+    $mime_types = [
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'webp' => 'image/webp',
+        'ico' => 'image/x-icon'
+    ];
+    
+    $extension = pathinfo($public_path, PATHINFO_EXTENSION);
+    if (isset($mime_types[$extension])) {
+        header('Content-Type: ' . $mime_types[$extension]);
+        readfile($public_path);
+        exit;
+    }
 }
+
+// Sinon, passer au routeur principal
+require_once __DIR__ . '/public/index.php';
 ?>

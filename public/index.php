@@ -71,30 +71,43 @@ function route($uri) {
     // Séparer les parties de l'URI
     $parts = explode('/', $uri);
     
-    $controller = ucfirst($parts[0]) . 'Controller';
-    $action = $parts[1] ?? 'index';
-    
-    // Vérifier si le contrôleur existe
-    $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
-    
-    if (!file_exists($controllerFile)) {
-        // Essayer avec AdminController
-        if (strpos($uri, 'admin') === 0) {
-            $adminController = 'Admin\\' . ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
-            $controllerFile = __DIR__ . "/../app/controllers/admin/" . ucfirst($parts[1] ?? 'Dashboard') . "Controller.php";
-            
-            if (file_exists($controllerFile)) {
-                require_once $controllerFile;
-                $controller = $adminController;
-                // Pour les URLs admin, l'action est la 3ème partie si elle existe
-                $action = $parts[2] ?? 'index';
-            } else {
-                return ['error' => '404'];
-            }
+    // Gérer les routes admin
+    if (strpos($uri, 'admin') === 0) {
+        $controllerName = ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
+        $controllerFile = __DIR__ . "/../app/controllers/admin/" . $controllerName . ".php";
+        
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+            $controller = 'Admin\\' . $controllerName;
+            // Pour les URLs admin, l'action est la 3ème partie si elle existe
+            $action = $parts[2] ?? 'index';
         } else {
             return ['error' => '404'];
         }
     } else {
+        // Routes normales (non-admin)
+        $controller = ucfirst($parts[0]) . 'Controller';
+        $action = $parts[1] ?? 'index';
+        
+        // Gestion spéciale pour les routes d'authentification
+        if ($parts[0] === 'login') {
+            $controller = 'AuthController';
+            $action = 'login';
+        } elseif ($parts[0] === 'register') {
+            $controller = 'AuthController';
+            $action = 'register';
+        } elseif ($parts[0] === 'logout') {
+            $controller = 'AuthController';
+            $action = 'logout';
+        }
+        
+        // Vérifier si le contrôleur existe
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        
+        if (!file_exists($controllerFile)) {
+            return ['error' => '404'];
+        }
+        
         require_once $controllerFile;
     }
     

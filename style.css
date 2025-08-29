@@ -149,6 +149,22 @@ body {
     background: #990000;
 }
 
+.register-btn {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+}
+
+.register-btn:hover {
+    background: #d4a700;
+}
+
 .logout-btn {
     background: var(--belgium-black);
     color: white;

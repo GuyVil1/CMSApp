@@ -50,31 +50,49 @@ class User
     /**
      * Trouver un utilisateur par ID
      */
-    public static function findById(int $id): ?self
+    public static function findById(int $id): ?array
     {
+        $db = new Database();
         $sql = "SELECT u.*, r.name as role_name 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.id 
                 WHERE u.id = ?";
         
-        $data = Database::queryOne($sql, [$id]);
+        $result = $db->query($sql, [$id]);
         
-        return $data ? new self($data) : null;
+        return $result ? $result[0] : null;
     }
     
     /**
      * Trouver un utilisateur par login ou email
      */
-    public static function findByLogin(string $login): ?self
+    public static function findByLogin(string $login): ?array
     {
+        $db = new Database();
         $sql = "SELECT u.*, r.name as role_name 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.id 
                 WHERE u.login = ? OR u.email = ?";
         
-        $data = Database::queryOne($sql, [$login, $login]);
+        $result = $db->query($sql, [$login, $login]);
         
-        return $data ? new self($data) : null;
+        return $result ? $result[0] : null;
+    }
+    
+    /**
+     * Trouver un utilisateur par email
+     */
+    public static function findByEmail(string $email): ?array
+    {
+        $db = new Database();
+        $sql = "SELECT u.*, r.name as role_name 
+                FROM users u 
+                JOIN roles r ON u.role_id = r.id 
+                WHERE u.email = ?";
+        
+        $result = $db->query($sql, [$email]);
+        
+        return $result ? $result[0] : null;
     }
     
     /**
@@ -82,22 +100,23 @@ class User
      */
     public static function findAll(): array
     {
+        $db = new Database();
         $sql = "SELECT u.*, r.name as role_name 
                 FROM users u 
                 JOIN roles r ON u.role_id = r.id 
                 ORDER BY u.created_at DESC";
         
-        $users = Database::query($sql);
-        
-        return array_map(fn($data) => new self($data), $users);
+        return $db->query($sql);
     }
     
     /**
      * Créer un nouvel utilisateur
      */
-    public static function create(array $data): ?self
+    public static function create(array $data): ?array
     {
         try {
+            $db = new Database();
+            
             // Valider les données
             if (empty($data['login']) || empty($data['email']) || empty($data['password'])) {
                 throw new Exception('Données manquantes');
@@ -110,26 +129,24 @@ class User
             
             // Vérifier si l'email existe déjà
             $sql = "SELECT id FROM users WHERE email = ?";
-            if (Database::queryOne($sql, [$data['email']])) {
+            $result = $db->query($sql, [$data['email']]);
+            if ($result) {
                 throw new Exception('Cet email existe déjà');
             }
             
             // Hasher le mot de passe
-            $password_hash = Auth::hashPassword($data['password']);
+            $password_hash = password_hash($data['password'], PASSWORD_DEFAULT);
             
             // Insérer l'utilisateur
             $sql = "INSERT INTO users (login, email, password_hash, role_id) VALUES (?, ?, ?, ?)";
-            Database::execute($sql, [
+            $db->execute($sql, [
                 $data['login'],
                 $data['email'],
                 $password_hash,
                 $data['role_id'] ?? 4 // member par défaut
             ]);
             
-            $userId = (int) Database::lastInsertId();
-            
-            // Logger l'activité
-            Auth::logActivity(Auth::getUserId(), 'user_create', "Création de l'utilisateur {$data['login']}");
+            $userId = (int) $db->lastInsertId();
             
             return self::findById($userId);
             
@@ -142,17 +159,18 @@ class User
     /**
      * Mettre à jour un utilisateur
      */
-    public function update(array $data): bool
+    public static function update(int $id, array $data): bool
     {
         try {
+            $db = new Database();
             $updates = [];
             $params = [];
             
             // Mettre à jour le login
-            if (!empty($data['login']) && $data['login'] !== $this->login) {
+            if (!empty($data['login'])) {
                 // Vérifier si le login existe déjà
                 $existing = self::findByLogin($data['login']);
-                if ($existing && $existing->getId() !== $this->id) {
+                if ($existing && $existing['id'] !== $id) {
                     throw new Exception('Ce login existe déjà');
                 }
                 $updates[] = 'login = ?';
@@ -160,10 +178,11 @@ class User
             }
             
             // Mettre à jour l'email
-            if (!empty($data['email']) && $data['email'] !== $this->email) {
+            if (!empty($data['email'])) {
                 // Vérifier si l'email existe déjà
                 $sql = "SELECT id FROM users WHERE email = ? AND id != ?";
-                if (Database::queryOne($sql, [$data['email'], $this->id])) {
+                $result = $db->query($sql, [$data['email'], $id]);
+                if ($result) {
                     throw new Exception('Cet email existe déjà');
                 }
                 $updates[] = 'email = ?';
@@ -173,13 +192,19 @@ class User
             // Mettre à jour le mot de passe
             if (!empty($data['password'])) {
                 $updates[] = 'password_hash = ?';
-                $params[] = Auth::hashPassword($data['password']);
+                $params[] = password_hash($data['password'], PASSWORD_DEFAULT);
             }
             
             // Mettre à jour le rôle
-            if (!empty($data['role_id']) && $data['role_id'] != $this->role_id) {
+            if (!empty($data['role_id'])) {
                 $updates[] = 'role_id = ?';
                 $params[] = $data['role_id'];
+            }
+            
+            // Mettre à jour le statut actif
+            if (isset($data['is_active'])) {
+                $updates[] = 'is_active = ?';
+                $params[] = $data['is_active'] ? 1 : 0;
             }
             
             if (empty($updates)) {
@@ -187,21 +212,10 @@ class User
             }
             
             $updates[] = 'updated_at = NOW()';
-            $params[] = $this->id;
+            $params[] = $id;
             
             $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
-            Database::execute($sql, $params);
-            
-            // Logger l'activité
-            Auth::logActivity(Auth::getUserId(), 'user_update', "Modification de l'utilisateur {$this->login}");
-            
-            // Recharger les données
-            $updated = self::findById($this->id);
-            if ($updated) {
-                $this->hydrate($updated->toArray());
-            }
-            
-            return true;
+            return $db->execute($sql, $params);
             
         } catch (Exception $e) {
             error_log("Erreur mise à jour utilisateur: " . $e->getMessage());
@@ -212,21 +226,13 @@ class User
     /**
      * Supprimer un utilisateur
      */
-    public function delete(): bool
+    public static function delete(int $id): bool
     {
         try {
-            // Empêcher la suppression de l'utilisateur connecté
-            if ($this->id === Auth::getUserId()) {
-                throw new Exception('Impossible de supprimer votre propre compte');
-            }
+            $db = new Database();
             
             $sql = "DELETE FROM users WHERE id = ?";
-            Database::execute($sql, [$this->id]);
-            
-            // Logger l'activité
-            Auth::logActivity(Auth::getUserId(), 'user_delete', "Suppression de l'utilisateur {$this->login}");
-            
-            return true;
+            return $db->execute($sql, [$id]);
             
         } catch (Exception $e) {
             error_log("Erreur suppression utilisateur: " . $e->getMessage());
@@ -239,8 +245,28 @@ class User
      */
     public static function getRoles(): array
     {
+        $db = new Database();
         $sql = "SELECT * FROM roles ORDER BY id";
-        return Database::query($sql);
+        return $db->query($sql);
+    }
+    
+    /**
+     * Compter les utilisateurs avec conditions
+     */
+    public static function countWithConditions(string $query, array $params = []): int
+    {
+        $db = new Database();
+        $result = $db->query($query, $params);
+        return $result ? (int)$result[0]['total'] : 0;
+    }
+    
+    /**
+     * Trouver des utilisateurs avec requête personnalisée
+     */
+    public static function findWithQuery(string $query, array $params = []): array
+    {
+        $db = new Database();
+        return $db->query($query, $params);
     }
     
     /**
