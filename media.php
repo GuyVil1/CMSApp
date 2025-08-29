@@ -50,9 +50,17 @@ switch ($action) {
         $controller->searchGames();
         break;
         
-    case 'by-type':
-        $controller->byType();
-        break;
+                    case 'by-type':
+                    $controller->byType();
+                    break;
+                    
+                case 'get':
+                    $controller->get();
+                    break;
+                    
+                case 'get-games':
+                    $controller->getGames();
+                    break;
         
     default:
         http_response_code(404);

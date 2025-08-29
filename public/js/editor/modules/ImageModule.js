@@ -211,7 +211,10 @@ class ImageModule extends BaseModule {
                     <p>Aucune image sélectionnée</p>
                     <div class="image-action-buttons">
                         <button type="button" class="image-action-btn" data-action="upload">
-                            <span class="icon">📁</span> Sélectionner une image
+                            <span class="icon">📁</span> Upload direct
+                        </button>
+                        <button type="button" class="image-action-btn" data-action="library">
+                            <span class="icon">📚</span> Bibliothèque
                         </button>
                     </div>
                 </div>
@@ -226,7 +229,10 @@ class ImageModule extends BaseModule {
                     <label>Actions :</label>
                     <div class="image-action-buttons">
                         <button type="button" class="image-action-btn" data-action="upload">
-                            <span class="icon">📁</span> Changer l'image
+                            <span class="icon">📁</span> Upload direct
+                        </button>
+                        <button type="button" class="image-action-btn" data-action="library">
+                            <span class="icon">📚</span> Bibliothèque
                         </button>
                         <button type="button" class="image-action-btn danger" data-action="remove">
                             <span class="icon">🗑️</span> Supprimer l'image
@@ -397,6 +403,10 @@ class ImageModule extends BaseModule {
                 tempFileInput.click();
                 break;
                 
+            case 'library':
+                this.openMediaLibrary();
+                break;
+                
             case 'remove':
                 if (confirm('Supprimer cette image ?')) {
                     console.log('🗑️ Suppression de l\'image pour le module:', this.moduleId);
@@ -404,6 +414,58 @@ class ImageModule extends BaseModule {
                     this.editor.hideOptions();
                 }
                 break;
+        }
+    }
+
+    /**
+     * Ouvrir la bibliothèque de médias
+     */
+    async openMediaLibrary() {
+        try {
+            console.log('📚 Ouverture de la bibliothèque de médias...');
+            
+            // Vérifier que l'API est disponible
+            if (typeof MediaLibraryAPI === 'undefined') {
+                console.error('❌ MediaLibraryAPI non disponible');
+                alert('Erreur: API de médias non disponible');
+                return;
+            }
+            
+            const mediaAPI = new MediaLibraryAPI();
+            
+            // Ouvrir le sélecteur de médias
+            const selectedMedia = await mediaAPI.openMediaSelector({
+                allowMultiple: false,
+                filters: {
+                    type: 'image'
+                }
+            });
+            
+            if (selectedMedia) {
+                console.log('✅ Média sélectionné:', selectedMedia);
+                
+                // Mettre à jour les données de l'image
+                this.imageData = {
+                    src: `/public/uploads.php?file=${encodeURIComponent(selectedMedia.filename)}`,
+                    alt: selectedMedia.original_name,
+                    caption: '',
+                    width: null,
+                    height: null,
+                    alignment: 'left',
+                    mediaId: selectedMedia.id // Stocker l'ID du média
+                };
+                
+                // Mettre à jour l'affichage
+                this.displayImage();
+                
+                console.log('✅ Image mise à jour depuis la bibliothèque');
+            }
+            
+        } catch (error) {
+            if (error.message !== 'Sélection annulée') {
+                console.error('❌ Erreur lors de l\'ouverture de la bibliothèque:', error);
+                alert('Erreur lors de l\'ouverture de la bibliothèque de médias');
+            }
         }
     }
 

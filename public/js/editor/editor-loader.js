@@ -40,7 +40,8 @@ async function loadEditorModules() {
             '/public/js/editor/modules/ButtonModule.js',
             '/public/js/editor/modules/ModuleFactory.js',
             '/public/js/editor/core/StyleManager.js',
-            '/public/js/editor/FullscreenEditor.js'
+            '/public/js/editor/FullscreenEditor.js',
+            '/public/js/editor/MediaLibraryAPI.js'
         ];
         
         // Charger chaque module dans l'ordre

@@ -311,6 +311,81 @@ class MediaController extends \Controller
             'medias' => array_map(fn($media) => $media->toArray(), $medias)
         ]);
     }
+
+    /**
+     * Obtenir un média par ID
+     */
+    public function get(): void
+    {
+        $id = (int)($_GET['id'] ?? 0);
+        
+        if ($id <= 0) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'ID invalide'
+            ], 400);
+            return;
+        }
+        
+        try {
+            $media = \Media::findById($id);
+            
+            if (!$media) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'error' => 'Média non trouvé'
+                ], 404);
+                return;
+            }
+            
+            $this->jsonResponse([
+                'success' => true,
+                'media' => $media->toArray()
+            ]);
+            
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir tous les jeux pour les filtres
+     */
+    public function getGames(): void
+    {
+        try {
+            $limit = (int)($_GET['limit'] ?? 1000);
+            $games = \Game::findAll($limit);
+            
+            $gamesList = [];
+            foreach ($games as $game) {
+                $gamesList[] = [
+                    'id' => $game->getId(),
+                    'title' => $game->getTitle(),
+                    'slug' => $game->getSlug(),
+                    'hardware_name' => $game->getHardwareName()
+                ];
+            }
+            
+            $this->jsonResponse([
+                'success' => true,
+                'games' => $gamesList
+            ]);
+            
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+
+
     
     /**
      * Créer une vignette pour une image
