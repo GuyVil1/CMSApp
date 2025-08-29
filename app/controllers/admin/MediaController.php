@@ -10,6 +10,8 @@ namespace Admin;
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../app/models/Media.php';
+require_once __DIR__ . '/../../../app/models/Game.php';
+require_once __DIR__ . '/../../../app/models/Hardware.php';
 
 class MediaController extends \Controller
 {
@@ -34,11 +36,15 @@ class MediaController extends \Controller
         $totalMedias = \Media::count();
         $totalPages = ceil($totalMedias / $limit);
         
+        // Charger la liste des jeux pour le dropdown
+        $games = \Game::findAll(1000); // Limite élevée pour avoir tous les jeux
+        
         $this->render('admin/media/index', [
             'medias' => $medias,
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'totalMedias' => $totalMedias
+            'totalMedias' => $totalMedias,
+            'games' => $games
         ]);
     }
     
@@ -81,7 +87,12 @@ class MediaController extends \Controller
             $file = $_FILES['file'];
             error_log("Fichier reçu: " . $file['name'] . " (" . $file['size'] . " bytes)");
             
-            $uploadDir = __DIR__ . '/../../../public/uploads/';
+            // Récupérer les paramètres
+            $gameId = !empty($_POST['game_id']) ? (int)$_POST['game_id'] : null;
+            $category = $_POST['category'] ?? 'general';
+            
+            // Déterminer le dossier d'upload
+            $uploadDir = $this->determineUploadDirectory($gameId, $category);
             error_log("Dossier upload: " . $uploadDir);
             
             // Vérifier que le dossier existe
@@ -90,19 +101,19 @@ class MediaController extends \Controller
                 mkdir($uploadDir, 0755, true);
             }
             
-                         // Vérifier le type MIME
-             $finfo = finfo_open(FILEINFO_MIME_TYPE);
-             $mimeType = finfo_file($finfo, $file['tmp_name']);
-             finfo_close($finfo);
-             
-             error_log("Type MIME détecté: " . $mimeType);
-             
-             // Types autorisés
-             $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-             if (!in_array($mimeType, $allowedTypes)) {
-                 error_log("Type MIME non autorisé: " . $mimeType);
-                 throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
-             }
+            // Vérifier le type MIME
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+            
+            error_log("Type MIME détecté: " . $mimeType);
+            
+            // Types autorisés
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (!in_array($mimeType, $allowedTypes)) {
+                error_log("Type MIME non autorisé: " . $mimeType);
+                throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
+            }
             
             // Vérifier la taille (4MB max)
             $maxSize = 4 * 1024 * 1024;
@@ -113,39 +124,41 @@ class MediaController extends \Controller
             // Générer un nom de fichier unique
             $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
             $filename = uniqid() . '_' . time() . '.' . $extension;
-            $filepath = $uploadDir . $filename;
+            $filepath = $uploadDir . '/' . $filename;
             
             // Déplacer le fichier
             if (!move_uploaded_file($file['tmp_name'], $filepath)) {
                 throw new \Exception('Erreur lors du déplacement du fichier');
             }
             
-                         // Créer la vignette si c'est une image (temporairement désactivé pour diagnostic)
-             try {
-                 $this->createThumbnail($filepath, $filename);
-             } catch (\Exception $e) {
-                 error_log("Erreur création vignette: " . $e->getMessage());
-                 // Continuer sans vignette
-             }
+            // Créer la vignette si c'est une image (temporairement désactivé pour diagnostic)
+            try {
+                $this->createThumbnail($filepath, $filename, $uploadDir);
+            } catch (\Exception $e) {
+                error_log("Erreur création vignette: " . $e->getMessage());
+                // Continuer sans vignette
+            }
             
-                         // Enregistrer en base de données
-             $mediaData = [
-                 'filename' => $filename,
-                 'original_name' => $file['name'],
-                 'mime_type' => $mimeType,
-                 'size' => $file['size'],
-                 'uploaded_by' => \Auth::getUserId()
-             ];
-             
-             error_log("Tentative d'enregistrement en base de données...");
-             $media = \Media::create($mediaData);
-             
-             if (!$media) {
-                 error_log("Échec de l'enregistrement en base de données");
-                 throw new \Exception('Erreur lors de l\'enregistrement en base de données');
-             }
-             
-             error_log("Média enregistré avec succès, ID: " . $media->getId());
+            // Enregistrer en base de données
+            $mediaData = [
+                'filename' => $this->getRelativePath($filepath),
+                'original_name' => $file['name'],
+                'mime_type' => $mimeType,
+                'size' => $file['size'],
+                'uploaded_by' => \Auth::getUserId(),
+                'game_id' => $gameId,
+                'media_type' => $category
+            ];
+            
+            error_log("Tentative d'enregistrement en base de données...");
+            $media = \Media::create($mediaData);
+            
+            if (!$media) {
+                error_log("Échec de l'enregistrement en base de données");
+                throw new \Exception('Erreur lors de l\'enregistrement en base de données');
+            }
+            
+            error_log("Média enregistré avec succès, ID: " . $media->getId());
             
             // Stocker en cache temporaire (session)
             $this->storeInTempCache($media);
@@ -158,13 +171,73 @@ class MediaController extends \Controller
                     'original_name' => $media->getOriginalName(),
                     'url' => $media->getUrl(),
                     'thumbnail_url' => $media->getThumbnailUrl(),
-                    'size' => $media->getFormattedSize()
+                    'size' => $media->getFormattedSize(),
+                    'game_id' => $gameId,
+                    'category' => $category
                 ]
             ]);
             
         } catch (\Exception $e) {
             $this->jsonResponse(['error' => $e->getMessage()], 400);
         }
+    }
+    
+    /**
+     * Déterminer le dossier d'upload selon le jeu et la catégorie
+     */
+    private function determineUploadDirectory(?int $gameId, string $category): string
+    {
+        $baseDir = __DIR__ . '/../../../public/uploads/';
+        
+        if ($gameId) {
+            // Image liée à un jeu
+            $game = \Game::find($gameId);
+            if ($game) {
+                return $baseDir . 'games/' . $game->getSlug();
+            }
+        }
+        
+        // Image générale - organiser par mois/année
+        $currentMonth = date('m-Y');
+        return $baseDir . 'general/' . $category . '/' . $currentMonth;
+    }
+    
+    /**
+     * Obtenir le chemin relatif pour la base de données
+     */
+    private function getRelativePath(string $fullPath): string
+    {
+        $uploadsDir = __DIR__ . '/../../../public/uploads/';
+        return str_replace($uploadsDir, '', $fullPath);
+    }
+    
+    /**
+     * Rechercher des jeux pour l'autocomplétion
+     */
+    public function searchGames(): void
+    {
+        $query = $_GET['q'] ?? '';
+        $limit = (int)($_GET['limit'] ?? 10);
+        
+        if (empty($query)) {
+            $games = \Game::findAll($limit);
+        } else {
+            $games = \Game::search($query, $limit);
+        }
+        
+        $results = array_map(function($game) {
+            return [
+                'id' => $game->getId(),
+                'title' => $game->getTitle(),
+                'slug' => $game->getSlug(),
+                'hardware' => $game->getHardwareName()
+            ];
+        }, $games);
+        
+        $this->jsonResponse([
+            'success' => true,
+            'games' => $results
+        ]);
     }
     
     /**
@@ -242,13 +315,12 @@ class MediaController extends \Controller
     /**
      * Créer une vignette pour une image
      */
-    private function createThumbnail(string $filepath, string $filename): void
+    private function createThumbnail(string $filepath, string $filename, string $uploadDir): void
     {
         error_log("Création vignette pour: " . $filename);
         
-        $uploadDir = __DIR__ . '/../../../public/uploads/';
         $thumbnailName = 'thumb_' . $filename;
-        $thumbnailPath = $uploadDir . $thumbnailName;
+        $thumbnailPath = $uploadDir . '/' . $thumbnailName;
         
         // Dimensions de la vignette
         $thumbWidth = 320;
@@ -340,26 +412,20 @@ class MediaController extends \Controller
     }
     
     /**
-     * Stocker l'image en cache temporaire (session)
+     * Stocker en cache temporaire
      */
     private function storeInTempCache(\Media $media): void
     {
-        if (!isset($_SESSION['temp_uploads'])) {
-            $_SESSION['temp_uploads'] = [];
+        if (!isset($_SESSION['temp_media'])) {
+            $_SESSION['temp_media'] = [];
         }
         
-        // Limiter le cache à 10 images maximum
-        if (count($_SESSION['temp_uploads']) >= 10) {
-            array_shift($_SESSION['temp_uploads']);
-        }
+        $_SESSION['temp_media'][] = $media->getId();
         
-        $_SESSION['temp_uploads'][] = [
-            'id' => $media->getId(),
-            'filename' => $media->getFilename(),
-            'url' => $media->getUrl(),
-            'thumbnail_url' => $media->getThumbnailUrl(),
-            'uploaded_at' => time()
-        ];
+        // Limiter à 10 éléments
+        if (count($_SESSION['temp_media']) > 10) {
+            array_shift($_SESSION['temp_media']);
+        }
     }
     
     /**

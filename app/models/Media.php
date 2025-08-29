@@ -146,7 +146,7 @@ class Media
      */
     public function getUrl(): string
     {
-        return '/image.php?file=' . urlencode($this->filename);
+        return '/public/uploads.php?file=' . urlencode($this->filename);
     }
     
     /**
@@ -156,7 +156,8 @@ class Media
     {
         $pathInfo = pathinfo($this->filename);
         $thumbnailName = 'thumb_' . $pathInfo['basename'];
-        return '/image.php?file=' . urlencode($thumbnailName);
+        $thumbnailPath = dirname($this->filename) . '/' . $thumbnailName;
+        return '/public/uploads.php?file=' . urlencode($thumbnailPath);
     }
     
     /**
@@ -305,19 +306,80 @@ class Media
         }
     }
     
-    // Getters
-    public function getId(): int { return $this->id; }
-    public function getFilename(): string { return $this->filename; }
-    public function getOriginalName(): string { return $this->originalName; }
-    public function getMimeType(): string { return $this->mimeType; }
-    public function getSize(): int { return $this->size; }
-    public function getUploadedBy(): int { return $this->uploadedBy; }
-    public function getGameId(): ?int { return $this->gameId; }
-    public function getMediaType(): string { return $this->mediaType; }
-    public function getCreatedAt(): string { return $this->createdAt; }
+    /**
+     * Obtenir l'ID du jeu associé
+     */
+    public function getGameId(): ?int
+    {
+        return $this->gameId;
+    }
     
     /**
-     * Convertir en tableau pour l'API
+     * Obtenir le type de média
+     */
+    public function getMediaType(): string
+    {
+        return $this->mediaType;
+    }
+    
+    /**
+     * Obtenir le nom du fichier original
+     */
+    public function getOriginalName(): string
+    {
+        return $this->originalName;
+    }
+    
+    /**
+     * Obtenir le type MIME
+     */
+    public function getMimeType(): string
+    {
+        return $this->mimeType;
+    }
+    
+    /**
+     * Obtenir la taille
+     */
+    public function getSize(): int
+    {
+        return $this->size;
+    }
+    
+    /**
+     * Obtenir l'ID de l'utilisateur qui a uploadé
+     */
+    public function getUploadedBy(): int
+    {
+        return $this->uploadedBy;
+    }
+    
+    /**
+     * Obtenir la date de création
+     */
+    public function getCreatedAt(): string
+    {
+        return $this->createdAt;
+    }
+    
+    /**
+     * Obtenir l'ID
+     */
+    public function getId(): int
+    {
+        return $this->id;
+    }
+    
+    /**
+     * Obtenir le nom du fichier
+     */
+    public function getFilename(): string
+    {
+        return $this->filename;
+    }
+    
+    /**
+     * Convertir en tableau
      */
     public function toArray(): array
     {
@@ -327,14 +389,15 @@ class Media
             'original_name' => $this->originalName,
             'mime_type' => $this->mimeType,
             'size' => $this->size,
-            'size_formatted' => $this->getFormattedSize(),
             'uploaded_by' => $this->uploadedBy,
+            'game_id' => $this->gameId,
+            'media_type' => $this->mediaType,
             'created_at' => $this->createdAt,
             'url' => $this->getUrl(),
-            'thumbnail_url' => $this->isImage() ? $this->getThumbnailUrl() : null,
+            'thumbnail_url' => $this->getThumbnailUrl(),
+            'formatted_size' => $this->getFormattedSize(),
             'is_image' => $this->isImage(),
-            'is_video' => $this->isVideo(),
-            'file_exists' => $this->fileExists()
+            'is_video' => $this->isVideo()
         ];
     }
 }
