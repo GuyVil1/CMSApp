@@ -1171,3 +1171,481 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   STYLES POUR LES CATÉGORIES
+   ======================================== */
+.categories-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--admin-card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.categories-table th,
+.categories-table td {
+    padding: var(--admin-spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.categories-table th {
+    background: var(--admin-primary);
+    color: var(--admin-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.categories-table tr:hover {
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.categories-table code {
+    background: var(--admin-secondary);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: 'Courier New', monospace;
+}
+
+.description-text {
+    color: var(--admin-text);
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.text-muted {
+    color: var(--admin-text-muted);
+    font-style: italic;
+}
+
+/* Styles pour les cartes d'information */
+.info-card {
+    background: var(--admin-card-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 12px;
+    padding: var(--admin-spacing-lg);
+    margin-bottom: var(--admin-spacing-lg);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.info-card h3 {
+    color: var(--admin-primary);
+    margin-bottom: var(--admin-spacing-md);
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.info-card .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--admin-spacing-md);
+}
+
+.info-card .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.info-card .info-item strong {
+    color: var(--admin-text);
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.info-card .info-item span,
+.info-card .info-item code {
+    color: var(--admin-text-muted);
+    font-size: 0.85em;
+}
+
+/* Responsive pour les tableaux de catégories */
+@media (max-width: 768px) {
+    .categories-table {
+        font-size: 0.9em;
+    }
+    
+    .categories-table th,
+    .categories-table td {
+        padding: var(--admin-spacing-sm);
+    }
+    
+    .info-card .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   STYLES POUR LES JEUX
+   ======================================== */
+.games-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--admin-card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.games-table th,
+.games-table td {
+    padding: var(--admin-spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.games-table th {
+    background: var(--admin-primary);
+    color: var(--admin-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.games-table tr:hover {
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.games-table code {
+    background: var(--admin-secondary);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: 'Courier New', monospace;
+}
+
+/* Cover des jeux */
+.game-cover {
+    width: 45px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--admin-border);
+}
+
+.no-cover {
+    width: 45px;
+    height: 60px;
+    background: var(--admin-secondary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: var(--admin-text-muted);
+}
+
+/* Informations du jeu */
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.game-title {
+    font-weight: 600;
+    color: var(--admin-text);
+    font-size: 0.95em;
+}
+
+.game-slug {
+    font-size: 0.8em;
+    color: var(--admin-text-muted);
+    font-family: 'Courier New', monospace;
+}
+
+/* Badges pour plateforme et genre */
+.badge-platform {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-genre {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-released {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.badge-upcoming {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+/* Informations de sortie */
+.release-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.release-date {
+    font-size: 0.9em;
+    color: var(--admin-text);
+    font-weight: 500;
+}
+
+.article-count {
+    font-size: 0.85em;
+    color: var(--admin-text-muted);
+    font-style: italic;
+}
+
+/* Cover actuelle dans le formulaire d'édition */
+.current-cover {
+    margin-top: var(--admin-spacing-md);
+    padding: var(--admin-spacing-md);
+    background: var(--admin-secondary);
+    border-radius: 8px;
+}
+
+.current-cover h4 {
+    margin: 0 0 var(--admin-spacing-sm) 0;
+    color: var(--admin-text);
+    font-size: 0.9em;
+}
+
+.current-cover-image {
+    max-width: 200px;
+    max-height: 120px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--admin-border);
+}
+
+/* Responsive pour les tableaux de jeux */
+@media (max-width: 768px) {
+    .games-table {
+        font-size: 0.9em;
+    }
+    
+    .games-table th,
+    .games-table td {
+        padding: var(--admin-spacing-sm);
+    }
+    
+    .game-cover,
+    .no-cover {
+        width: 40px;
+        height: 30px;
+    }
+    
+    .game-title {
+        font-size: 0.9em;
+    }
+    
+    .game-slug {
+        font-size: 0.75em;
+    }
+}
+
+/* ========================================
+   STYLES POUR L'UPLOAD D'IMAGES
+   ======================================== */
+.upload-area {
+    border: 2px dashed var(--admin-border);
+    border-radius: 12px;
+    padding: var(--admin-spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--admin-input-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--admin-spacing-sm);
+}
+
+.upload-area:hover,
+.upload-area.dragover {
+    border-color: var(--admin-primary);
+    background: rgba(255, 215, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.upload-icon {
+    font-size: 3em;
+    color: var(--admin-text-muted);
+    margin-bottom: var(--admin-spacing-sm);
+}
+
+.upload-text {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: var(--admin-spacing-xs);
+}
+
+.upload-hint {
+    font-size: 0.9em;
+    color: var(--admin-text-muted);
+}
+
+.file-input {
+    display: none;
+}
+
+.preview-container {
+    margin-top: var(--admin-spacing-md);
+    text-align: center;
+}
+
+.image-preview {
+    max-width: 300px;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--admin-border);
+    margin-bottom: var(--admin-spacing-sm);
+}
+
+.preview-container .btn {
+    margin: 0 var(--admin-spacing-xs);
+}
+
+/* ========================================
+   STYLES POUR LES HARDWARE
+   ======================================== */
+.hardware-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--admin-card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hardware-table th,
+.hardware-table td {
+    padding: var(--admin-spacing-md);
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.hardware-table th {
+    background: var(--admin-primary);
+    color: var(--admin-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+.hardware-table tr:hover {
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.hardware-table code {
+    background: var(--admin-secondary);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: 'Courier New', monospace;
+}
+
+/* Informations du hardware */
+.hardware-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hardware-name {
+    font-weight: 600;
+    color: var(--admin-text);
+    font-size: 0.95em;
+}
+
+.hardware-slug {
+    font-size: 0.8em;
+    color: var(--admin-text-muted);
+    font-family: 'Courier New', monospace;
+}
+
+/* Badges pour les types de hardware */
+.badge-type-console {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-type-pc {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-type-mobile {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.badge-type-other {
+    background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+/* Responsive pour les tableaux de hardware */
+@media (max-width: 768px) {
+    .hardware-table {
+        font-size: 0.9em;
+    }
+    
+    .hardware-table th,
+    .hardware-table td {
+        padding: var(--admin-spacing-sm);
+    }
+    
+    .hardware-name {
+        font-size: 0.9em;
+    }
+    
+    .hardware-slug {
+        font-size: 0.75em;
+    }
+}

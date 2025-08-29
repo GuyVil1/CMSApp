@@ -1,6 +1,6 @@
 <?php
 /**
- * Fichier de routage temporaire pour la gestion des jeux
+ * Fichier de routage temporaire pour la gestion des catégories
  */
 
 // Démarrer la session pour CSRF (seulement si pas déjà démarrée)
@@ -16,10 +16,10 @@ $id = $_GET['id'] ?? null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'delete' && $id) {
     // Traitement direct de la suppression AJAX
     require_once 'core/Auth.php';
-    require_once 'app/models/Game.php';
+    require_once 'app/models/Category.php';
     
     // Debug
-    error_log("Suppression jeu ID: " . $id);
+    error_log("Suppression catégorie ID: " . $id);
     error_log("CSRF token reçu: " . ($_POST['csrf_token'] ?? 'AUCUN'));
     error_log("CSRF token en session: " . ($_SESSION['csrf_token'] ?? 'AUCUN'));
     
@@ -33,15 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'delete' && $id) {
         exit;
     }
     
-    // Supprimer le jeu
-    $game = Game::find((int)$id);
-    if ($game) {
+    // Supprimer la catégorie
+    $category = Category::find((int)$id);
+    if ($category) {
         try {
-            if ($game->delete()) {
-                error_log("Jeu supprimé avec succès");
+            if ($category->delete()) {
+                error_log("Catégorie supprimée avec succès");
                 echo json_encode(['success' => true]);
             } else {
-                error_log("Erreur lors de la suppression du jeu");
+                error_log("Erreur lors de la suppression de la catégorie");
                 http_response_code(500);
                 echo json_encode(['success' => false, 'error' => 'Erreur lors de la suppression']);
             }
@@ -51,15 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'delete' && $id) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
     } else {
-        error_log("Jeu non trouvé");
+        error_log("Catégorie non trouvée");
         http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Jeu non trouvé']);
+        echo json_encode(['success' => false, 'error' => 'Catégorie non trouvée']);
     }
     exit;
 }
 
 // Construire l'URL simulée pour les autres actions
-$simulatedUrl = '/admin/games';
+$simulatedUrl = '/admin/categories';
 if ($action !== 'index') {
     $simulatedUrl .= '/' . $action;
     if ($id) {
@@ -72,4 +72,3 @@ $_SERVER['REQUEST_URI'] = $simulatedUrl;
 
 // Inclure le point d'entrée principal
 require_once 'public/index.php';
-?>

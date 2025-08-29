@@ -15,6 +15,8 @@ class Media
     private string $mimeType;
     private int $size;
     private int $uploadedBy;
+    private ?int $gameId;
+    private string $mediaType;
     private string $createdAt;
     
     public function __construct(array $data = [])
@@ -32,6 +34,8 @@ class Media
         $this->mimeType = $data['mime_type'] ?? '';
         $this->size = (int)($data['size'] ?? 0);
         $this->uploadedBy = (int)($data['uploaded_by'] ?? 0);
+        $this->gameId = isset($data['game_id']) ? (int)$data['game_id'] : null;
+        $this->mediaType = $data['media_type'] ?? 'other';
         $this->createdAt = $data['created_at'] ?? '';
     }
     
@@ -89,15 +93,17 @@ class Media
      */
     public static function create(array $data): ?self
     {
-        $sql = "INSERT INTO media (filename, original_name, mime_type, size, uploaded_by) 
-                VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO media (filename, original_name, mime_type, size, uploaded_by, game_id, media_type) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['filename'],
             $data['original_name'],
             $data['mime_type'],
             $data['size'],
-            $data['uploaded_by']
+            $data['uploaded_by'],
+            $data['game_id'] ?? null,
+            $data['media_type'] ?? 'other'
         ];
         
         if (Database::execute($sql, $params)) {
@@ -195,6 +201,93 @@ class Media
     }
     
     /**
+     * Trouver les médias d'un jeu
+     */
+    public static function findByGame(int $gameId, string $mediaType = null): array
+    {
+        $sql = "SELECT m.*, u.login as uploader_name 
+                FROM media m 
+                LEFT JOIN users u ON m.uploaded_by = u.id 
+                WHERE m.game_id = ?";
+        $params = [$gameId];
+        
+        if ($mediaType) {
+            $sql .= " AND m.media_type = ?";
+            $params[] = $mediaType;
+        }
+        
+        $sql .= " ORDER BY m.created_at DESC";
+        
+        $results = Database::query($sql, $params);
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
+     * Trouver la cover d'un jeu
+     */
+    public static function findCoverByGame(int $gameId): ?self
+    {
+        $sql = "SELECT * FROM media WHERE game_id = ? AND media_type = 'cover' LIMIT 1";
+        $data = Database::queryOne($sql, [$gameId]);
+        
+        return $data ? new self($data) : null;
+    }
+    
+    /**
+     * Créer un dossier pour un jeu
+     */
+    public static function createGameDirectory(string $gameSlug): string
+    {
+        $gameDir = __DIR__ . '/../../public/uploads/games/' . $gameSlug;
+        
+        if (!is_dir($gameDir)) {
+            mkdir($gameDir, 0755, true);
+        }
+        
+        return $gameDir;
+    }
+    
+    /**
+     * Obtenir le chemin du fichier pour un jeu
+     */
+    public function getGameFilePath(): string
+    {
+        if (!$this->gameId) {
+            return $this->getFilePath();
+        }
+        
+        // Récupérer le slug du jeu
+        $sql = "SELECT slug FROM games WHERE id = ?";
+        $game = Database::queryOne($sql, [$this->gameId]);
+        
+        if (!$game) {
+            return $this->getFilePath();
+        }
+        
+        return __DIR__ . '/../../public/uploads/games/' . $game['slug'] . '/' . $this->filename;
+    }
+    
+    /**
+     * Obtenir l'URL du fichier pour un jeu
+     */
+    public function getGameUrl(): string
+    {
+        if (!$this->gameId) {
+            return $this->getUrl();
+        }
+        
+        // Récupérer le slug du jeu
+        $sql = "SELECT slug FROM games WHERE id = ?";
+        $game = Database::queryOne($sql, [$this->gameId]);
+        
+        if (!$game) {
+            return $this->getUrl();
+        }
+        
+        return '/public/uploads/games/' . $game['slug'] . '/' . $this->filename;
+    }
+    
+    /**
      * Supprimer les vignettes
      */
     private function deleteThumbnails(): void
@@ -219,6 +312,8 @@ class Media
     public function getMimeType(): string { return $this->mimeType; }
     public function getSize(): int { return $this->size; }
     public function getUploadedBy(): int { return $this->uploadedBy; }
+    public function getGameId(): ?int { return $this->gameId; }
+    public function getMediaType(): string { return $this->mediaType; }
     public function getCreatedAt(): string { return $this->createdAt; }
     
     /**

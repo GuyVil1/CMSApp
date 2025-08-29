@@ -115,9 +115,25 @@
                             </div>
                         </a>
                         
-                        <a href="/admin/games" class="action-btn" style="display: flex; flex-direction: column; align-items: center; padding: var(--admin-spacing-lg); background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: 12px; text-decoration: none; color: var(--admin-text); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                        <a href="/categories.php" class="action-btn" style="display: flex; flex-direction: column; align-items: center; padding: var(--admin-spacing-lg); background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: 12px; text-decoration: none; color: var(--admin-text); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                            <div class="action-icon" style="font-size: 2.5em; margin-bottom: var(--admin-spacing-sm);">📂</div>
+                            <span class="action-text" style="font-weight: 600; font-size: 0.9em;">Gérer les catégories</span>
+                            <div class="action-hover" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--admin-primary) 0%, rgba(255, 215, 0, 0.8) 100%); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: var(--admin-dark); font-weight: bold;">→</span>
+                            </div>
+                        </a>
+                        
+                        <a href="/games.php" class="action-btn" style="display: flex; flex-direction: column; align-items: center; padding: var(--admin-spacing-lg); background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: 12px; text-decoration: none; color: var(--admin-text); transition: all 0.3s ease; position: relative; overflow: hidden;">
                             <div class="action-icon" style="font-size: 2.5em; margin-bottom: var(--admin-spacing-sm);">🎮</div>
                             <span class="action-text" style="font-weight: 600; font-size: 0.9em;">Gérer les jeux</span>
+                            <div class="action-hover" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--admin-primary) 0%, rgba(255, 215, 0, 0.8) 100%); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                <span style="color: var(--admin-dark); font-weight: bold;">→</span>
+                            </div>
+                        </a>
+                        
+                        <a href="/hardware.php" class="action-btn" style="display: flex; flex-direction: column; align-items: center; padding: var(--admin-spacing-lg); background: var(--admin-card-bg); border: 1px solid var(--admin-border); border-radius: 12px; text-decoration: none; color: var(--admin-text); transition: all 0.3s ease; position: relative; overflow: hidden;">
+                            <div class="action-icon" style="font-size: 2.5em; margin-bottom: var(--admin-spacing-sm);">🖥️</div>
+                            <span class="action-text" style="font-weight: 600; font-size: 0.9em;">Gérer les hardware</span>
                             <div class="action-hover" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--admin-primary) 0%, rgba(255, 215, 0, 0.8) 100%); opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; justify-content: center;">
                                 <span style="color: var(--admin-dark); font-weight: bold;">→</span>
                             </div>

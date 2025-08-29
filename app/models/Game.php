@@ -16,6 +16,7 @@ class Game
     private ?string $platform;
     private ?string $genre;
     private ?int $coverImageId;
+    private ?int $hardwareId;
     private ?string $releaseDate;
     private string $createdAt;
     
@@ -35,6 +36,7 @@ class Game
         $this->platform = $data['platform'] ?? null;
         $this->genre = $data['genre'] ?? null;
         $this->coverImageId = $data['cover_image_id'] ? (int)$data['cover_image_id'] : null;
+        $this->hardwareId = $data['hardware_id'] ? (int)$data['hardware_id'] : null;
         $this->releaseDate = $data['release_date'] ?? null;
         $this->createdAt = $data['created_at'] ?? '';
     }
@@ -86,6 +88,23 @@ class Game
         $result = Database::queryOne($sql);
         
         return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Compter les jeux avec conditions
+     */
+    public static function countWithConditions(string $query, array $params = []): int
+    {
+        $result = Database::queryOne($query, $params);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Trouver des jeux avec requête personnalisée
+     */
+    public static function findWithQuery(string $query, array $params = []): array
+    {
+        return Database::query($query, $params);
     }
     
     /**
@@ -167,8 +186,8 @@ class Game
      */
     public static function create(array $data): ?self
     {
-        $sql = "INSERT INTO games (title, slug, description, platform, genre, cover_image_id, release_date) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO games (title, slug, description, platform, genre, cover_image_id, hardware_id, release_date) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['title'],
@@ -177,6 +196,7 @@ class Game
             $data['platform'] ?? null,
             $data['genre'] ?? null,
             $data['cover_image_id'] ?? null,
+            $data['hardware_id'] ?? null,
             $data['release_date'] ?? null
         ];
         
@@ -195,7 +215,7 @@ class Game
     {
         $sql = "UPDATE games SET 
                 title = ?, slug = ?, description = ?, platform = ?, 
-                genre = ?, cover_image_id = ?, release_date = ? 
+                genre = ?, cover_image_id = ?, hardware_id = ?, release_date = ? 
                 WHERE id = ?";
         
         $params = [
@@ -205,6 +225,7 @@ class Game
             $data['platform'] ?? $this->platform,
             $data['genre'] ?? $this->genre,
             $data['cover_image_id'] ?? $this->coverImageId,
+            $data['hardware_id'] ?? $this->hardwareId,
             $data['release_date'] ?? $this->releaseDate,
             $this->id
         ];
@@ -327,6 +348,27 @@ class Game
         return (int)($result['total'] ?? 0) > 0;
     }
     
+    /**
+     * Obtenir le hardware associé
+     */
+    public function getHardware(): ?\Hardware
+    {
+        if (!$this->hardwareId) {
+            return null;
+        }
+        
+        return \Hardware::find($this->hardwareId);
+    }
+    
+    /**
+     * Obtenir le nom du hardware
+     */
+    public function getHardwareName(): ?string
+    {
+        $hardware = $this->getHardware();
+        return $hardware ? $hardware->getName() : null;
+    }
+    
     // Getters
     public function getId(): int { return $this->id; }
     public function getTitle(): string { return $this->title; }
@@ -335,6 +377,7 @@ class Game
     public function getPlatform(): ?string { return $this->platform; }
     public function getGenre(): ?string { return $this->genre; }
     public function getCoverImageId(): ?int { return $this->coverImageId; }
+    public function getHardwareId(): ?int { return $this->hardwareId; }
     public function getReleaseDate(): ?string { return $this->releaseDate; }
     public function getCreatedAt(): string { return $this->createdAt; }
     
@@ -343,6 +386,8 @@ class Game
      */
     public function toArray(): array
     {
+        $hardware = $this->getHardware();
+        
         return [
             'id' => $this->id,
             'title' => $this->title,
@@ -352,6 +397,9 @@ class Game
             'genre' => $this->genre,
             'cover_image_id' => $this->coverImageId,
             'cover_image_url' => $this->getCoverImageUrl(),
+            'hardware_id' => $this->hardwareId,
+            'hardware_name' => $hardware ? $hardware->getName() : null,
+            'hardware_type' => $hardware ? $hardware->getType() : null,
             'release_date' => $this->releaseDate,
             'created_at' => $this->createdAt,
             'is_released' => $this->isReleased(),

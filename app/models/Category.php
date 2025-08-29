@@ -169,6 +169,23 @@ class Category
         
         return (int)($result['total'] ?? 0) > 0;
     }
+
+    /**
+     * Compter les catégories avec conditions
+     */
+    public static function countWithConditions(string $query, array $params = []): int
+    {
+        $result = Database::queryOne($query, $params);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Trouver des catégories avec requête personnalisée
+     */
+    public static function findWithQuery(string $query, array $params = []): array
+    {
+        return Database::query($query, $params);
+    }
     
     // Getters
     public function getId(): int { return $this->id; }
