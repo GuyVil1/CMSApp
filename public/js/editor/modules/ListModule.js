@@ -488,6 +488,13 @@ class ListModule extends BaseModule {
         
         console.log('✅ Données liste chargées avec succès');
     }
+
+    /**
+     * Lier les événements de la liste
+     */
+    bindListEvents() {
+        this.bindEvents();
+    }
 }
 
 // Rendre disponible globalement

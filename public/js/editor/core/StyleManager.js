@@ -183,6 +183,39 @@ class StyleManager {
                     transform: translateY(-2px);
                     box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
                 }
+
+                /* Styles pour le drag & drop */
+                .module-btn.dragging {
+                    opacity: 0.5;
+                    transform: scale(0.95);
+                    background: var(--belgium-yellow) !important;
+                    color: var(--primary) !important;
+                    border-color: var(--belgium-yellow);
+                    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+                }
+
+                .content-column.drop-zone-active {
+                    background: rgba(255, 215, 0, 0.1) !important;
+                    border: 2px dashed var(--belgium-yellow) !important;
+                    border-radius: 8px;
+                    position: relative;
+                }
+
+                .content-column.drop-zone-active::before {
+                    content: "📥 Déposer ici";
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: var(--belgium-yellow);
+                    color: var(--primary);
+                    padding: 0.5rem 1rem;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    z-index: 10;
+                    pointer-events: none;
+                }
                 
                 /* Boutons de disposition */
                 .layout-buttons {
@@ -395,6 +428,9 @@ class StyleManager {
                     padding: 2rem;
                     transition: all 0.3s ease;
                     background: var(--primary);
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
                 }
                 
                 .content-column:hover {
@@ -407,9 +443,10 @@ class StyleManager {
                     flex-direction: column;
                     align-items: center;
                     justify-content: center;
-                    height: 100%;
+                    flex: 1;
                     color: var(--text-muted);
                     text-align: center;
+                    min-height: 200px;
                 }
                 
                 .placeholder-icon {
@@ -431,6 +468,7 @@ class StyleManager {
                     overflow: hidden;
                     transition: all 0.3s ease;
                     background: var(--primary);
+                    flex-shrink: 0;
                 }
                 
                 .content-module:hover {

@@ -431,6 +431,13 @@ class SeparatorModule extends BaseModule {
         
         console.log('✅ Données séparateur chargées avec succès');
     }
+
+    /**
+     * Lier les événements du séparateur
+     */
+    bindSeparatorEvents() {
+        this.bindEvents();
+    }
 }
 
 // Rendre disponible globalement

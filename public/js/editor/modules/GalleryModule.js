@@ -93,9 +93,15 @@ class GalleryModule extends BaseModule {
                         <div class="upload-method">
                             <label for="gallery-file-input" class="upload-btn">
                                 <span class="icon">📁</span>
-                                Sélectionner des images
+                                Upload direct
                             </label>
                             <input type="file" id="gallery-file-input" multiple accept="image/*" style="display: none;">
+                        </div>
+                        <div class="upload-method">
+                            <button type="button" class="upload-btn library-btn" id="gallery-library-btn">
+                                <span class="icon">📚</span>
+                                Bibliothèque de médias
+                            </button>
                         </div>
                         <div class="upload-method">
                             <div class="drag-drop-zone">
@@ -128,6 +134,12 @@ class GalleryModule extends BaseModule {
         fileInput?.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
             this.addImages(files);
+        });
+
+        // Événement pour la bibliothèque de médias
+        const libraryBtn = content.querySelector('#gallery-library-btn');
+        libraryBtn?.addEventListener('click', () => {
+            this.openMediaLibrary();
         });
 
         // Événements des boutons
@@ -1008,6 +1020,60 @@ class GalleryModule extends BaseModule {
         const optionsHTML = this.getOptionsHTML();
         if (this.editor.optionsContent) {
             this.editor.optionsContent.innerHTML = optionsHTML;
+        }
+    }
+
+    /**
+     * Ouvrir la bibliothèque de médias pour sélection multiple
+     */
+    async openMediaLibrary() {
+        try {
+            console.log('📚 Ouverture de la bibliothèque de médias pour galerie...');
+            
+            // Vérifier que l'API est disponible
+            if (typeof MediaLibraryAPI === 'undefined') {
+                console.error('❌ MediaLibraryAPI non disponible');
+                alert('Erreur: API de médias non disponible');
+                return;
+            }
+            
+            const mediaAPI = new MediaLibraryAPI();
+            
+            // Ouvrir le sélecteur de médias avec sélection multiple
+            const selectedMedias = await mediaAPI.openMediaSelector({
+                allowMultiple: true,
+                filters: {
+                    type: 'image'
+                }
+            });
+            
+            if (selectedMedias && selectedMedias.length > 0) {
+                console.log('✅ Médias sélectionnés pour galerie:', selectedMedias);
+                
+                // Convertir les médias en format galerie
+                const newImages = selectedMedias.map(media => ({
+                    id: media.id,
+                    url: `/public/uploads.php?file=${encodeURIComponent(media.filename)}`,
+                    title: media.original_name,
+                    description: '',
+                    alt: media.original_name,
+                    mediaId: media.id
+                }));
+                
+                // Ajouter les nouvelles images à la galerie
+                this.galleryData.images.push(...newImages);
+                
+                // Mettre à jour l'affichage
+                this.displayGallery();
+                
+                console.log('✅ Images ajoutées à la galerie depuis la bibliothèque');
+            }
+            
+        } catch (error) {
+            if (error.message !== 'Sélection annulée') {
+                console.error('❌ Erreur lors de l\'ouverture de la bibliothèque:', error);
+                alert('Erreur lors de l\'ouverture de la bibliothèque de médias');
+            }
         }
     }
 

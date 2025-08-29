@@ -153,13 +153,14 @@ class MediaLibraryAPI {
      * Créer le modal de sélection de médias
      */
     createMediaSelectorModal(options = {}) {
+        const allowMultiple = options.allowMultiple || false;
         const modal = document.createElement('div');
         modal.className = 'media-selector-modal';
         modal.innerHTML = `
             <div class="media-selector-overlay"></div>
             <div class="media-selector-container">
                 <div class="media-selector-header">
-                    <h3>📚 Sélectionner un média</h3>
+                    <h3>📚 ${allowMultiple ? 'Sélectionner des médias' : 'Sélectionner un média'}</h3>
                     <button type="button" class="close-btn" data-action="close">✕</button>
                 </div>
                 
@@ -188,7 +189,9 @@ class MediaLibraryAPI {
                 
                 <div class="media-selector-footer">
                     <button type="button" class="btn btn-secondary" data-action="cancel">Annuler</button>
-                    <button type="button" class="btn btn-primary" data-action="select" disabled>Sélectionner</button>
+                    <button type="button" class="btn btn-primary" data-action="select" disabled>
+                        ${allowMultiple ? 'Sélectionner (0)' : 'Sélectionner'}
+                    </button>
                 </div>
             </div>
         `;
@@ -206,6 +209,7 @@ class MediaLibraryAPI {
      * Initialiser le sélecteur de médias
      */
     async initMediaSelector(modal, options) {
+        const allowMultiple = options.allowMultiple || false;
         const searchInput = modal.querySelector('#mediaSearch');
         const gameFilter = modal.querySelector('#gameFilter');
         const categoryFilter = modal.querySelector('#categoryFilter');
@@ -215,7 +219,7 @@ class MediaLibraryAPI {
         const closeBtn = modal.querySelector('[data-action="close"]');
         const cancelBtn = modal.querySelector('[data-action="cancel"]');
 
-        let selectedMedia = null;
+        let selectedMedia = allowMultiple ? [] : null;
         let currentMedias = [];
 
         // Charger les jeux pour le filtre
@@ -242,9 +246,9 @@ class MediaLibraryAPI {
             });
 
             currentMedias = medias;
-            this.renderMediaGrid(mediaGrid, medias, selectedMedia, (newSelectedMedia) => {
+            this.renderMediaGrid(mediaGrid, medias, selectedMedia, allowMultiple, (newSelectedMedia) => {
                 selectedMedia = newSelectedMedia;
-                this.updateSelectButton(selectedMedia);
+                this.updateSelectButton(selectedMedia, allowMultiple);
             });
         };
 
@@ -283,28 +287,35 @@ class MediaLibraryAPI {
     /**
      * Rendre la grille de médias
      */
-    renderMediaGrid(container, medias, selectedMedia, onSelectionChange = null) {
+    renderMediaGrid(container, medias, selectedMedia, allowMultiple = false, onSelectionChange = null) {
         if (medias.length === 0) {
             container.innerHTML = '<div class="no-results">Aucun média trouvé</div>';
             return;
         }
 
-        container.innerHTML = medias.map(media => `
-            <div class="media-item ${selectedMedia?.id === media.id ? 'selected' : ''}" 
-                 data-media-id="${media.id}">
-                <div class="media-preview">
-                    <img src="/public/uploads.php?file=${encodeURIComponent(media.filename)}" 
-                         alt="${media.original_name}" 
-                         class="media-thumbnail">
-                </div>
-                <div class="media-info">
-                    <div class="media-name">${media.original_name}</div>
-                    <div class="media-details">
-                        ${media.formatted_size} • ${media.mime_type}
+        container.innerHTML = medias.map(media => {
+            const isSelected = allowMultiple 
+                ? selectedMedia.some(m => m.id === media.id)
+                : selectedMedia?.id === media.id;
+            
+            return `
+                <div class="media-item ${isSelected ? 'selected' : ''}" 
+                     data-media-id="${media.id}">
+                    <div class="media-preview">
+                        <img src="/public/uploads.php?file=${encodeURIComponent(media.filename)}" 
+                             alt="${media.original_name}" 
+                             class="media-thumbnail">
+                        ${allowMultiple ? '<div class="selection-indicator">✓</div>' : ''}
+                    </div>
+                    <div class="media-info">
+                        <div class="media-name">${media.original_name}</div>
+                        <div class="media-details">
+                            ${media.formatted_size} • ${media.mime_type}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Événements de sélection
         container.querySelectorAll('.media-item').forEach(item => {
@@ -314,11 +325,25 @@ class MediaLibraryAPI {
                 
                 if (media) {
                     console.log('🎯 Média sélectionné:', media);
-                    this.updateMediaSelection(container, media);
+                    
+                    if (allowMultiple) {
+                        // Sélection multiple
+                        const index = selectedMedia.findIndex(m => m.id === media.id);
+                        if (index > -1) {
+                            selectedMedia.splice(index, 1); // Désélectionner
+                        } else {
+                            selectedMedia.push(media); // Sélectionner
+                        }
+                        this.updateMediaSelection(container, selectedMedia, allowMultiple);
+                    } else {
+                        // Sélection unique
+                        selectedMedia = media;
+                        this.updateMediaSelection(container, media);
+                    }
                     
                     // Appeler le callback si fourni
                     if (onSelectionChange) {
-                        onSelectionChange(media);
+                        onSelectionChange(selectedMedia);
                     }
                 }
             });
@@ -328,19 +353,35 @@ class MediaLibraryAPI {
     /**
      * Mettre à jour la sélection
      */
-    updateMediaSelection(container, selectedMedia) {
+    updateMediaSelection(container, selectedMedia, allowMultiple = false) {
         container.querySelectorAll('.media-item').forEach(item => {
-            item.classList.toggle('selected', item.dataset.mediaId == selectedMedia?.id);
+            const mediaId = item.dataset.mediaId;
+            let isSelected = false;
+            
+            if (allowMultiple) {
+                isSelected = selectedMedia.some(m => m.id == mediaId);
+            } else {
+                isSelected = selectedMedia?.id == mediaId;
+            }
+            
+            item.classList.toggle('selected', isSelected);
         });
     }
 
     /**
      * Mettre à jour le bouton de sélection
      */
-    updateSelectButton(selectedMedia) {
+    updateSelectButton(selectedMedia, allowMultiple = false) {
         const selectBtn = document.querySelector('.media-selector-modal [data-action="select"]');
         if (selectBtn) {
-            selectBtn.disabled = !selectedMedia;
+            if (allowMultiple) {
+                const count = selectedMedia.length;
+                selectBtn.textContent = `Sélectionner (${count})`;
+                selectBtn.disabled = count === 0;
+            } else {
+                selectBtn.textContent = 'Sélectionner';
+                selectBtn.disabled = !selectedMedia;
+            }
         }
     }
 
@@ -481,8 +522,29 @@ class MediaLibraryAPI {
                 background: #f8fff9;
             }
 
+            .media-item.selected .selection-indicator {
+                display: block;
+            }
+
+            .selection-indicator {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                width: 20px;
+                height: 20px;
+                background: #28a745;
+                color: white;
+                border-radius: 50%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
             .media-preview {
                 margin-bottom: 10px;
+                position: relative;
             }
 
             .media-thumbnail {

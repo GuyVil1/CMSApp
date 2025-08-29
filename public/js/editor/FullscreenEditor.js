@@ -95,34 +95,34 @@ class FullscreenEditor {
                         <div class="sidebar-section">
                             <h3>Modules</h3>
                             <div class="module-buttons">
-                                <button type="button" class="module-btn" data-module="text">
+                                <button type="button" class="module-btn" data-module="text" draggable="true">
                                     <span class="icon">📝</span> Texte
                                 </button>
-                                <button type="button" class="module-btn" data-module="image">
+                                <button type="button" class="module-btn" data-module="image" draggable="true">
                                     <span class="icon">🖼️</span> Image
                                 </button>
-                                <button type="button" class="module-btn" data-module="video">
+                                <button type="button" class="module-btn" data-module="video" draggable="true">
                                     <span class="icon">🎥</span> Vidéo
                                 </button>
-                                <button type="button" class="module-btn" data-module="quote">
+                                <button type="button" class="module-btn" data-module="quote" draggable="true">
                                     <span class="icon">💬</span> Citation
                                 </button>
-                                <button type="button" class="module-btn" data-module="gallery">
+                                <button type="button" class="module-btn" data-module="gallery" draggable="true">
                                     <span class="icon">🖼️</span> Galerie
                                 </button>
-                                <button type="button" class="module-btn" data-module="heading">
+                                <button type="button" class="module-btn" data-module="heading" draggable="true">
                                     <span class="icon">📋</span> Titre
                                 </button>
-                                <button type="button" class="module-btn" data-module="list">
+                                <button type="button" class="module-btn" data-module="list" draggable="true">
                                     <span class="icon">📋</span> Liste
                                 </button>
-                                <button type="button" class="module-btn" data-module="separator">
+                                <button type="button" class="module-btn" data-module="separator" draggable="true">
                                     <span class="icon">➖</span> Séparateur
                                 </button>
-                                <button type="button" class="module-btn" data-module="table">
+                                <button type="button" class="module-btn" data-module="table" draggable="true">
                                     <span class="icon">📊</span> Tableau
                                 </button>
-                                <button type="button" class="module-btn" data-module="button">
+                                <button type="button" class="module-btn" data-module="button" draggable="true">
                                     <span class="icon">🔘</span> Bouton
                                 </button>
                             </div>
@@ -254,6 +254,84 @@ class FullscreenEditor {
                 this.close();
             }
         });
+
+        // Drag & Drop des modules
+        this.bindDragAndDropEvents();
+    }
+
+    /**
+     * Gestion des événements de drag & drop pour les modules
+     */
+    bindDragAndDropEvents() {
+        // Événements de drag sur les boutons de modules
+        this.modal.addEventListener('dragstart', (e) => {
+            const moduleBtn = e.target.closest('.module-btn');
+            if (moduleBtn) {
+                const moduleType = moduleBtn.dataset.module;
+                e.dataTransfer.setData('text/plain', moduleType);
+                e.dataTransfer.effectAllowed = 'copy';
+                
+                // Ajouter une classe pour le feedback visuel
+                moduleBtn.classList.add('dragging');
+                
+                console.log('🚀 Début du drag pour le module:', moduleType);
+            }
+        });
+
+        this.modal.addEventListener('dragend', (e) => {
+            const moduleBtn = e.target.closest('.module-btn');
+            if (moduleBtn) {
+                moduleBtn.classList.remove('dragging');
+                console.log('🏁 Fin du drag');
+            }
+        });
+
+        // Événements de drop sur les colonnes
+        this.modal.addEventListener('dragover', (e) => {
+            const column = e.target.closest('.content-column');
+            if (column) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                
+                // Ajouter le feedback visuel
+                column.classList.add('drop-zone-active');
+            }
+        });
+
+        this.modal.addEventListener('dragleave', (e) => {
+            const column = e.target.closest('.content-column');
+            if (column) {
+                // Vérifier si on quitte vraiment la colonne
+                const rect = column.getBoundingClientRect();
+                const x = e.clientX;
+                const y = e.clientY;
+                
+                if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+                    column.classList.remove('drop-zone-active');
+                }
+            }
+        });
+
+        this.modal.addEventListener('drop', (e) => {
+            const column = e.target.closest('.content-column');
+            if (column) {
+                e.preventDefault();
+                column.classList.remove('drop-zone-active');
+                
+                const moduleType = e.dataTransfer.getData('text/plain');
+                if (moduleType) {
+                    console.log('🎯 Drop du module', moduleType, 'dans la colonne');
+                    this.addModule(moduleType, column);
+                }
+            }
+        });
+
+        // Nettoyer les classes de feedback quand le drag se termine
+        this.modal.addEventListener('dragend', () => {
+            this.modal.querySelectorAll('.drop-zone-active').forEach(el => {
+                el.classList.remove('drop-zone-active');
+            });
+        });
     }
     
     handleHeaderAction(action) {
@@ -270,9 +348,9 @@ class FullscreenEditor {
         }
     }
     
-    addModule(type) {
-        const targetColumn = this.getTargetColumn();
-        if (!targetColumn) return;
+    addModule(type, targetColumn = null) {
+        const column = targetColumn || this.getTargetColumn();
+        if (!column) return;
         
         const moduleInstance = this.moduleFactory.createModule(type);
         const moduleElement = moduleInstance.create();
@@ -280,11 +358,11 @@ class FullscreenEditor {
         // Stocker l'instance du module
         this.modules.set(moduleElement.dataset.moduleId, moduleInstance);
         
-        targetColumn.appendChild(moduleElement);
+        column.appendChild(moduleElement);
         this.selectModule(moduleInstance);
         
         // Supprimer le placeholder si c'est le premier module
-        const placeholder = targetColumn.querySelector('.column-placeholder');
+        const placeholder = column.querySelector('.column-placeholder');
         if (placeholder) {
             placeholder.remove();
         }

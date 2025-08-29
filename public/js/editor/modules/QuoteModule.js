@@ -457,6 +457,13 @@ class QuoteModule extends BaseModule {
         
         console.log('✅ Données citation chargées avec succès');
     }
+
+    /**
+     * Lier les événements de la citation
+     */
+    bindQuoteEvents() {
+        this.bindEvents();
+    }
 }
 
 // Rendre disponible globalement
