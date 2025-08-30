@@ -10,7 +10,13 @@ class ImageModule extends BaseModule {
             caption: '',
             width: null,
             height: null,
-            alignment: 'left'
+            alignment: 'left',
+            padding: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            }
         };
     }
 
@@ -166,7 +172,14 @@ class ImageModule extends BaseModule {
             alt: '',
             caption: '',
             width: null,
-            height: null
+            height: null,
+            alignment: 'left',
+            padding: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            }
         };
         
         this.isUploading = false;
@@ -183,15 +196,45 @@ class ImageModule extends BaseModule {
         if (!this.imageData.src) return '';
         
         const alignmentClass = this.getAlignmentClass();
+        const paddingStyle = this.getPaddingStyle();
         
         return `
-            <div class="image-container ${alignmentClass}">
+            <div class="image-container ${alignmentClass}" style="${paddingStyle}">
                 <img src="${this.imageData.src}" alt="${this.imageData.alt}" class="uploaded-image" 
                      style="${this.imageData.width ? `width: ${this.imageData.width}px;` : ''} 
                             ${this.imageData.height ? `height: ${this.imageData.height}px;` : ''}">
                 ${this.imageData.caption ? `<div class="image-caption">${this.imageData.caption}</div>` : ''}
             </div>
         `;
+    }
+
+    /**
+     * Générer le style CSS pour le padding
+     */
+    getPaddingStyle() {
+        // Vérification de sécurité pour éviter l'erreur si padding n'est pas défini
+        if (!this.imageData.padding) {
+            this.imageData.padding = {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            };
+        }
+        
+        const { top, right, bottom, left } = this.imageData.padding;
+        
+        if (top === 0 && right === 0 && bottom === 0 && left === 0) {
+            return ''; // Pas de padding
+        }
+
+        // Si tous les paddings sont identiques, utiliser la version raccourcie
+        if (top === right && right === bottom && bottom === left) {
+            return `padding: ${top}px;`;
+        }
+
+        // Sinon, spécifier chaque direction
+        return `padding: ${top}px ${right}px ${bottom}px ${left}px;`;
     }
 
     getAlignmentClass() {
@@ -260,6 +303,42 @@ class ImageModule extends BaseModule {
                         <span class="size-unit">px</span>
                     </div>
                 </div>
+
+                <div class="option-group">
+                    <label>Padding :</label>
+                    <div class="padding-controls">
+                        <div class="padding-row">
+                            <div class="padding-input-group">
+                                <label class="padding-label">Haut</label>
+                                <input type="number" class="padding-top" value="${this.imageData.padding?.top || 0}" min="0" max="100" placeholder="0">
+                                <span class="padding-unit">px</span>
+                            </div>
+                            <div class="padding-input-group">
+                                <label class="padding-label">Bas</label>
+                                <input type="number" class="padding-bottom" value="${this.imageData.padding?.bottom || 0}" min="0" max="100" placeholder="0">
+                                <span class="padding-unit">px</span>
+                            </div>
+                        </div>
+                        <div class="padding-row">
+                            <div class="padding-input-group">
+                                <label class="padding-label">Gauche</label>
+                                <input type="number" class="padding-left" value="${this.imageData.padding?.left || 0}" min="0" max="100" placeholder="0">
+                                <span class="padding-unit">px</span>
+                            </div>
+                            <div class="padding-input-group">
+                                <label class="padding-label">Droite</label>
+                                <input type="number" class="padding-right" value="${this.imageData.padding?.right || 0}" min="0" max="100" placeholder="0">
+                                <span class="padding-unit">px</span>
+                            </div>
+                        </div>
+                        <div class="padding-presets">
+                            <button type="button" class="padding-preset-btn" data-preset="none">Aucun</button>
+                            <button type="button" class="padding-preset-btn" data-preset="small">Petit</button>
+                            <button type="button" class="padding-preset-btn" data-preset="medium">Moyen</button>
+                            <button type="button" class="padding-preset-btn" data-preset="large">Grand</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -325,6 +404,53 @@ class ImageModule extends BaseModule {
             };
             imageCaption.addEventListener('input', this.captionInputHandler);
         }
+
+        // Contrôles de padding
+        const paddingTop = optionsContent.querySelector('.padding-top');
+        const paddingRight = optionsContent.querySelector('.padding-right');
+        const paddingBottom = optionsContent.querySelector('.padding-bottom');
+        const paddingLeft = optionsContent.querySelector('.padding-left');
+
+        if (paddingTop) {
+            this.paddingTopHandler = (e) => {
+                this.imageData.padding.top = parseInt(e.target.value) || 0;
+                this.displayImage();
+            };
+            paddingTop.addEventListener('change', this.paddingTopHandler);
+        }
+
+        if (paddingRight) {
+            this.paddingRightHandler = (e) => {
+                this.imageData.padding.right = parseInt(e.target.value) || 0;
+                this.displayImage();
+            };
+            paddingRight.addEventListener('change', this.paddingRightHandler);
+        }
+
+        if (paddingBottom) {
+            this.paddingBottomHandler = (e) => {
+                this.imageData.padding.bottom = parseInt(e.target.value) || 0;
+                this.displayImage();
+            };
+            paddingBottom.addEventListener('change', this.paddingBottomHandler);
+        }
+
+        if (paddingLeft) {
+            this.paddingLeftHandler = (e) => {
+                this.imageData.padding.left = parseInt(e.target.value) || 0;
+                this.displayImage();
+            };
+            paddingLeft.addEventListener('change', this.paddingLeftHandler);
+        }
+
+        // Boutons de presets de padding
+        const paddingPresetBtns = optionsContent.querySelectorAll('.padding-preset-btn');
+        paddingPresetBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const preset = e.target.dataset.preset;
+                this.applyPaddingPreset(preset);
+            });
+        });
     }
 
     cleanupOptionsEvents() {
@@ -355,6 +481,63 @@ class ImageModule extends BaseModule {
 
         if (imageCaption && this.captionInputHandler) {
             imageCaption.removeEventListener('input', this.captionInputHandler);
+        }
+
+        // Nettoyer les événements de padding
+        const paddingTop = optionsContent.querySelector('.padding-top');
+        const paddingRight = optionsContent.querySelector('.padding-right');
+        const paddingBottom = optionsContent.querySelector('.padding-bottom');
+        const paddingLeft = optionsContent.querySelector('.padding-left');
+
+        if (paddingTop && this.paddingTopHandler) {
+            paddingTop.removeEventListener('change', this.paddingTopHandler);
+        }
+
+        if (paddingRight && this.paddingRightHandler) {
+            paddingRight.removeEventListener('change', this.paddingRightHandler);
+        }
+
+        if (paddingBottom && this.paddingBottomHandler) {
+            paddingBottom.removeEventListener('change', this.paddingBottomHandler);
+        }
+
+        if (paddingLeft && this.paddingLeftHandler) {
+            paddingLeft.removeEventListener('change', this.paddingLeftHandler);
+        }
+    }
+
+    /**
+     * Appliquer un preset de padding
+     */
+    applyPaddingPreset(preset) {
+        const presets = {
+            none: { top: 0, right: 0, bottom: 0, left: 0 },
+            small: { top: 10, right: 10, bottom: 10, left: 10 },
+            medium: { top: 20, right: 20, bottom: 20, left: 20 },
+            large: { top: 40, right: 40, bottom: 40, left: 40 }
+        };
+
+        if (presets[preset]) {
+            this.imageData.padding = { ...presets[preset] };
+            
+            // Mettre à jour les inputs
+            const optionsContent = this.editor.optionsContent;
+            if (optionsContent) {
+                const paddingTop = optionsContent.querySelector('.padding-top');
+                const paddingRight = optionsContent.querySelector('.padding-right');
+                const paddingBottom = optionsContent.querySelector('.padding-bottom');
+                const paddingLeft = optionsContent.querySelector('.padding-left');
+
+                if (paddingTop) paddingTop.value = this.imageData.padding.top;
+                if (paddingRight) paddingRight.value = this.imageData.padding.right;
+                if (paddingBottom) paddingBottom.value = this.imageData.padding.bottom;
+                if (paddingLeft) paddingLeft.value = this.imageData.padding.left;
+            }
+
+            // Mettre à jour l'affichage
+            this.displayImage();
+            
+            console.log(`✅ Preset de padding "${preset}" appliqué:`, this.imageData.padding);
         }
     }
 
@@ -452,6 +635,12 @@ class ImageModule extends BaseModule {
                     width: null,
                     height: null,
                     alignment: 'left',
+                    padding: {
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 0
+                    },
                     mediaId: selectedMedia.id // Stocker l'ID du média
                 };
                 
@@ -477,6 +666,16 @@ class ImageModule extends BaseModule {
             ...this.imageData,
             ...data
         };
+        
+        // S'assurer que le padding est toujours initialisé
+        if (!this.imageData.padding) {
+            this.imageData.padding = {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            };
+        }
         
         // Mettre à jour l'affichage si l'élément existe
         if (this.element) {

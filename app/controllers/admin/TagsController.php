@@ -245,6 +245,44 @@ class TagsController extends \Controller
     }
     
     /**
+     * Recherche de tags pour l'autocomplete
+     */
+    public function searchTags(): void
+    {
+        $query = $this->getQueryParam('q', '');
+        $limit = (int)($this->getQueryParam('limit', 10));
+        
+        if (empty($query) || strlen($query) < 2) {
+            $this->jsonResponse([
+                'success' => true,
+                'tags' => []
+            ]);
+            return;
+        }
+        
+        try {
+            $sql = "SELECT id, name, slug FROM tags 
+                    WHERE name LIKE ? 
+                    ORDER BY name ASC 
+                    LIMIT ?";
+            
+            $params = ["%{$query}%", $limit];
+            $tags = \Tag::findWithQuery($sql, $params);
+            
+            $this->jsonResponse([
+                'success' => true,
+                'tags' => $tags
+            ]);
+            
+        } catch (\Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'Erreur lors de la recherche des tags'
+            ], 500);
+        }
+    }
+
+    /**
      * Supprimer un tag
      */
     public function delete(int $id): void

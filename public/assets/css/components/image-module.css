@@ -1,0 +1,164 @@
+/* Styles pour le module Image */
+.image-options {
+    padding: 1rem;
+}
+
+.option-group {
+    margin-bottom: 1.5rem;
+}
+
+.option-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+/* Contrôles de padding */
+.padding-controls {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.padding-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.padding-row:last-child {
+    margin-bottom: 0;
+}
+
+.padding-input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.padding-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.padding-input-group input[type="number"] {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.padding-input-group input[type="number"]:focus {
+    outline: none;
+    border-color: var(--belgium-yellow);
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+}
+
+.padding-unit {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Presets de padding */
+.padding-presets {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.padding-preset-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.padding-preset-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--belgium-yellow);
+}
+
+.padding-preset-btn.active {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    border-color: var(--belgium-yellow);
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .padding-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .padding-input-group {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .padding-label {
+        margin-bottom: 0;
+        margin-right: 0.5rem;
+    }
+    
+    .padding-presets {
+        justify-content: stretch;
+    }
+    
+    .padding-preset-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+/* Styles pour l'affichage de l'image avec padding */
+.image-container {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.image-container img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.image-caption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: center;
+    font-style: italic;
+}
+
+/* Alignements */
+.image-align-left {
+    text-align: left;
+}
+
+.image-align-center {
+    text-align: center;
+}
+
+.image-align-right {
+    text-align: right;
+}

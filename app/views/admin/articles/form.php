@@ -335,22 +335,103 @@
             margin: 0 0 15px 0;
             font-size: 16px;
         }
-        .tag-checkbox {
+        
+        /* Styles pour l'autocomplete des tags */
+        .tag-search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .tag-search {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .tag-search:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .tags-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            z-index: 1000;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .tags-dropdown.active {
+            display: block;
+        }
+
+        .tags-dropdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tags-dropdown li {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: white;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tags-dropdown li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .selected-tag {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
-            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #ffd700;
         }
-        .tag-checkbox input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        .tag-checkbox label {
-            color: white;
-            margin: 0;
+
+        .selected-tag .remove-tag {
+            background: none;
+            border: none;
+            color: #ffd700;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
+            margin-left: 5px;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .selected-tag .remove-tag:hover {
+            color: #e74c3c;
         }
         
         /* Actions */
@@ -616,19 +697,31 @@
                     <div class="tags-container">
                         <h3>🏷️ Tags</h3>
                         <p style="color: #ccc; font-size: 12px; margin-bottom: 15px;">
-                            Sélectionnez les tags associés à cet article
+                            Recherchez et sélectionnez les tags associés à cet article
                         </p>
                         
-                        <?php foreach ($tags as $tag): ?>
-                            <div class="tag-checkbox">
-                                <input type="checkbox" id="tag_<?= $tag['id'] ?>" 
-                                       name="tags[]" value="<?= $tag['id'] ?>"
-                                       <?= $article && in_array($tag['id'], $articleTagIds ?? []) ? 'checked' : '' ?>>
-                                <label for="tag_<?= $tag['id'] ?>">
-                                    <?= htmlspecialchars($tag['name']) ?>
-                                </label>
-                            </div>
-                        <?php endforeach; ?>
+                        <!-- Recherche de tags -->
+                        <div class="tag-search-container">
+                            <input type="text" id="tagSearch" class="tag-search" 
+                                   placeholder="Tapez pour rechercher un tag..." 
+                                   autocomplete="off">
+                            <div id="tagsDropdown" class="tags-dropdown"></div>
+                        </div>
+                        
+                        <!-- Tags sélectionnés -->
+                        <div id="selectedTags" class="selected-tags">
+                            <?php if ($article && !empty($articleTagIds)): ?>
+                                <?php foreach ($tags as $tag): ?>
+                                    <?php if (in_array($tag['id'], $articleTagIds)): ?>
+                                        <div class="selected-tag" data-tag-id="<?= $tag['id'] ?>">
+                                            <span><?= htmlspecialchars($tag['name']) ?></span>
+                                            <button type="button" class="remove-tag" onclick="removeTag(<?= $tag['id'] ?>)">×</button>
+                                            <input type="hidden" name="tags[]" value="<?= $tag['id'] ?>">
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -933,38 +1026,129 @@
                 const form = document.querySelector('.form-container');
                 if (form) {
                     form.addEventListener('submit', function(e) {
-                        const contentField = document.getElementById('content');
-                        const titleField = document.getElementById('title');
+                        const title = document.getElementById('title').value.trim();
+                        const content = document.getElementById('content').value.trim();
                         
-                        // Vérifier que le titre n'est pas vide
-                        if (!titleField.value.trim()) {
+                        if (!title) {
                             e.preventDefault();
                             alert('Le titre est obligatoire');
-                            titleField.focus();
                             return false;
                         }
                         
-                        // Vérifier que le contenu n'est pas vide ou contient juste le placeholder
-                        const content = contentField.value.trim();
-                        if (!content || content === '<div class="content-section" data-columns="1"><div class="module text-module" data-module-type="text" data-module-id="default_text"><div class="module-content"><p>Contenu de l\'article...</p></div></div></div>') {
+                        if (!content) {
                             e.preventDefault();
-                            alert('Veuillez rédiger le contenu de l\'article en utilisant l\'éditeur modulaire');
+                            alert('Le contenu est obligatoire');
                             return false;
                         }
-                        
-                        // Vérifier qu'une image de couverture est sélectionnée
-                        const hasGameCover = coverImageIdInput.value && coverImageIdInput.value !== '';
-                        const hasUploadedImage = coverImageFileInput && coverImageFileInput.files.length > 0;
-                        
-                        if (!hasGameCover && !hasUploadedImage) {
-                            e.preventDefault();
-                            alert('Veuillez sélectionner une image d\'illustration ou un jeu avec une cover');
-                            return false;
-                        }
-                        
-                        return true;
                     });
                 }
+
+                // Gestion de la recherche dynamique des tags
+                const tagSearch = document.getElementById('tagSearch');
+                const tagsDropdown = document.getElementById('tagsDropdown');
+                const selectedTags = document.getElementById('selectedTags');
+                let searchTimeout;
+                let selectedTagsList = new Set();
+
+                // Initialiser les tags déjà sélectionnés
+                document.querySelectorAll('.selected-tag').forEach(tag => {
+                    const tagId = tag.dataset.tagId;
+                    selectedTagsList.add(parseInt(tagId));
+                });
+
+                if (tagSearch) {
+                    tagSearch.addEventListener('input', function() {
+                        clearTimeout(searchTimeout);
+                        const query = this.value.trim();
+                        
+                        if (query.length < 2) {
+                            tagsDropdown.classList.remove('active');
+                            return;
+                        }
+                        
+                        searchTimeout = setTimeout(() => {
+                            searchTags(query);
+                        }, 300);
+                    });
+
+                    // Fermer le dropdown quand on clique ailleurs
+                    document.addEventListener('click', function(e) {
+                        if (!tagSearch.contains(e.target) && !tagsDropdown.contains(e.target)) {
+                            tagsDropdown.classList.remove('active');
+                        }
+                    });
+                }
+
+                // Recherche de tags
+                async function searchTags(query) {
+                    try {
+                        const response = await fetch(`/tags.php?action=search-tags&q=${encodeURIComponent(query)}&limit=10`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            displayTagsDropdown(data.tags);
+                        }
+                    } catch (error) {
+                        console.error('Erreur recherche tags:', error);
+                    }
+                }
+
+                // Afficher le dropdown des tags
+                function displayTagsDropdown(tags) {
+                    tagsDropdown.innerHTML = '';
+                    
+                    if (tags.length === 0) {
+                        tagsDropdown.innerHTML = '<ul><li>Aucun tag trouvé</li></ul>';
+                    } else {
+                        const ul = document.createElement('ul');
+                        tags.forEach(tag => {
+                            const li = document.createElement('li');
+                            li.textContent = tag.name;
+                            li.addEventListener('click', () => selectTag(tag));
+                            ul.appendChild(li);
+                        });
+                        tagsDropdown.appendChild(ul);
+                    }
+                    
+                    tagsDropdown.classList.add('active');
+                }
+
+                // Sélectionner un tag
+                function selectTag(tag) {
+                    if (selectedTagsList.has(tag.id)) {
+                        // Tag déjà sélectionné
+                        return;
+                    }
+
+                    selectedTagsList.add(tag.id);
+                    
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'selected-tag';
+                    tagElement.dataset.tagId = tag.id;
+                    tagElement.innerHTML = `
+                        <span>${tag.name}</span>
+                        <button type="button" class="remove-tag" onclick="removeTag(${tag.id})">×</button>
+                        <input type="hidden" name="tags[]" value="${tag.id}">
+                    `;
+                    
+                    selectedTags.appendChild(tagElement);
+                    tagSearch.value = '';
+                    tagsDropdown.classList.remove('active');
+                    
+                    // Notification
+                    showNotification(`Tag ajouté : ${tag.name}`, 'success');
+                }
+
+                // Supprimer un tag
+                window.removeTag = function(tagId) {
+                    selectedTagsList.delete(tagId);
+                    const tagElement = document.querySelector(`[data-tag-id="${tagId}"]`);
+                    if (tagElement) {
+                        tagElement.remove();
+                    }
+                };
+
+
             });
         </script>
 </body>

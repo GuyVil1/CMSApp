@@ -45,6 +45,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'delete' && $id) {
     exit;
 }
 
+// Gestion spéciale pour la recherche de tags (AJAX GET)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'search-tags') {
+    // Traitement direct de la recherche AJAX
+    require_once 'core/Auth.php';
+    require_once 'app/models/Tag.php';
+    
+    $query = $_GET['q'] ?? '';
+    $limit = (int)($_GET['limit'] ?? 10);
+    
+    if (empty($query) || strlen($query) < 2) {
+        echo json_encode(['success' => true, 'tags' => []]);
+        exit;
+    }
+    
+    try {
+        $sql = "SELECT id, name, slug FROM tags 
+                WHERE name LIKE ? 
+                ORDER BY name ASC 
+                LIMIT ?";
+        
+        $params = ["%{$query}%", $limit];
+        $tags = Tag::findWithQuery($sql, $params);
+        
+        echo json_encode(['success' => true, 'tags' => $tags]);
+        
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Erreur lors de la recherche des tags']);
+    }
+    exit;
+}
+
 // Construire l'URL simulée pour les autres actions
 $simulatedUrl = '/admin/tags';
 if ($action !== 'index') {

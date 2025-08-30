@@ -809,8 +809,8 @@ class FullscreenEditor {
                     }
                     
                     .content-module { 
-                        margin: 20px 0; 
-                        padding: 15px;
+                        margin: 0; 
+                        padding: 0;
                         border-radius: 8px;
                         background: #ffffff;
                     }
@@ -2358,6 +2358,10 @@ class FullscreenEditor {
             this.contentSections.appendChild(newSection);
             console.log('✅ Section ajoutée au DOM de l\'éditeur');
             
+            // Ajouter la section à la Map this.sections
+            this.sections.set(newSection.dataset.sectionId, newSection);
+            console.log('✅ Section ajoutée à la Map this.sections');
+            
             // Parser les modules dans cette section
             this.parseModulesInSection(sectionElement, newSection);
         });
@@ -2587,27 +2591,76 @@ class FullscreenEditor {
     recreateHeadingModuleFromContent(moduleElement, columnElement) {
         try {
             console.log('📋 Recréation du module titre depuis content-module-heading');
-            
-            const heading = moduleElement.querySelector('h1, h2, h3, h4, h5, h6');
-            if (heading) {
+
+            const moduleHtml = moduleElement.innerHTML;
+            console.log('📄 Contenu HTML du module titre (brut):', moduleHtml);
+
+            let headingText = '';
+            let headingLevel = 'h2'; // Default
+            let headingAlignment = 'left'; // Default
+
+            // Attempt to parse as direct HTML first
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = moduleHtml;
+            let headingElement = tempDiv.querySelector('h1, h2, h3, h4, h5, h6');
+
+            if (headingElement) {
+                // Found direct HTML heading
+                headingText = headingElement.textContent || '';
+                headingLevel = headingElement.tagName.toLowerCase();
+                headingAlignment = this.getAlignmentFromClass(headingElement.className) || 'left';
+                console.log('✅ Titre trouvé comme HTML direct.');
+            } else {
+                // If not found as direct HTML, it might be HTML entities
+                const decodedHtml = this.decodeHtmlEntities(moduleHtml);
+                console.log('📄 Contenu HTML du module titre (décodé):', decodedHtml);
+
+                // Try parsing the decoded string as HTML
+                const tempDivDecoded = document.createElement('div');
+                tempDivDecoded.innerHTML = decodedHtml;
+                headingElement = tempDivDecoded.querySelector('h1, h2, h3, h4, h5, h6');
+
+                if (headingElement) {
+                    // Found heading after decoding
+                    headingText = headingElement.textContent || '';
+                    headingLevel = headingElement.tagName.toLowerCase();
+                    headingAlignment = this.getAlignmentFromClass(headingElement.className) || 'left';
+                    console.log('✅ Titre trouvé après décodage HTML.');
+                } else {
+                    // Fallback: use the raw text content of the module element, assuming it's just text
+                    headingText = moduleElement.textContent.trim();
+                    console.log('⚠️ Titre non trouvé, utilisant le texte brut du module.');
+                }
+            }
+
+            if (headingText.trim()) {
                 const headingData = {
-                    text: heading.textContent || '',
-                    level: parseInt(heading.tagName.charAt(1)) || 2,
-                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                    text: headingText,
+                    level: headingLevel,
+                    alignment: headingAlignment
                 };
-                
+
                 console.log('📋 Données titre extraites:', headingData);
-                
+
                 const module = this.moduleFactory.createModule('heading', headingData);
                 if (module) {
                     columnElement.appendChild(module.element);
                     this.modules.set(module.moduleId, module);
                     console.log('✅ Module titre recréé avec succès');
                 }
+            } else {
+                console.warn('⚠️ Module titre ignoré car le texte est vide.');
             }
         } catch (error) {
             console.error('❌ Erreur lors de la recréation du module titre:', error);
         }
+    }
+
+    // New helper function
+    decodeHtmlEntities(text) {
+        const textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
     }
 
     recreateQuoteModuleFromContent(moduleElement, columnElement) {
@@ -2723,21 +2776,45 @@ class FullscreenEditor {
             
             // Extraire les images de la galerie
             const images = moduleElement.querySelectorAll('img');
-            images.forEach(img => {
-                galleryData.images.push({
-                    src: img.src,
-                    alt: img.alt || '',
-                    caption: ''
-                });
+            console.log(`🖼️ ${images.length} images trouvées dans la galerie`);
+            
+            images.forEach((img, index) => {
+                console.log(`🖼️ Image ${index + 1}:`, img.src, img.alt);
+                
+                // Extraire l'ID de l'image depuis data-image-id si disponible
+                const galleryItem = img.closest('.gallery-item');
+                const imageId = galleryItem ? galleryItem.dataset.imageId : null;
+                
+                // S'assurer que l'URL est correcte
+                const imageUrl = img.src || img.getAttribute('src');
+                console.log(`🖼️ URL de l'image ${index + 1}:`, imageUrl);
+                
+                if (imageUrl) {
+                    galleryData.images.push({
+                        id: imageId || Date.now() + Math.random(),
+                        url: imageUrl,
+                        src: imageUrl, // Garder la compatibilité
+                        alt: img.alt || '',
+                        title: img.alt || '',
+                        description: '',
+                        caption: ''
+                    });
+                } else {
+                    console.warn(`⚠️ Image ${index + 1} ignorée car pas d'URL trouvée`);
+                }
             });
             
             console.log('🖼️ Données galerie extraites:', galleryData);
             
-            const module = this.moduleFactory.createModule('gallery', galleryData);
-            if (module) {
-                columnElement.appendChild(module.element);
-                this.modules.set(module.moduleId, module);
-                console.log('✅ Module galerie recréé avec succès');
+            if (galleryData.images.length > 0) {
+                const module = this.moduleFactory.createModule('gallery', galleryData);
+                if (module) {
+                    columnElement.appendChild(module.element);
+                    this.modules.set(module.moduleId, module);
+                    console.log('✅ Module galerie recréé avec succès');
+                }
+            } else {
+                console.warn('⚠️ Module galerie ignoré car aucune image valide trouvée');
             }
         } catch (error) {
             console.error('❌ Erreur lors de la recréation du module galerie:', error);
