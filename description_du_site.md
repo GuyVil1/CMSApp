@@ -992,3 +992,58 @@ Pour toute question ou amélioration de cette documentation :
 ---
 
 **🎮 Cette documentation est votre référence pour tous les développements futurs sur l'application Belgium Vidéo Gaming !**
+
+---
+
+## 🔧 **CORRECTIONS ET AMÉLIORATIONS RÉCENTES**
+
+### **1. Correction de l'offset CSS dans l'aperçu des articles**
+- **Problème identifié** : La classe CSS `.content-module` avait des marges et paddings qui causaient un décalage entre l'éditeur et l'aperçu des articles
+- **Solution appliquée** : Suppression des propriétés `margin: 20px 0` et `padding: 15px` de la classe `.content-module` dans `FullscreenEditor.js`
+- **Résultat** : L'aperçu des articles correspond maintenant parfaitement à l'éditeur
+
+### **2. Amélioration du module Image avec contrôles de padding indépendants**
+- **Fonctionnalité ajoutée** : Contrôles de padding individuels pour les 4 directions (haut, droite, bas, gauche)
+- **Implémentation** :
+  - Extension de `ImageModule.js` avec propriété `padding` dans `imageData`
+  - Interface utilisateur avec 4 champs numériques et boutons de presets
+  - Méthode `getPaddingStyle()` pour générer le CSS dynamique
+  - Styles CSS dédiés dans `public/assets/css/components/image-module.css`
+- **Avantages** : Affinage précis du design des images dans l'éditeur
+
+### **3. Correction du système de drag & drop (v5)**
+- **Problème identifié** : Le drag & drop des modules depuis la sidebar vers les colonnes ne fonctionnait toujours pas après les corrections précédentes
+- **Cause identifiée** : 
+  - Duplication des listeners `dragstart` causant des conflits
+  - Appel incorrect de `getData()` dans `dragover` (les données ne sont pas encore disponibles à ce moment-là)
+- **Solution appliquée** : 
+  - Suppression du listener `dragstart` dupliqué
+  - Suppression de la logique `getData()` dans `dragover` qui causait des erreurs
+  - Conservation de `e.preventDefault()` systématique dans `dragover` pour permettre le drop
+- **Modifications apportées** :
+  - `FullscreenEditor.js` : Nettoyage des listeners dupliqués, simplification de `dragover`
+- **Résultat attendu** : Le drag & drop des modules depuis la sidebar vers les colonnes devrait maintenant fonctionner correctement
+
+### **4. Historique des corrections drag & drop**
+- **v1** : Tentative de correction du `dropEffect` et gestion des drops dans les colonnes vides
+- **v2** : Correction du conflit `dropEffect`, refactorisation de `moveModuleToPosition()` et suppression du listener `drop` dupliqué
+- **v3** : Correction du conflit entre listeners `dragend` pour rétablir le drag & drop depuis la sidebar
+- **v4** : Correction du `preventDefault()` manquant dans `dragover` et amélioration de la gestion des drops sur le modal entier
+- **v5** : Suppression des listeners `dragstart` dupliqués et de l'appel incorrect de `getData()` dans `dragover`
+
+### **5. Correction de la bibliothèque de médias**
+- **Problème identifié** : La bibliothèque de médias n'affichait qu'une petite partie des médias uploadés et les filtres ne fonctionnaient pas
+- **Causes identifiées** :
+  - Méthodes `search()` et `findById()` manquantes dans le modèle `Media`
+  - Limite par défaut trop basse (20 médias) dans l'API
+  - Gestion des filtres incomplète dans le contrôleur
+- **Solutions appliquées** :
+  - **Modèle Media** : Ajout des méthodes manquantes `search()`, `findById()`, `searchWithFilters()` et `countWithFilters()`
+  - **Contrôleur MediaController** : Amélioration de la méthode `search()` pour gérer tous les filtres (jeu, catégorie, type, recherche textuelle)
+  - **API MediaLibraryAPI** : Augmentation de la limite par défaut de 20 à 100 médias, ajout de logs pour le débogage
+  - **Interface utilisateur** : Ajout d'un bouton "Charger plus" et d'un compteur de médias affichés
+- **Résultat attendu** : La bibliothèque de médias devrait maintenant afficher beaucoup plus de médias et les filtres devraient fonctionner correctement
+
+---
+
+*Dernière mise à jour : 2024-01-XX - Correction bibliothèque de médias et drag & drop v5*

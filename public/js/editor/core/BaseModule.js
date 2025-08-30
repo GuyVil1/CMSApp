@@ -205,25 +205,27 @@ class BaseModule {
     moveModuleToPosition(draggedModule, position) {
         console.log('🔄 Déplacement du module vers la position:', position);
         
-        const currentColumn = this.element.closest('.content-column');
-        const targetColumn = draggedModule.element.closest('.content-column');
+        const draggedElement = draggedModule.element;
+        const targetElement = this.element;
+        const targetParent = targetElement.parentNode;
         
-        console.log('📍 Colonne actuelle:', currentColumn?.dataset.column);
-        console.log('📍 Colonne cible:', targetColumn?.dataset.column);
+        if (!targetParent) {
+            console.error('❌ Parent de l\'élément cible non trouvé.');
+            return;
+        }
         
-        if (position === 'replace') {
-            // Remplacer le module cible
-            console.log('🔄 Remplacement du module');
-            this.element.parentNode.insertBefore(draggedModule.element, this.element);
-            currentColumn.appendChild(this.element);
-        } else if (position === 'before') {
-            // Placer avant le module cible
+        // Retirer le module dragué de sa position actuelle
+        draggedElement.remove();
+        
+        if (position === 'before') {
             console.log('🔄 Placement avant le module cible');
-            this.element.parentNode.insertBefore(draggedModule.element, this.element);
+            targetParent.insertBefore(draggedElement, targetElement);
         } else if (position === 'after') {
-            // Placer après le module cible
             console.log('🔄 Placement après le module cible');
-            this.element.parentNode.insertBefore(draggedModule.element, this.element.nextSibling);
+            targetParent.insertBefore(draggedElement, targetElement.nextSibling);
+        } else if (position === 'replace') {
+            console.log('🔄 Remplacement du module');
+            targetParent.replaceChild(draggedElement, targetElement);
         }
         
         // Nettoyer les placeholders si nécessaire

@@ -278,23 +278,65 @@ class FullscreenEditor {
             }
         });
 
+        // Gestion du dragend pour les boutons de modules
         this.modal.addEventListener('dragend', (e) => {
             const moduleBtn = e.target.closest('.module-btn');
             if (moduleBtn) {
                 moduleBtn.classList.remove('dragging');
-                console.log('🏁 Fin du drag');
+                console.log('🏁 Fin du drag pour module:', moduleBtn.dataset.module);
             }
+            
+            // Nettoyer les classes de feedback
+            this.modal.querySelectorAll('.drop-zone-active').forEach(el => {
+                el.classList.remove('drop-zone-active');
+            });
         });
 
         // Événements de drop sur les colonnes
         this.modal.addEventListener('dragover', (e) => {
+            // Toujours prévenir le comportement par défaut pour permettre le drop
+            e.preventDefault();
+            
             const column = e.target.closest('.content-column');
             if (column) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-                
                 // Ajouter le feedback visuel
                 column.classList.add('drop-zone-active');
+            }
+        });
+
+        // Gestion spécifique des drops sur les colonnes vides
+        this.modal.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            const column = e.target.closest('.content-column');
+            if (column) {
+                column.classList.remove('drop-zone-active');
+                
+                // Vérifier d'abord si c'est un déplacement de module existant
+                const draggedModuleId = e.dataTransfer.getData('module-id');
+                if (draggedModuleId) {
+                    console.log('🔄 Drop de module existant dans colonne vide');
+                    this.handleModuleDropInColumn(draggedModuleId, column);
+                    return;
+                }
+                
+                // Sinon, c'est la création d'un nouveau module
+                const moduleType = e.dataTransfer.getData('text/plain');
+                if (moduleType) {
+                    console.log('🎯 Drop du module', moduleType, 'dans la colonne');
+                    this.addModule(moduleType, column);
+                }
+            } else {
+                // Drop sur le modal mais pas sur une colonne spécifique
+                // Essayer de trouver la colonne la plus proche ou la première colonne disponible
+                const moduleType = e.dataTransfer.getData('text/plain');
+                if (moduleType) {
+                    console.log('🎯 Drop du module', moduleType, 'sur le modal, recherche de colonne...');
+                    const targetColumn = this.getTargetColumn();
+                    if (targetColumn) {
+                        this.addModule(moduleType, targetColumn);
+                    }
+                }
             }
         });
 
@@ -310,27 +352,6 @@ class FullscreenEditor {
                     column.classList.remove('drop-zone-active');
                 }
             }
-        });
-
-        this.modal.addEventListener('drop', (e) => {
-            const column = e.target.closest('.content-column');
-            if (column) {
-                e.preventDefault();
-                column.classList.remove('drop-zone-active');
-                
-                const moduleType = e.dataTransfer.getData('text/plain');
-                if (moduleType) {
-                    console.log('🎯 Drop du module', moduleType, 'dans la colonne');
-                    this.addModule(moduleType, column);
-                }
-            }
-        });
-
-        // Nettoyer les classes de feedback quand le drag se termine
-        this.modal.addEventListener('dragend', () => {
-            this.modal.querySelectorAll('.drop-zone-active').forEach(el => {
-                el.classList.remove('drop-zone-active');
-            });
         });
     }
     
@@ -348,6 +369,33 @@ class FullscreenEditor {
         }
     }
     
+    /**
+     * Gérer le drop d'un module existant dans une colonne vide
+     */
+    handleModuleDropInColumn(moduleId, targetColumn) {
+        console.log('🔄 Déplacement du module', moduleId, 'vers la colonne', targetColumn.dataset.column);
+        
+        const moduleInstance = this.modules.get(moduleId);
+        if (!moduleInstance) {
+            console.error('❌ Module non trouvé:', moduleId);
+            return;
+        }
+        
+        // Retirer le module de sa colonne actuelle
+        const currentColumn = moduleInstance.element.closest('.content-column');
+        if (currentColumn) {
+            moduleInstance.element.remove();
+        }
+        
+        // Ajouter le module à la nouvelle colonne
+        targetColumn.appendChild(moduleInstance.element);
+        
+        // Nettoyer les colonnes vides
+        this.cleanupEmptyColumns();
+        
+        console.log('✅ Module déplacé avec succès');
+    }
+
     addModule(type, targetColumn = null) {
         const column = targetColumn || this.getTargetColumn();
         if (!column) return;

@@ -282,17 +282,36 @@ class MediaController extends \Controller
     {
         $query = $_GET['q'] ?? '';
         $limit = (int)($_GET['limit'] ?? 20);
+        $gameId = !empty($_GET['game_id']) ? (int)$_GET['game_id'] : null;
+        $category = $_GET['category'] ?? '';
+        $type = $_GET['type'] ?? '';
         
-        if (empty($query)) {
-            $medias = \Media::findAll($limit);
-        } else {
-            $medias = \Media::search($query, $limit);
+        try {
+            // Utiliser la nouvelle méthode avec filtres
+            $filters = [];
+            if (!empty($query)) $filters['query'] = $query;
+            if ($gameId) $filters['game_id'] = $gameId;
+            if (!empty($category)) $filters['category'] = $category;
+            if (!empty($type)) $filters['type'] = $type;
+            
+            $medias = \Media::searchWithFilters($filters, $limit);
+            $total = \Media::countWithFilters($filters);
+            
+            $this->jsonResponse([
+                'success' => true,
+                'medias' => array_map(fn($media) => $media->toArray(), $medias),
+                'total' => $total,
+                'limit' => $limit,
+                'filters_applied' => $filters
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Erreur lors de la recherche de médias: " . $e->getMessage());
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'Erreur lors de la recherche: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $this->jsonResponse([
-            'success' => true,
-            'medias' => array_map(fn($media) => $media->toArray(), $medias)
-        ]);
     }
     
     /**
@@ -302,14 +321,32 @@ class MediaController extends \Controller
     {
         $type = $_GET['type'] ?? 'image';
         $limit = (int)($_GET['limit'] ?? 20);
+        $gameId = !empty($_GET['game_id']) ? (int)$_GET['game_id'] : null;
+        $category = $_GET['category'] ?? '';
         
-        $mimeType = $type === 'image' ? 'image/' : 'video/';
-        $medias = \Media::findByMimeType($mimeType, $limit);
-        
-        $this->jsonResponse([
-            'success' => true,
-            'medias' => array_map(fn($media) => $media->toArray(), $medias)
-        ]);
+        try {
+            $filters = ['type' => $type];
+            if ($gameId) $filters['game_id'] = $gameId;
+            if (!empty($category)) $filters['category'] = $category;
+            
+            $medias = \Media::searchWithFilters($filters, $limit);
+            $total = \Media::countWithFilters($filters);
+            
+            $this->jsonResponse([
+                'success' => true,
+                'medias' => array_map(fn($media) => $media->toArray(), $medias),
+                'total' => $total,
+                'type' => $type,
+                'filters_applied' => $filters
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Erreur lors de la récupération des médias par type: " . $e->getMessage());
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

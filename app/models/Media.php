@@ -51,6 +51,122 @@ class Media
     }
     
     /**
+     * Trouver un média par ID (alias pour compatibilité)
+     */
+    public static function findById(int $id): ?self
+    {
+        return self::find($id);
+    }
+    
+    /**
+     * Rechercher des médias par texte
+     */
+    public static function search(string $query, int $limit = 20): array
+    {
+        $sql = "SELECT m.*, u.login as uploader_name 
+                FROM media m 
+                LEFT JOIN users u ON m.uploaded_by = u.id 
+                WHERE m.original_name LIKE ? OR m.filename LIKE ?
+                ORDER BY m.created_at DESC 
+                LIMIT ?";
+        
+        $searchTerm = "%{$query}%";
+        $results = Database::query($sql, [$searchTerm, $searchTerm, $limit]);
+        
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
+     * Rechercher des médias avec filtres avancés
+     */
+    public static function searchWithFilters(array $filters = [], int $limit = 20, int $offset = 0): array
+    {
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        // Filtre par jeu
+        if (!empty($filters['game_id'])) {
+            $where .= " AND m.game_id = ?";
+            $params[] = $filters['game_id'];
+        }
+        
+        // Filtre par catégorie
+        if (!empty($filters['category'])) {
+            $where .= " AND m.media_type = ?";
+            $params[] = $filters['category'];
+        }
+        
+        // Filtre par type MIME
+        if (!empty($filters['type'])) {
+            $where .= " AND m.mime_type LIKE ?";
+            $params[] = $filters['type'] . '%';
+        }
+        
+        // Filtre par recherche textuelle
+        if (!empty($filters['query'])) {
+            $where .= " AND (m.original_name LIKE ? OR m.filename LIKE ?)";
+            $searchTerm = "%{$filters['query']}%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+        
+        // Ajouter la pagination
+        $params[] = $limit;
+        $params[] = $offset;
+        
+        $sql = "SELECT m.*, u.login as uploader_name 
+                FROM media m 
+                LEFT JOIN users u ON m.uploaded_by = u.id 
+                $where
+                ORDER BY m.created_at DESC 
+                LIMIT ? OFFSET ?";
+        
+        $results = Database::query($sql, $params);
+        
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
+     * Compter le nombre total de médias avec filtres
+     */
+    public static function countWithFilters(array $filters = []): int
+    {
+        $where = "WHERE 1=1";
+        $params = [];
+        
+        // Filtre par jeu
+        if (!empty($filters['game_id'])) {
+            $where .= " AND game_id = ?";
+            $params[] = $filters['game_id'];
+        }
+        
+        // Filtre par catégorie
+        if (!empty($filters['category'])) {
+            $where .= " AND media_type = ?";
+            $params[] = $filters['category'];
+        }
+        
+        // Filtre par type MIME
+        if (!empty($filters['type'])) {
+            $where .= " AND mime_type LIKE ?";
+            $params[] = $filters['type'] . '%';
+        }
+        
+        // Filtre par recherche textuelle
+        if (!empty($filters['query'])) {
+            $where .= " AND (original_name LIKE ? OR filename LIKE ?)";
+            $searchTerm = "%{$filters['query']}%";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+        
+        $sql = "SELECT COUNT(*) as total FROM media $where";
+        $result = Database::queryOne($sql, $params);
+        
+        return (int)($result['total'] ?? 0);
+    }
+    
+    /**
      * Trouver tous les médias avec pagination
      */
     public static function findAll(int $limit = 20, int $offset = 0): array

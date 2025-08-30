@@ -24,23 +24,25 @@ class MediaLibraryAPI {
             const params = new URLSearchParams({
                 action: 'search',
                 q: query,
-                limit: filters.limit || 20
+                limit: filters.limit || 100 // Augmenter la limite par défaut à 100
             });
 
             if (filters.game_id) params.append('game_id', filters.game_id);
             if (filters.category) params.append('category', filters.category);
             if (filters.type) params.append('type', filters.type);
 
+            console.log('🔍 Recherche de médias avec paramètres:', Object.fromEntries(params));
             const response = await fetch(`${this.baseUrl}?${params}`);
             const data = await response.json();
 
             if (data.success) {
+                console.log(`✅ ${data.medias.length} médias trouvés sur ${data.total} total`);
                 return data.medias || [];
             } else {
                 throw new Error(data.error || 'Erreur lors de la recherche');
             }
         } catch (error) {
-            console.error('Erreur recherche médias:', error);
+            console.error('❌ Erreur recherche médias:', error);
             return [];
         }
     }
@@ -188,10 +190,18 @@ class MediaLibraryAPI {
                 </div>
                 
                 <div class="media-selector-footer">
-                    <button type="button" class="btn btn-secondary" data-action="cancel">Annuler</button>
-                    <button type="button" class="btn btn-primary" data-action="select" disabled>
-                        ${allowMultiple ? 'Sélectionner (0)' : 'Sélectionner'}
-                    </button>
+                    <div class="media-count">
+                        <span id="mediaCount">0</span> médias affichés
+                    </div>
+                    <div class="footer-actions">
+                        <button type="button" class="btn btn-secondary" id="loadMoreBtn" style="display: none;">
+                            📥 Charger plus
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-action="cancel">Annuler</button>
+                        <button type="button" class="btn btn-primary" data-action="select" disabled>
+                            ${allowMultiple ? 'Sélectionner (0)' : 'Sélectionner'}
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -218,9 +228,14 @@ class MediaLibraryAPI {
         const selectBtn = modal.querySelector('[data-action="select"]');
         const closeBtn = modal.querySelector('[data-action="close"]');
         const cancelBtn = modal.querySelector('[data-action="cancel"]');
+        const loadMoreBtn = modal.querySelector('#loadMoreBtn');
+        const mediaCountSpan = modal.querySelector('#mediaCount');
+
 
         let selectedMedia = allowMultiple ? [] : null;
         let currentMedias = [];
+        let currentPage = 1;
+        let totalMedias = 0;
 
         // Charger les jeux pour le filtre
         const games = await this.getAllGames();
@@ -238,18 +253,33 @@ class MediaLibraryAPI {
             const category = categoryFilter.value;
 
             mediaGrid.innerHTML = '<div class="loading">Recherche en cours...</div>';
+            loadMoreBtn.style.display = 'none'; // Masquer le bouton "Charger plus" pendant la recherche
+
+            console.log('�� Recherche avec filtres:', { query, gameId, category });
 
             const medias = await this.searchMedia(query, {
                 game_id: gameId || null,
                 category: category || null,
-                limit: 20
+                limit: 100, // Augmenter la limite pour afficher plus de médias
+                page: currentPage // Passer le numéro de page
             });
 
             currentMedias = medias;
+            totalMedias = medias.length; // Mettre à jour le total
+            mediaCountSpan.textContent = totalMedias;
+            console.log(`📚 ${medias.length} médias chargés dans la grille`);
+            
             this.renderMediaGrid(mediaGrid, medias, selectedMedia, allowMultiple, (newSelectedMedia) => {
                 selectedMedia = newSelectedMedia;
                 this.updateSelectButton(selectedMedia, allowMultiple);
             });
+
+            // Afficher le bouton "Charger plus" si le total est supérieur à la limite
+            if (totalMedias > 100) { // Par exemple, si 150 médias sont trouvés, mais la limite est 100
+                loadMoreBtn.style.display = 'block';
+            } else {
+                loadMoreBtn.style.display = 'none';
+            }
         };
 
         // Événements de recherche
@@ -267,6 +297,12 @@ class MediaLibraryAPI {
             modal.dispatchEvent(new CustomEvent('mediaSelectorClosed'));
         });
 
+        // Événement de chargement plus
+        loadMoreBtn.addEventListener('click', async () => {
+            currentPage++;
+            await performSearch();
+        });
+
         // Événement de sélection
         selectBtn.addEventListener('click', () => {
             console.log('🔘 Bouton sélectionner cliqué, selectedMedia:', selectedMedia);
@@ -278,6 +314,12 @@ class MediaLibraryAPI {
             } else {
                 console.log('❌ Aucun média sélectionné');
             }
+        });
+
+        // Événement de chargement plus
+        loadMoreBtn.addEventListener('click', async () => {
+            currentPage++;
+            await performSearch();
         });
 
         // Recherche initiale
@@ -574,10 +616,21 @@ class MediaLibraryAPI {
 
             .media-selector-footer {
                 display: flex;
-                justify-content: flex-end;
+                justify-content: space-between; /* Changed to space-between */
+                align-items: center; /* Added to align items */
                 gap: 10px;
                 padding: 20px;
                 border-top: 1px solid #eee;
+            }
+
+            .media-count {
+                font-size: 14px;
+                color: #666;
+            }
+
+            .footer-actions {
+                display: flex;
+                gap: 10px;
             }
 
             .btn {
