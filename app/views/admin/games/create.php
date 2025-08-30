@@ -86,8 +86,8 @@
                             <select id="genre_id" name="genre_id" class="form-select">
                                 <option value="">Sélectionner un genre</option>
                                 <?php foreach ($genres as $genre): ?>
-                                    <option value="<?= $genre['id'] ?>" <?= ($_POST['genre_id'] ?? '') == $genre['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($genre['name']) ?>
+                                    <option value="<?= $genre->getId() ?>" <?= ($_POST['genre_id'] ?? '') == $genre->getId() ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($genre->getName()) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>

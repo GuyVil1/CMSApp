@@ -20,7 +20,7 @@
                 <h1>🎮 Gestion des Jeux</h1>
                 <div class="header-actions">
                     <a href="/admin.php" class="btn btn-secondary">← Retour au tableau de bord</a>
-                    <a href="/games.php?action=create" class="btn btn-primary">+ Nouveau jeu</a>
+                    <a href="/games?action=create" class="btn btn-primary">+ Nouveau jeu</a>
                 </div>
             </div>
         </header>
@@ -153,11 +153,11 @@
                         <?php foreach ($games as $game): ?>
                             <tr>
                                 <td>
-                                    <code><?= $game['id'] ?></code>
+                                    <code><?= $game->getId() ?></code>
                                 </td>
                                 <td>
-                                    <?php if ($game['cover_image']): ?>
-                                        <img src="/public/uploads.php?file=<?= urlencode($game['cover_image']) ?>" 
+                                    <?php if ($game->getCoverImageUrl()): ?>
+                                        <img src="<?= htmlspecialchars($game->getCoverImageUrl()) ?>" 
                                              alt="Cover" class="game-cover" 
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                         <div class="no-cover" style="display: none;">📷</div>
@@ -167,32 +167,34 @@
                                 </td>
                                 <td>
                                     <div class="game-info">
-                                        <div class="game-title"><?= htmlspecialchars($game['title']) ?></div>
-                                        <div class="game-slug"><?= htmlspecialchars($game['slug']) ?></div>
+                                        <div class="game-title"><?= htmlspecialchars($game->getTitle()) ?></div>
+                                        <div class="game-slug"><?= htmlspecialchars($game->getSlug()) ?></div>
                                     </div>
                                 </td>
                                 <td>
-                                    <?php if ($game['hardware_name']): ?>
-                                        <span class="badge badge-platform"><?= htmlspecialchars($game['hardware_name']) ?></span>
+                                    <?php if ($game->getHardwareName()): ?>
+                                        <span class="badge badge-platform"><?= htmlspecialchars($game->getHardwareName()) ?></span>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($game['genre_name']): ?>
-                                        <span class="badge badge-genre" style="background-color: <?= htmlspecialchars($game['genre_color'] ?? '#007bff') ?>">
-                                            <?= htmlspecialchars($game['genre_name']) ?>
+                                    <?php 
+                                    $genre = $game->getGenre();
+                                    if ($genre): ?>
+                                        <span class="badge badge-genre" style="background-color: <?= htmlspecialchars($genre->getColor()) ?>">
+                                            <?= htmlspecialchars($genre->getName()) ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($game['release_date']): ?>
+                                    <?php if ($game->getReleaseDate()): ?>
                                         <div class="release-info">
-                                            <div class="release-date"><?= date('d/m/Y', strtotime($game['release_date'])) ?></div>
+                                            <div class="release-date"><?= date('d/m/Y', strtotime($game->getReleaseDate())) ?></div>
                                             <?php 
-                                            $releaseTime = strtotime($game['release_date']);
+                                            $releaseTime = strtotime($game->getReleaseDate());
                                             $now = time();
                                             if ($releaseTime <= $now): ?>
                                                 <span class="badge badge-released">Sorti</span>
@@ -206,19 +208,19 @@
                                 </td>
                                 <td>
                                     <span class="article-count">
-                                        <?= $game['article_count'] ?> article(s)
+                                        <?= $game->getArticlesCount() ?> article(s)
                                     </span>
                                 </td>
                                 <td>
                                     <div class="action-buttons">
-                                        <a href="/games.php?action=edit&id=<?= $game['id'] ?>" 
+                                        <a href="/games?action=edit&id=<?= $game->getId() ?>" 
                                            class="btn btn-sm btn-secondary" title="Modifier">
                                             ✏️
                                         </a>
                                         <button class="btn btn-sm btn-danger delete-game" 
-                                                data-id="<?= $game['id'] ?>" 
-                                                data-title="<?= htmlspecialchars($game['title']) ?>"
-                                                data-articles="<?= $game['article_count'] ?>"
+                                                data-id="<?= $game->getId() ?>" 
+                                                data-title="<?= htmlspecialchars($game->getTitle()) ?>"
+                                                data-articles="<?= $game->getArticlesCount() ?>"
                                                 title="Supprimer">
                                             🗑️
                                         </button>

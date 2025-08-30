@@ -113,8 +113,8 @@
                                 <?php 
                                 $currentGenreId = $_POST['genre_id'] ?? $game->getGenreId();
                                 foreach ($genres as $genre): ?>
-                                    <option value="<?= $genre['id'] ?>" <?= $currentGenreId == $genre['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($genre['name']) ?>
+                                    <option value="<?= $genre->getId() ?>" <?= $currentGenreId == $genre->getId() ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($genre->getName()) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
