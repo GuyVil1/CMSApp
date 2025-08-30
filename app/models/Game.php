@@ -14,7 +14,7 @@ class Game
     private string $slug;
     private ?string $description;
     private ?string $platform;
-    private ?string $genre;
+    private ?int $genreId;
     private ?int $coverImageId;
     private ?int $hardwareId;
     private ?string $releaseDate;
@@ -34,12 +34,26 @@ class Game
         $this->slug = $data['slug'] ?? '';
         $this->description = $data['description'] ?? null;
         $this->platform = $data['platform'] ?? null;
-        $this->genre = $data['genre'] ?? null;
+        $this->genreId = $data['genre_id'] ? (int)$data['genre_id'] : null;
         $this->coverImageId = $data['cover_image_id'] ? (int)$data['cover_image_id'] : null;
         $this->hardwareId = $data['hardware_id'] ? (int)$data['hardware_id'] : null;
         $this->releaseDate = $data['release_date'] ?? null;
         $this->createdAt = $data['created_at'] ?? '';
     }
+
+    // Getters
+    public function getId(): int { return $this->id; }
+    public function getTitle(): string { return $this->title; }
+    public function getSlug(): string { return $this->slug; }
+    public function getDescription(): ?string { return $this->description; }
+    public function getPlatform(): ?string { return $this->platform; }
+    public function getGenreId(): ?int { return $this->genreId; }
+    public function getCoverImageId(): ?int { return $this->coverImageId; }
+    public function getHardwareId(): ?int { return $this->hardwareId; }
+    public function getReleaseDate(): ?string { return $this->releaseDate; }
+    public function getCreatedAt(): string { return $this->createdAt; }
+
+
     
     /**
      * Trouver un jeu par ID
@@ -100,67 +114,16 @@ class Game
     }
 
     /**
-     * Trouver des jeux avec requête personnalisée
+     * Trouver des jeux avec une requête personnalisée
      */
     public static function findWithQuery(string $query, array $params = []): array
     {
-        return Database::query($query, $params);
-    }
-    
-    /**
-     * Rechercher des jeux
-     */
-    public static function search(string $query, int $limit = 20): array
-    {
-        $sql = "SELECT g.*, m.filename as cover_image 
-                FROM games g 
-                LEFT JOIN media m ON g.cover_image_id = m.id 
-                WHERE g.title LIKE ? OR g.description LIKE ? 
-                ORDER BY g.created_at DESC 
-                LIMIT ?";
-        
-        $searchTerm = "%{$query}%";
-        $results = Database::query($sql, [$searchTerm, $searchTerm, $limit]);
-        
+        $results = Database::query($query, $params);
         return array_map(fn($data) => new self($data), $results);
     }
-    
+
     /**
-     * Trouver les jeux par plateforme
-     */
-    public static function findByPlatform(string $platform, int $limit = 20): array
-    {
-        $sql = "SELECT g.*, m.filename as cover_image 
-                FROM games g 
-                LEFT JOIN media m ON g.cover_image_id = m.id 
-                WHERE g.platform LIKE ? 
-                ORDER BY g.created_at DESC 
-                LIMIT ?";
-        
-        $results = Database::query($sql, ["%{$platform}%", $limit]);
-        
-        return array_map(fn($data) => new self($data), $results);
-    }
-    
-    /**
-     * Trouver les jeux par genre
-     */
-    public static function findByGenre(string $genre, int $limit = 20): array
-    {
-        $sql = "SELECT g.*, m.filename as cover_image 
-                FROM games g 
-                LEFT JOIN media m ON g.cover_image_id = m.id 
-                WHERE g.genre LIKE ? 
-                ORDER BY g.created_at DESC 
-                LIMIT ?";
-        
-        $results = Database::query($sql, ["%{$genre}%", $limit]);
-        
-        return array_map(fn($data) => new self($data), $results);
-    }
-    
-    /**
-     * Obtenir tous les plateformes uniques
+     * Obtenir toutes les plateformes uniques
      */
     public static function getPlatforms(): array
     {
@@ -171,14 +134,14 @@ class Game
     }
     
     /**
-     * Obtenir tous les genres uniques
+     * Obtenir tous les genres uniques (depuis la table genres)
      */
     public static function getGenres(): array
     {
-        $sql = "SELECT DISTINCT genre FROM games WHERE genre IS NOT NULL AND genre != '' ORDER BY genre";
+        $sql = "SELECT id, name, description, color FROM genres ORDER BY name";
         $results = Database::query($sql);
         
-        return array_column($results, 'genre');
+        return $results;
     }
     
     /**
@@ -186,7 +149,7 @@ class Game
      */
     public static function create(array $data): ?self
     {
-        $sql = "INSERT INTO games (title, slug, description, platform, genre, cover_image_id, hardware_id, release_date) 
+        $sql = "INSERT INTO games (title, slug, description, platform, genre_id, cover_image_id, hardware_id, release_date) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
@@ -194,7 +157,7 @@ class Game
             $data['slug'],
             $data['description'] ?? null,
             $data['platform'] ?? null,
-            $data['genre'] ?? null,
+            $data['genre_id'] ?? null,
             $data['cover_image_id'] ?? null,
             $data['hardware_id'] ?? null,
             $data['release_date'] ?? null
@@ -215,7 +178,7 @@ class Game
     {
         $sql = "UPDATE games SET 
                 title = ?, slug = ?, description = ?, platform = ?, 
-                genre = ?, cover_image_id = ?, hardware_id = ?, release_date = ? 
+                genre_id = ?, cover_image_id = ?, hardware_id = ?, release_date = ? 
                 WHERE id = ?";
         
         $params = [
@@ -223,7 +186,7 @@ class Game
             $data['slug'] ?? $this->slug,
             $data['description'] ?? $this->description,
             $data['platform'] ?? $this->platform,
-            $data['genre'] ?? $this->genre,
+            $data['genre_id'] ?? $this->genreId,
             $data['cover_image_id'] ?? $this->coverImageId,
             $data['hardware_id'] ?? $this->hardwareId,
             $data['release_date'] ?? $this->releaseDate,
@@ -369,17 +332,26 @@ class Game
         return $hardware ? $hardware->getName() : null;
     }
     
-    // Getters
-    public function getId(): int { return $this->id; }
-    public function getTitle(): string { return $this->title; }
-    public function getSlug(): string { return $this->slug; }
-    public function getDescription(): ?string { return $this->description; }
-    public function getPlatform(): ?string { return $this->platform; }
-    public function getGenre(): ?string { return $this->genre; }
-    public function getCoverImageId(): ?int { return $this->coverImageId; }
-    public function getHardwareId(): ?int { return $this->hardwareId; }
-    public function getReleaseDate(): ?string { return $this->releaseDate; }
-    public function getCreatedAt(): string { return $this->createdAt; }
+    /**
+     * Obtenir le genre associé
+     */
+    public function getGenre(): ?\Genre
+    {
+        if (!$this->genreId) {
+            return null;
+        }
+        
+        return \Genre::find($this->genreId);
+    }
+    
+    /**
+     * Obtenir le nom du genre
+     */
+    public function getGenreName(): ?string
+    {
+        $genre = $this->getGenre();
+        return $genre ? $genre->getName() : null;
+    }
     
     /**
      * Convertir en tableau pour l'API
@@ -394,7 +366,8 @@ class Game
             'slug' => $this->slug,
             'description' => $this->description,
             'platform' => $this->platform,
-            'genre' => $this->genre,
+            'genre_id' => $this->genreId,
+            'genre_name' => $this->getGenreName(),
             'cover_image_id' => $this->coverImageId,
             'cover_image_url' => $this->getCoverImageUrl(),
             'hardware_id' => $this->hardwareId,

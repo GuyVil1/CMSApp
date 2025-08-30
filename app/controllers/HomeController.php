@@ -218,4 +218,154 @@ class HomeController extends Controller
         
         return ['name' => 'defaut', 'is_permanent' => true, 'expires_at' => null, 'applied_at' => null];
     }
+    
+    /**
+     * Afficher un article individuel
+     */
+    public function show(int $id): void
+    {
+        try {
+            // Debug
+            error_log("🔍 HomeController::show() appelé avec ID: " . $id);
+            
+            // Récupérer l'article par ID
+            $article = \Article::findById($id);
+            
+            error_log("📚 Article trouvé: " . ($article ? 'OUI' : 'NON'));
+            
+            if (!$article) {
+                error_log("❌ Article non trouvé pour ID: " . $id);
+                // Article non trouvé
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'message' => 'Article non trouvé',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            error_log("✅ Article trouvé: " . $article->getTitle());
+            
+            // Vérifier que l'article est publié (sauf pour les admins/éditeurs)
+            if ($article->getStatus() !== 'published' && !Auth::hasRole(['admin', 'editor'])) {
+                error_log("🚫 Article non publié, statut: " . $article->getStatus());
+                http_response_code(403);
+                $this->render('layout/403', [
+                    'message' => 'Cet article n\'est pas encore publié',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
+            // Récupérer les articles liés (même catégorie ou jeu)
+            $relatedArticles = $this->getRelatedArticles($article);
+            
+            // Récupérer les articles populaires pour la sidebar
+            $popularArticles = $this->getPopularArticles();
+            
+            error_log("🎨 Rendu de l'article: " . $article->getTitle());
+            
+            $this->render('articles/show', [
+                'article' => $article,
+                'currentTheme' => $currentTheme,
+                'relatedArticles' => $relatedArticles,
+                'popularArticles' => $popularArticles,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser()
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("❌ Erreur dans HomeController::show(): " . $e->getMessage());
+            // En cas d'erreur
+            http_response_code(500);
+            $this->render('layout/500', [
+                'message' => 'Erreur lors du chargement de l\'article',
+                'error' => Config::isLocal() ? $e->getMessage() : null,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser()
+            ]);
+        }
+    }
+    
+    /**
+     * Récupérer les articles liés
+     */
+    private function getRelatedArticles(\Article $article): array
+    {
+        $relatedArticles = [];
+        
+        // Articles de la même catégorie
+        if ($article->getCategoryId()) {
+            $sql = "
+                SELECT a.id, a.title, a.slug, a.excerpt, a.published_at,
+                       c.name as category_name, c.color as category_color,
+                       u.login as author_name,
+                       m.filename as cover_image
+                FROM articles a
+                LEFT JOIN categories c ON a.category_id = c.id
+                LEFT JOIN users u ON a.author_id = u.id
+                LEFT JOIN media m ON a.cover_image_id = m.id
+                WHERE a.status = 'published' 
+                AND a.category_id = ?
+                AND a.id != ?
+                ORDER BY a.published_at DESC
+                LIMIT 3
+            ";
+            
+            $categoryArticles = Database::query($sql, [$article->getCategoryId(), $article->getId()]);
+            $relatedArticles = array_merge($relatedArticles, $categoryArticles);
+        }
+        
+        // Articles du même jeu
+        if ($article->getGameId() && count($relatedArticles) < 3) {
+            $sql = "
+                SELECT a.id, a.title, a.slug, a.excerpt, a.published_at,
+                       c.name as category_name, c.color as category_color,
+                       u.login as author_name,
+                       m.filename as cover_image
+                FROM articles a
+                LEFT JOIN categories c ON a.category_id = c.id
+                LEFT JOIN users u ON a.author_id = u.id
+                LEFT JOIN media m ON a.cover_image_id = m.id
+                WHERE a.status = 'published' 
+                AND a.game_id = ?
+                AND a.id != ?
+                ORDER BY a.published_at DESC
+                LIMIT ?
+            ";
+            
+            $limit = 3 - count($relatedArticles);
+            $gameArticles = Database::query($sql, [$article->getGameId(), $article->getId(), $limit]);
+            $relatedArticles = array_merge($relatedArticles, $gameArticles);
+        }
+        
+        return array_slice($relatedArticles, 0, 3);
+    }
+    
+    /**
+     * Récupérer les articles populaires
+     */
+    private function getPopularArticles(): array
+    {
+        $sql = "
+            SELECT a.id, a.title, a.slug, a.excerpt, a.published_at,
+                   c.name as category_name, c.color as category_color,
+                   u.login as author_name,
+                   m.filename as cover_image
+            FROM articles a
+            LEFT JOIN categories c ON a.category_id = c.id
+            LEFT JOIN users u ON a.author_id = u.id
+            LEFT JOIN media m ON a.cover_image_id = m.id
+            WHERE a.status = 'published'
+            ORDER BY a.published_at DESC
+            LIMIT 5
+        ";
+        
+        return Database::query($sql);
+    }
 }

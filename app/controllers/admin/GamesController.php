@@ -13,6 +13,7 @@ require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../models/Game.php';
 require_once __DIR__ . '/../../models/Media.php';
 require_once __DIR__ . '/../../models/Hardware.php';
+require_once __DIR__ . '/../../models/Genre.php';
 
 class GamesController extends \Controller
 {
@@ -52,8 +53,8 @@ class GamesController extends \Controller
         }
 
         if (!empty($genre)) {
-            $conditions[] = "g.genre LIKE ?";
-            $params[] = "%{$genre}%";
+            $conditions[] = "g.genre_id = ?";
+            $params[] = (int)$genre;
         }
 
         $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
@@ -66,10 +67,12 @@ class GamesController extends \Controller
         // Récupérer les jeux avec pagination
         $query = "SELECT g.*, m.filename as cover_image, 
                          h.name as hardware_name, h.type as hardware_type,
+                         gr.name as genre_name, gr.color as genre_color,
                          COUNT(a.id) as article_count
                   FROM games g
                   LEFT JOIN media m ON g.cover_image_id = m.id
                   LEFT JOIN hardware h ON g.hardware_id = h.id
+                  LEFT JOIN genres gr ON g.genre_id = gr.id
                   LEFT JOIN articles a ON g.id = a.game_id AND a.status = 'published'
                   {$whereClause}
                   GROUP BY g.id
@@ -100,11 +103,15 @@ class GamesController extends \Controller
         // Récupérer la liste des hardware actifs
         $hardwareList = \Hardware::findAllActive();
         
+        // Récupérer la liste des genres
+        $genres = \Genre::findAll();
+        
         $this->render('admin/games/create', [
             'error' => '',
             'success' => '',
             'csrf_token' => \Auth::generateCsrfToken(),
-            'hardware' => $hardwareList
+            'hardware' => $hardwareList,
+            'genres' => $genres
         ]);
     }
 
@@ -121,7 +128,8 @@ class GamesController extends \Controller
                 'error' => 'Token de sécurité invalide',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -130,7 +138,7 @@ class GamesController extends \Controller
         $slug = trim($_POST['slug'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $platform = trim($_POST['platform'] ?? '');
-        $genre = trim($_POST['genre'] ?? '');
+        $genreId = !empty($_POST['genre_id']) ? (int)$_POST['genre_id'] : null;
         $hardwareId = !empty($_POST['hardware_id']) ? (int)$_POST['hardware_id'] : null;
         $releaseDate = trim($_POST['release_date'] ?? '');
 
@@ -140,7 +148,8 @@ class GamesController extends \Controller
                 'error' => 'Le titre du jeu est obligatoire',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -155,7 +164,8 @@ class GamesController extends \Controller
                 'error' => 'Ce slug existe déjà, veuillez en choisir un autre',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -166,7 +176,8 @@ class GamesController extends \Controller
                 'error' => 'Veuillez sélectionner une image de couverture',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -180,7 +191,8 @@ class GamesController extends \Controller
                 'error' => 'Format d\'image non supporté. Utilisez JPG, PNG ou GIF',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -191,7 +203,8 @@ class GamesController extends \Controller
                 'error' => 'L\'image ne doit pas dépasser 5MB',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -202,7 +215,7 @@ class GamesController extends \Controller
             'slug' => $slug,
             'description' => $description ?: null,
             'platform' => $platform ?: null,
-            'genre' => $genre ?: null,
+            'genre_id' => $genreId,
             'hardware_id' => $hardwareId,
             'release_date' => $releaseDate ?: null,
             'cover_image_id' => null // Sera mis à jour après l'upload
@@ -214,7 +227,9 @@ class GamesController extends \Controller
             $this->render('admin/games/create', [
                 'error' => 'Erreur lors de la création du jeu',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -234,7 +249,9 @@ class GamesController extends \Controller
             $this->render('admin/games/create', [
                 'error' => 'Erreur lors de l\'upload de l\'image',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -265,7 +282,9 @@ class GamesController extends \Controller
             $this->render('admin/games/create', [
                 'error' => 'Erreur lors de l\'enregistrement de l\'image',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
         }
     }
@@ -280,13 +299,17 @@ class GamesController extends \Controller
 
         // Récupérer la liste des hardware actifs
         $hardwareList = \Hardware::findAllActive();
+        
+        // Récupérer la liste des genres
+        $genres = \Genre::findAll();
 
         $this->render('admin/games/edit', [
             'game' => $game,
             'error' => '',
             'success' => '',
             'csrf_token' => \Auth::generateCsrfToken(),
-            'hardware' => $hardwareList
+            'hardware' => $hardwareList,
+            'genres' => $genres
         ]);
     }
 
@@ -310,7 +333,8 @@ class GamesController extends \Controller
                 'error' => 'Token de sécurité invalide',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive()
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -319,7 +343,7 @@ class GamesController extends \Controller
         $slug = trim($_POST['slug'] ?? '');
         $description = trim($_POST['description'] ?? '');
         $platform = trim($_POST['platform'] ?? '');
-        $genre = trim($_POST['genre'] ?? '');
+        $genreId = !empty($_POST['genre_id']) ? (int)$_POST['genre_id'] : null;
         $hardwareId = !empty($_POST['hardware_id']) ? (int)$_POST['hardware_id'] : null;
         $releaseDate = trim($_POST['release_date'] ?? '');
         $coverImageId = !empty($_POST['cover_image_id']) ? (int)$_POST['cover_image_id'] : null;
@@ -330,7 +354,9 @@ class GamesController extends \Controller
                 'game' => $game,
                 'error' => 'Le titre du jeu est obligatoire',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -345,7 +371,9 @@ class GamesController extends \Controller
                 'game' => $game,
                 'error' => 'Ce slug existe déjà, veuillez en choisir un autre',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
             return;
         }
@@ -355,7 +383,7 @@ class GamesController extends \Controller
             'slug' => $slug,
             'description' => $description ?: null,
             'platform' => $platform ?: null,
-            'genre' => $genre ?: null,
+            'genre_id' => $genreId,
             'hardware_id' => $hardwareId,
             'release_date' => $releaseDate ?: null,
             'cover_image_id' => $coverImageId
@@ -369,7 +397,9 @@ class GamesController extends \Controller
                 'game' => $game,
                 'error' => 'Erreur lors de la mise à jour du jeu',
                 'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken()
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
             ]);
         }
     }

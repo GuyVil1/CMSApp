@@ -107,18 +107,18 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="genre" class="form-label">Genre</label>
-                            <select id="genre" name="genre" class="form-select">
+                            <label for="genre_id" class="form-label">Genre</label>
+                            <select id="genre_id" name="genre_id" class="form-select">
                                 <option value="">Sélectionner un genre</option>
                                 <?php 
-                                $currentGenre = $_POST['genre'] ?? $game->getGenre();
-                                $genres = ['Action', 'Action-RPG', 'Aventure', 'FPS', 'TPS', 'RPG', 'JRPG', 'Stratégie', 'Simulation', 'Sport', 'Course', 'Combat', 'Plateforme', 'Puzzle', 'Horreur', 'Indépendant', 'Multijoueur'];
+                                $currentGenreId = $_POST['genre_id'] ?? $game->getGenreId();
                                 foreach ($genres as $genre): ?>
-                                    <option value="<?= $genre ?>" <?= $currentGenre === $genre ? 'selected' : '' ?>>
-                                        <?= $genre ?>
+                                    <option value="<?= $genre['id'] ?>" <?= $currentGenreId == $genre['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($genre['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <div class="form-help">Genre principal du jeu</div>
                         </div>
                     </div>
 

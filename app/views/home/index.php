@@ -73,8 +73,8 @@
                     <div class="featured-left">
                         <?php if (!empty($featuredArticles)): ?>
                             <!-- Article principal -->
-                            <div class="featured-main">
-                                                                 <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
+                            <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['id']; ?>'" style="cursor: pointer;">
+                                <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
                                      alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>">
                                 <div class="featured-overlay"></div>
                                 <div class="featured-content">
@@ -84,85 +84,85 @@
                                 </div>
                             </div>
                             
-                                                         <!-- Articles secondaires -->
-                             <div class="featured-bottom">
-                                 <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
-                                     <div class="featured-small">
-                                         <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
-                                              alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
-                                         <div class="featured-overlay"></div>
-                                         <div class="featured-content">
-                                             <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
-                                         </div>
-                                     </div>
-                                 <?php endfor; ?>
-                                 
-                                 <?php if (count($featuredArticles) < 3): ?>
-                                     <!-- Remplir avec du contenu par défaut pour avoir exactement 2 cases -->
-                                     <?php for ($i = max(1, count($featuredArticles)); $i < 3; $i++): ?>
-                                         <div class="featured-small">
-                                             <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                                             <div class="featured-overlay"></div>
-                                             <div class="featured-content">
-                                                 <h4 class="featured-title">Article à venir...</h4>
-                                             </div>
-                                         </div>
-                                     <?php endfor; ?>
-                                 <?php endif; ?>
-                             </div>
-                                                 <?php else: ?>
-                             <!-- Contenu par défaut si pas d'articles -->
-                             <div class="featured-main">
-                                 <img src="/assets/images/default-featured.jpg" alt="Article par défaut">
-                                 <div class="featured-overlay"></div>
-                                 <div class="featured-content">
-                                     <span class="featured-badge">À la une</span>
-                                     <h3 class="featured-title">Bienvenue sur GameNews</h3>
-                                     <p class="featured-excerpt">Découvrez l'actualité gaming en Belgique</p>
-                                 </div>
-                             </div>
-                             
-                             <!-- Articles secondaires par défaut -->
-                             <div class="featured-bottom">
-                                 <?php for ($i = 0; $i < 2; $i++): ?>
-                                     <div class="featured-small">
-                                         <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                                         <div class="featured-overlay"></div>
-                                         <div class="featured-content">
-                                             <h4 class="featured-title">Article à venir...</h4>
-                                         </div>
-                                     </div>
-                                 <?php endfor; ?>
-                             </div>
-                         <?php endif; ?>
+                            <!-- Articles secondaires -->
+                            <div class="featured-bottom">
+                                <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
+                                    <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['id']; ?>'" style="cursor: pointer;">
+                                        <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                                             alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
+                                        <div class="featured-overlay"></div>
+                                        <div class="featured-content">
+                                            <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
+                                        </div>
+                                    </div>
+                                <?php endfor; ?>
+                                
+                                <?php if (count($featuredArticles) < 3): ?>
+                                    <!-- Remplir avec du contenu par défaut pour avoir exactement 2 cases -->
+                                    <?php for ($i = max(1, count($featuredArticles)); $i < 3; $i++): ?>
+                                        <div class="featured-small">
+                                            <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                                            <div class="featured-overlay"></div>
+                                            <div class="featured-content">
+                                                <h4 class="featured-title">Article à venir...</h4>
+                                            </div>
+                                        </div>
+                                    <?php endfor; ?>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
+                            <!-- Contenu par défaut si pas d'articles -->
+                            <div class="featured-main">
+                                <img src="/assets/images/default-featured.jpg" alt="Article par défaut">
+                                <div class="featured-overlay"></div>
+                                <div class="featured-content">
+                                    <span class="featured-badge">À la une</span>
+                                    <h3 class="featured-title">Bienvenue sur GameNews</h3>
+                                    <p class="featured-excerpt">Découvrez l'actualité gaming en Belgique</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Articles secondaires par défaut -->
+                            <div class="featured-bottom">
+                                <?php for ($i = 0; $i < 2; $i++): ?>
+                                    <div class="featured-small">
+                                        <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                                        <div class="featured-overlay"></div>
+                                        <div class="featured-content">
+                                            <h4 class="featured-title">Article à venir...</h4>
+                                        </div>
+                                    </div>
+                                <?php endfor; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     
-                                         <!-- Colonne droite (1/3) -->
-                     <div class="featured-right">
-                         <?php for ($i = 3; $i < min(6, count($featuredArticles)); $i++): ?>
-                             <div class="featured-small">
-                                                                                                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
-                                      alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
-                                 <div class="featured-overlay"></div>
-                                 <div class="featured-content">
-                                     <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
-                                 </div>
-                             </div>
-                         <?php endfor; ?>
-                         
-                         <?php if (count($featuredArticles) < 6): ?>
-                             <!-- Remplir avec du contenu par défaut pour avoir exactement 3 cases -->
-                             <?php for ($i = max(3, count($featuredArticles)); $i < 6; $i++): ?>
-                                 <div class="featured-small">
-                                     <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                                     <div class="featured-overlay"></div>
-                                     <div class="featured-content">
-                                         <h4 class="featured-title">Article à venir...</h4>
-                                     </div>
-                                 </div>
-                             <?php endfor; ?>
-                         <?php endif; ?>
-                     </div>
+                    <!-- Colonne droite (1/3) -->
+                    <div class="featured-right">
+                        <?php for ($i = 3; $i < min(6, count($featuredArticles)); $i++): ?>
+                            <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['id']; ?>'" style="cursor: pointer;">
+                                <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                                     alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
+                                <div class="featured-overlay"></div>
+                                <div class="featured-content">
+                                    <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
+                                </div>
+                            </div>
+                        <?php endfor; ?>
+                        
+                        <?php if (count($featuredArticles) < 6): ?>
+                            <!-- Remplir avec du contenu par défaut pour avoir exactement 3 cases -->
+                            <?php for ($i = max(3, count($featuredArticles)); $i < 6; $i++): ?>
+                                <div class="featured-small">
+                                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                                    <div class="featured-overlay"></div>
+                                    <div class="featured-content">
+                                        <h4 class="featured-title">Article à venir...</h4>
+                                    </div>
+                                </div>
+                            <?php endfor; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </section>
 
@@ -194,10 +194,10 @@
                                 ?>
                                 
                                 <?php foreach ($pageArticles as $article): ?>
-                                    <div class="article-card" onclick="window.location.href='/articles/<?php echo $article['slug']; ?>'">
+                                    <div class="article-card" onclick="window.location.href='/article/<?php echo $article['id']; ?>'" style="cursor: pointer;">
                                         <div class="article-image">
-                                                                                         <img src="/image.php?file=<?php echo urlencode($article['cover_image'] ?? 'default.jpg'); ?>" 
-                                                  alt="<?php echo htmlspecialchars($article['title']); ?>">
+                                            <img src="/image.php?file=<?php echo urlencode($article['cover_image'] ?? 'default.jpg'); ?>" 
+                                                 alt="<?php echo htmlspecialchars($article['title']); ?>">
                                         </div>
                                         <div class="article-content">
                                             <div class="article-header">
@@ -233,9 +233,9 @@
                         <div class="trailers-container">
                             <?php if (!empty($trailers)): ?>
                                 <?php foreach ($trailers as $trailer): ?>
-                                    <div class="trailer-item" onclick="window.location.href='/articles/<?php echo $trailer['slug']; ?>'">
-                                                                                 <img src="/image.php?file=<?php echo urlencode($trailer['cover_image'] ?? 'default.jpg'); ?>" 
-                                              alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
+                                    <div class="trailer-item" onclick="window.location.href='/article/<?php echo $trailer['id']; ?>'" style="cursor: pointer;">
+                                        <img src="/image.php?file=<?php echo urlencode($trailer['cover_image'] ?? 'default.jpg'); ?>" 
+                                             alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
                                         <div class="trailer-overlay"></div>
                                         <div class="trailer-play">
                                             <svg class="trailer-play-icon" fill="currentColor" viewBox="0 0 24 24">

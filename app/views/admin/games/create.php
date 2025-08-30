@@ -82,27 +82,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="genre" class="form-label">Genre</label>
-                            <select id="genre" name="genre" class="form-select">
+                            <label for="genre_id" class="form-label">Genre</label>
+                            <select id="genre_id" name="genre_id" class="form-select">
                                 <option value="">Sélectionner un genre</option>
-                                <option value="Action" <?= ($_POST['genre'] ?? '') === 'Action' ? 'selected' : '' ?>>Action</option>
-                                <option value="Action-RPG" <?= ($_POST['genre'] ?? '') === 'Action-RPG' ? 'selected' : '' ?>>Action-RPG</option>
-                                <option value="Aventure" <?= ($_POST['genre'] ?? '') === 'Aventure' ? 'selected' : '' ?>>Aventure</option>
-                                <option value="FPS" <?= ($_POST['genre'] ?? '') === 'FPS' ? 'selected' : '' ?>>FPS (First Person Shooter)</option>
-                                <option value="TPS" <?= ($_POST['genre'] ?? '') === 'TPS' ? 'selected' : '' ?>>TPS (Third Person Shooter)</option>
-                                <option value="RPG" <?= ($_POST['genre'] ?? '') === 'RPG' ? 'selected' : '' ?>>RPG</option>
-                                <option value="JRPG" <?= ($_POST['genre'] ?? '') === 'JRPG' ? 'selected' : '' ?>>JRPG</option>
-                                <option value="Stratégie" <?= ($_POST['genre'] ?? '') === 'Stratégie' ? 'selected' : '' ?>>Stratégie</option>
-                                <option value="Simulation" <?= ($_POST['genre'] ?? '') === 'Simulation' ? 'selected' : '' ?>>Simulation</option>
-                                <option value="Sport" <?= ($_POST['genre'] ?? '') === 'Sport' ? 'selected' : '' ?>>Sport</option>
-                                <option value="Course" <?= ($_POST['genre'] ?? '') === 'Course' ? 'selected' : '' ?>>Course</option>
-                                <option value="Combat" <?= ($_POST['genre'] ?? '') === 'Combat' ? 'selected' : '' ?>>Combat</option>
-                                <option value="Plateforme" <?= ($_POST['genre'] ?? '') === 'Plateforme' ? 'selected' : '' ?>>Plateforme</option>
-                                <option value="Puzzle" <?= ($_POST['genre'] ?? '') === 'Puzzle' ? 'selected' : '' ?>>Puzzle</option>
-                                <option value="Horreur" <?= ($_POST['genre'] ?? '') === 'Horreur' ? 'selected' : '' ?>>Horreur</option>
-                                <option value="Indépendant" <?= ($_POST['genre'] ?? '') === 'Indépendant' ? 'selected' : '' ?>>Indépendant</option>
-                                <option value="Multijoueur" <?= ($_POST['genre'] ?? '') === 'Multijoueur' ? 'selected' : '' ?>>Multijoueur</option>
+                                <?php foreach ($genres as $genre): ?>
+                                    <option value="<?= $genre['id'] ?>" <?= ($_POST['genre_id'] ?? '') == $genre['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($genre['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
+                            <div class="form-help">Genre principal du jeu</div>
                         </div>
                     </div>
 

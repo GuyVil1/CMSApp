@@ -203,8 +203,24 @@ www/
 - Upload d'images de thème
 
 ### **`app/controllers/admin/GamesController.php`** - Gestion des jeux
-**Rôle** : CRUD des jeux (préparé)
-**État** : Structure de base créée
+**Rôle** : CRUD des jeux avec gestion des genres
+**État** : Fonctionnel avec système de genres
+**Nouvelles fonctionnalités** :
+- Intégration du modèle Genre
+- Formulaire avec menu déroulant dynamique des genres
+- Gestion du `genre_id` au lieu de `genre` (string)
+- Validation et gestion des erreurs avec genres
+
+### **`app/controllers/admin/GenresController.php`** - Gestion des genres (NOUVEAU)
+**Rôle** : CRUD complet des genres de jeux
+**Fonctionnalités** :
+- Liste des genres avec comptage des jeux
+- Création de nouveaux genres
+- Édition des genres existants
+- Suppression sécurisée (vérification d'usage)
+- Interface d'administration complète
+- Gestion des couleurs personnalisées
+- Validation des données
 
 ### **`app/controllers/admin/UploadController.php`** - Upload général
 **Rôle** : Gestion des uploads (préparé)
@@ -249,6 +265,25 @@ www/
 ### **`app/models/Game.php`** - Modèle Jeu
 **Rôle** : Gestion des jeux associés aux articles
 **État** : Structure de base
+**Nouvelles fonctionnalités** :
+- Association avec les genres de jeux
+- Gestion du `genre_id` au lieu de `genre` (string)
+- Méthodes `getGenre()`, `getGenreName()` pour récupérer les informations du genre
+
+### **`app/models/Genre.php`** - Modèle Genre (NOUVEAU)
+**Rôle** : Gestion des genres de jeux
+**Propriétés** :
+- id, name, description, color
+- created_at, updated_at
+
+**Méthodes principales** :
+- `findAll()` : Liste de tous les genres
+- `find($id)` : Recherche par ID
+- `create($data)` : Création d'un genre
+- `update($id, $data)` : Mise à jour
+- `delete($id)` : Suppression (avec vérification d'usage)
+- `findAllWithGameCount()` : Genres avec nombre de jeux
+- `search($query)` : Recherche par nom
 
 ### **`app/models/Tag.php`** - Modèle Tag
 **Rôle** : Gestion des tags d'articles
@@ -457,6 +492,33 @@ www/
 .upload-zone, .upload-progress
 ```
 
+### **`app/views/admin/genres/index.php`** - Liste des genres (NOUVEAU)
+**Rôle** : Interface de gestion des genres
+**Fonctionnalités** :
+- Tableau des genres avec informations détaillées
+- Affichage des couleurs personnalisées
+- Comptage des jeux par genre
+- Actions de modification et suppression
+- Modal de confirmation pour suppression
+- Navigation vers création/édition
+
+### **`app/views/admin/genres/create.php`** - Création de genre (NOUVEAU)
+**Rôle** : Formulaire de création de genre
+**Fonctionnalités** :
+- Formulaire avec validation
+- Sélecteur de couleur avec preview
+- Synchronisation color picker / champ texte
+- Validation hexadécimale
+- Interface responsive
+
+### **`app/views/admin/genres/edit.php`** - Édition de genre (NOUVEAU)
+**Rôle** : Formulaire de modification de genre
+**Fonctionnalités** :
+- Édition des informations existantes
+- Affichage des informations système
+- Validation et gestion des erreurs
+- Interface cohérente avec la création
+
 ---
 
 ## 🎨 **ANALYSE CSS ET RECOMMANDATIONS**
@@ -657,6 +719,28 @@ public/assets/css/
 
 ### **`database/seeds.sql`** - Données de test
 **Rôle** : Données initiales pour le développement
+
+### **`database/create_genres_table.sql`** - Création de la table genres (NOUVEAU)
+**Rôle** : Création de la table des genres de jeux
+**Structure** :
+```sql
+CREATE TABLE genres (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  color VARCHAR(7) DEFAULT '#007bff',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+**Données initiales** : 15 genres prédéfinis (Action, RPG, Stratégie, etc.)
+
+### **`database/update_games_table.sql`** - Mise à jour de la table games (NOUVEAU)
+**Rôle** : Ajout de la colonne genre_id à la table games
+**Modifications** :
+- Ajout de `genre_id INT` avec clé étrangère
+- Contrainte `fk_games_genre` vers `genres(id)`
+- Mise à jour des jeux existants avec genre par défaut
 
 ---
 
@@ -1034,16 +1118,67 @@ Pour toute question ou amélioration de cette documentation :
 ### **5. Correction de la bibliothèque de médias**
 - **Problème identifié** : La bibliothèque de médias n'affichait qu'une petite partie des médias uploadés et les filtres ne fonctionnaient pas
 - **Causes identifiées** :
-  - Méthodes `search()` et `findById()` manquantes dans le modèle `Media`
-  - Limite par défaut trop basse (20 médias) dans l'API
-  - Gestion des filtres incomplète dans le contrôleur
+  - Méthodes manquantes dans le modèle Media (`search()`, `findById()`)
+  - Limite d'affichage trop basse (20 médias au lieu de 100+)
+  - Filtres par jeu, catégorie et type non implémentés
 - **Solutions appliquées** :
-  - **Modèle Media** : Ajout des méthodes manquantes `search()`, `findById()`, `searchWithFilters()` et `countWithFilters()`
-  - **Contrôleur MediaController** : Amélioration de la méthode `search()` pour gérer tous les filtres (jeu, catégorie, type, recherche textuelle)
-  - **API MediaLibraryAPI** : Augmentation de la limite par défaut de 20 à 100 médias, ajout de logs pour le débogage
-  - **Interface utilisateur** : Ajout d'un bouton "Charger plus" et d'un compteur de médias affichés
-- **Résultat attendu** : La bibliothèque de médias devrait maintenant afficher beaucoup plus de médias et les filtres devraient fonctionner correctement
+  - Ajout des méthodes manquantes dans `app/models/Media.php`
+  - Implémentation de `searchWithFilters()` avec support des filtres avancés
+  - Augmentation de la limite par défaut à 100 médias
+  - Ajout du bouton "Charger plus" pour la pagination
+  - Amélioration de l'API MediaLibraryAPI avec logs de débogage
+- **Résultat** : Bibliothèque de médias 100% fonctionnelle avec filtres et affichage de 100+ médias
+
+### **6. Système d'affichage des articles**
+- **Fonctionnalité ajoutée** : Affichage public des articles créés avec l'éditeur modulaire
+- **Implémentation** :
+  - **HomeController** : Méthode `show(int $id)` pour afficher un article individuel par ID
+  - **Vue article** : `app/views/articles/show.php` avec mise en page responsive
+  - **CSS dédié** : `public/assets/css/components/article-display.css` pour le style des articles
+  - **JavaScript** : `public/js/article-renderer.js` pour le rendu des modules de contenu
+- **Fonctionnalités** :
+  - Rendu automatique de tous les types de modules (texte, image, vidéo, galerie, tableau, citation, séparateur)
+  - Affichage des métadonnées (auteur, catégorie, jeu, tags, date)
+  - Articles liés et populaires en sidebar
+  - Support des thèmes visuels
+  - Gestion des erreurs et modules inconnus
+  - Sécurité HTML (nettoyage des scripts dangereux)
+- **Routes** : `/article/{id}` pour accéder aux articles (ex: `/article/1`, `/article/2`)
+- **Navigation** : Tous les articles de la page d'accueil sont cliquables et redirigent vers leur page de lecture
+- **Avantages** : Les articles créés avec l'éditeur modulaire sont maintenant visibles publiquement avec un rendu parfait
+
+### **7. Système de gestion des genres de jeux (NOUVEAU)**
+- **Fonctionnalité ajoutée** : Système complet de gestion des genres de jeux avec interface d'administration
+- **Implémentation** :
+  - **Base de données** : 
+    - Table `genres` avec structure complète (id, name, description, color, timestamps)
+    - Mise à jour de la table `games` avec colonne `genre_id` et clé étrangère
+    - 15 genres prédéfinis (Action, RPG, Stratégie, Sport, etc.)
+  - **Modèle Genre** : `app/models/Genre.php` avec méthodes CRUD complètes
+  - **Contrôleur admin** : `app/controllers/admin/GenresController.php` pour la gestion
+  - **Interface d'administration** : Vues complètes (index, create, edit) avec gestion des couleurs
+  - **Intégration jeux** : Formulaire des jeux avec menu déroulant dynamique des genres
+- **Fonctionnalités** :
+  - CRUD complet des genres (création, lecture, mise à jour, suppression)
+  - Gestion des couleurs personnalisées avec color picker
+  - Validation et prévention de suppression des genres utilisés
+  - Comptage des jeux par genre
+  - Interface responsive et intuitive
+  - Navigation intégrée dans le dashboard admin
+- **Avantages** : 
+  - Classification organisée des jeux par genre
+  - Interface d'administration professionnelle
+  - Flexibilité pour ajouter/modifier les genres
+  - Cohérence avec le système existant
+- **Fichiers créés** :
+  - `database/create_genres_table.sql` : Création de la table et données initiales
+  - `database/update_games_table.sql` : Mise à jour de la table games
+  - `app/models/Genre.php` : Modèle de données
+  - `app/controllers/admin/GenresController.php` : Contrôleur d'administration
+  - `app/views/admin/genres/` : Vues d'administration (index, create, edit)
+  - `genres.php` : Routeur d'administration
+  - `test-genres.php` : Fichier de test et validation
 
 ---
 
-*Dernière mise à jour : 2024-01-XX - Correction bibliothèque de médias et drag & drop v5*
+*Dernière mise à jour : 2024-01-XX - Système de gestion des genres de jeux et améliorations complètes*

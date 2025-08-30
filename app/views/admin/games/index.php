@@ -106,9 +106,9 @@
                         <select id="genre" name="genre" class="form-select">
                             <option value="">Tous les genres</option>
                             <?php foreach ($genres as $gen): ?>
-                                <option value="<?= htmlspecialchars($gen) ?>" 
-                                        <?= $genre === $gen ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($gen) ?>
+                                <option value="<?= $gen['id'] ?>" 
+                                        <?= $genre == $gen['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($gen['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -179,8 +179,10 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ($game['genre']): ?>
-                                        <span class="badge badge-genre"><?= htmlspecialchars($game['genre']) ?></span>
+                                    <?php if ($game['genre_name']): ?>
+                                        <span class="badge badge-genre" style="background-color: <?= htmlspecialchars($game['genre_color'] ?? '#007bff') ?>">
+                                            <?= htmlspecialchars($game['genre_name']) ?>
+                                        </span>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>

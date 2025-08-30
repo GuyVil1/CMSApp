@@ -73,6 +73,37 @@ function route($uri) {
     // Séparer les parties de l'URI
     $parts = explode('/', $uri);
     
+    // Debug pour voir ce qui se passe
+    error_log("🔍 URI: " . $uri);
+    error_log("🔍 Parts: " . print_r($parts, true));
+    
+    // Route spéciale pour article
+    if ($parts[0] === 'article') {
+        error_log("🔍 Route article détectée");
+        $controller = 'HomeController';
+        $action = 'show';
+        $params = array_slice($parts, 2);
+        
+        error_log("🔍 Controller: " . $controller);
+        error_log("🔍 Action: " . $action);
+        error_log("🔍 Params: " . print_r($params, true));
+        
+        // Charger le HomeController
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            error_log("❌ HomeController non trouvé");
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    }
+    
     // Gérer les routes admin
     if (strpos($uri, 'admin') === 0) {
         $controllerName = ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
@@ -83,6 +114,7 @@ function route($uri) {
             $controller = 'Admin\\' . $controllerName;
             // Pour les URLs admin, l'action est la 3ème partie si elle existe
             $action = $parts[2] ?? 'index';
+            $params = array_slice($parts, 3);
         } else {
             return ['error' => '404'];
         }
@@ -91,17 +123,188 @@ function route($uri) {
         $controller = ucfirst($parts[0]) . 'Controller';
         $action = $parts[1] ?? 'index';
         
-        // Gestion spéciale pour les routes d'authentification
-        if ($parts[0] === 'login') {
-            $controller = 'AuthController';
-            $action = 'login';
-        } elseif ($parts[0] === 'register') {
-            $controller = 'AuthController';
-            $action = 'register';
-        } elseif ($parts[0] === 'logout') {
-            $controller = 'AuthController';
-            $action = 'logout';
+            // Gestion spéciale pour les routes d'authentification
+    if ($parts[0] === 'login') {
+        $controller = 'AuthController';
+        $action = 'login';
+    } elseif ($parts[0] === 'register') {
+        $controller = 'AuthController';
+        $action = 'register';
+    } elseif ($parts[0] === 'logout') {
+        $controller = 'AuthController';
+        $action = 'logout';
+    } elseif ($parts[0] === 'genres') {
+        // Route spéciale pour les genres
+        $controller = 'Admin\\GenresController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des genres
+        $controllerFile = __DIR__ . "/../app/controllers/admin/GenresController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
         }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'games') {
+        // Route spéciale pour les jeux
+        $controller = 'Admin\\GamesController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des jeux
+        $controllerFile = __DIR__ . "/../app/controllers/admin/GamesController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'articles') {
+        // Route spéciale pour les articles
+        $controller = 'Admin\\ArticlesController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des articles
+        $controllerFile = __DIR__ . "/../app/controllers/admin/ArticlesController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'categories') {
+        // Route spéciale pour les catégories
+        $controller = 'Admin\\CategoriesController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des catégories
+        $controllerFile = __DIR__ . "/../app/controllers/admin/CategoriesController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'hardware') {
+        // Route spéciale pour le hardware
+        $controller = 'Admin\\HardwareController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur du hardware
+        $controllerFile = __DIR__ . "/../app/controllers/admin/HardwareController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'media') {
+        // Route spéciale pour les médias
+        $controller = 'Admin\\MediaController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des médias
+        $controllerFile = __DIR__ . "/../app/controllers/admin/MediaController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'users') {
+        // Route spéciale pour les utilisateurs
+        $controller = 'Admin\\UsersController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur des utilisateurs
+        $controllerFile = __DIR__ . "/../app/controllers/admin/UsersController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'admin') {
+        // Route spéciale pour le tableau de bord admin
+        $controller = 'Admin\\DashboardController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur du tableau de bord
+        $controllerFile = __DIR__ . "/../app/controllers/admin/DashboardController.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    } elseif ($parts[0] === 'test') {
+        // Route spéciale pour les tests
+        $controller = 'TestController';
+        $action = $parts[1] ?? 'index';
+        $params = array_slice($parts, 2);
+        
+        // Charger le contrôleur de test
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    }
         
         // Vérifier si le contrôleur existe
         $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
@@ -111,6 +314,7 @@ function route($uri) {
         }
         
         require_once $controllerFile;
+        $params = array_slice($parts, 2);
     }
     
     // Vérifier si la méthode existe
@@ -118,10 +322,17 @@ function route($uri) {
         return ['error' => '404'];
     }
     
+    // Debug pour voir ce qui se passe
+    error_log("🔍 URI: " . $uri);
+    error_log("🔍 Parts: " . print_r($parts, true));
+    error_log("🔍 Controller: " . $controller);
+    error_log("🔍 Action: " . $action);
+    error_log("🔍 Params: " . print_r($params, true));
+    
     return [
         'controller' => $controller,
         'action' => $action,
-        'params' => array_slice($parts, 3) // Pour admin, les params commencent à partir de la 4ème partie
+        'params' => $params
     ];
 }
 
