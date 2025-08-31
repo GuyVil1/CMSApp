@@ -1,0 +1,151 @@
+/* ========================================
+   MÉTADONNÉES DE L'ARTICLE
+   ======================================== */
+
+/* Section des métadonnées */
+.article-meta-section {
+    padding: 0rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    margin-bottom: 0; /* Enlever la marge pour coller à l'image */
+    border-radius: 0; /* Enlever le border-radius pour coller à l'image */
+    background: transparent; /* Enlever le fond pour voir l'image */
+}
+
+/* Grille des métadonnées - BACKGROUND ROUGE SUR TOUTE LA ZONE */
+.article-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    align-items: center;
+    background: #cc0000;
+}
+
+/* Item de métadonnée - TRANSPARENT POUR LAISSER VOIR LE ROUGE */
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    /* background: #CC0000; */ /* Supprimé - transparent pour voir le rouge de la grille */
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    /* border: 2px solid #E6B800; */ /* Supprimé */
+    transition: all 0.3s ease;
+    /* box-shadow: 0 4px 15px rgba(204, 0, 0, 0.3); */ /* Supprimé */
+}
+
+.meta-item:hover {
+    transform: translateY(-2px);
+    /* box-shadow: 0 8px 25px rgba(204, 0, 0, 0.4); */ /* Supprimé */
+    /* background: #B30000; */ /* Supprimé */
+    /* border-color: #FFD700; */ /* Supprimé */
+}
+
+/* Icône de métadonnée - NOUVEAU STYLE */
+.meta-icon {
+    font-size: 1.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #E6B800; /* Jaune du site */
+    color: #000000; /* Texte noir sur fond jaune */
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #FFFFFF; /* Bordure blanche */
+    box-shadow: 0 2px 8px rgba(230, 184, 0, 0.4);
+}
+
+/* Label de métadonnée - NOUVEAU STYLE */
+.meta-label {
+    font-size: 0.75rem;
+    font-weight: 700; /* Plus gras */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #E6B800; /* Jaune du site */
+    min-width: 60px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Valeur de métadonnée - NOUVEAU STYLE */
+.meta-value {
+    font-size: 0.9rem;
+    font-weight: 700; /* Plus gras */
+    color: #E6B800; /* Jaune du site */
+    flex: 1;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .article-meta-section {
+        padding: 0rem;
+        margin-bottom: 0;
+    }
+    
+    .article-meta-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .meta-item {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-meta-section {
+        padding: 0rem;
+        border-radius: 0;
+    }
+    
+    .article-meta-grid {
+    }
+    
+    .meta-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .meta-label {
+        min-width: auto;
+    }
+}
+
+/* Animation d'entrée */
+.article-meta-section {
+    animation: metaFadeIn 0.6s ease-out 0.2s both;
+}
+
+@keyframes metaFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation des items de métadonnées */
+.meta-item {
+    animation: metaItemFadeIn 0.5s ease-out both;
+}
+
+.meta-item:nth-child(1) { animation-delay: 0.3s; }
+.meta-item:nth-child(2) { animation-delay: 0.4s; }
+.meta-item:nth-child(3) { animation-delay: 0.5s; }
+.meta-item:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes metaItemFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

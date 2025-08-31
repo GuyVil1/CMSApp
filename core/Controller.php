@@ -44,6 +44,42 @@ abstract class Controller
     }
     
     /**
+     * Rendre une vue avec le layout principal
+     */
+    protected function renderWithLayout(string $view, array $data = []): void
+    {
+        // Extraire le contenu de la vue
+        ob_start();
+        $this->render($view, $data);
+        $content = ob_get_clean();
+        
+        // Rendre avec le layout principal
+        $this->render('layout/main', array_merge($data, ['content' => $content]));
+    }
+    
+    /**
+     * Rendre une vue partielle (sans layout) et retourner le contenu
+     */
+    protected function renderPartial(string $view, array $data = []): string
+    {
+        $viewPath = __DIR__ . '/../app/views/' . $view . '.php';
+        
+        if (!file_exists($viewPath)) {
+            throw new Exception("Vue non trouvée: {$view}");
+        }
+        
+        // Extraire les variables dans le scope local
+        extract($data);
+        
+        // Capturer le contenu
+        ob_start();
+        include $viewPath;
+        $content = ob_get_clean();
+        
+        return $content;
+    }
+    
+    /**
      * Rediriger vers une URL
      */
     protected function redirect(string $url): void

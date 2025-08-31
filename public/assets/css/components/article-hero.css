@@ -1,0 +1,190 @@
+/* ========================================
+   ARTICLE HERO UNIFIED - Bloc unifié Image + Extrait
+   ======================================== */
+
+.article-hero-unified {
+    position: relative;
+    width: 100%;
+    height: 700px; /* Hauteur augmentée pour inclure l'extrait */
+    overflow: hidden;
+    border-radius: 0;
+    margin-bottom: 3rem;
+    box-shadow: none;
+}
+
+/* Image de couverture en arrière-plan */
+.article-hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+/* Overlay dégradé inversé : commence en bas (noir) et remonte (transparent) */
+.article-hero-overlay-unified {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 0.1) 20%,
+        rgba(0, 0, 0, 0.2) 40%,
+        rgba(0, 0, 0, 0.4) 60%,
+        rgba(0, 0, 0, 0.7) 80%,
+        rgba(0, 0, 0, 0.95) 90%,
+        rgba(0, 0, 0, 1) 100%
+    );
+    z-index: 2;
+}
+
+/* Contenu superposé sur l'image (catégorie et titre) */
+.article-hero-content {
+    position: absolute;
+    bottom: 200px; /* Positionné au-dessus de l'extrait */
+    left: 0;
+    width: 100%;
+    padding: 0 2rem;
+    z-index: 3;
+    text-align: left;
+}
+
+/* Catégorie de l'article (en haut, à gauche) */
+.article-hero-category {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Titre de l'article (en bas, à gauche) */
+.article-hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: 0.02em;
+    max-width: 80%;
+}
+
+/* Extrait intégré dans le bloc unifié - SANS BACKGROUND */
+.article-excerpt-unified {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: transparent; /* Plus de background noir - l'overlay se prolonge naturellement */
+    color: #ffffff;
+    padding: 3rem 2rem;
+    z-index: 4; /* Au-dessus de l'overlay */
+    font-size: 1.2rem;
+    line-height: 1.8;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.article-excerpt-unified p {
+    margin: 0;
+    color: #ffffff !important;
+    font-style: normal;
+    position: relative;
+    z-index: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .article-hero-unified {
+        height: 600px;
+        margin-bottom: 2rem;
+    }
+    
+    .article-hero-content {
+        bottom: 150px;
+        padding: 0 1.5rem;
+    }
+    
+    .article-hero-title {
+        font-size: 2rem;
+        max-width: 90%;
+    }
+    
+    .article-hero-category {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .article-excerpt-unified {
+        padding: 2rem 1.5rem;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-hero-unified {
+        height: 500px;
+    }
+    
+    .article-hero-content {
+        bottom: 120px;
+        padding: 0 1rem;
+    }
+    
+    .article-hero-title {
+        font-size: 1.6rem;
+        max-width: 95%;
+    }
+    
+    .article-hero-category {
+        font-size: 0.65rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .article-excerpt-unified {
+        padding: 1.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* Animation d'entrée */
+.article-hero-unified {
+    animation: heroFadeIn 0.8s ease-out;
+}
+
+@keyframes heroFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Effet de survol subtil */
+.article-hero-unified:hover .article-hero-background {
+    transform: scale(1.02);
+    transition: transform 0.3s ease-out;
+}
+
+.article-hero-background {
+    transition: transform 0.3s ease-out;
+}

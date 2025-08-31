@@ -46,6 +46,36 @@ class Article
                 $this->$key = $value;
             }
         }
+        
+        // Gérer les données liées récupérées par les requêtes SQL
+        if (isset($data['author_login'])) {
+            $this->author = [
+                'login' => $data['author_login'],
+                'email' => $data['author_email'] ?? null
+            ];
+        }
+        
+        if (isset($data['category_name'])) {
+            $this->category = [
+                'name' => $data['category_name'],
+                'slug' => $data['category_slug'] ?? null,
+                'color' => $data['category_color'] ?? '#007bff'
+            ];
+        }
+        
+        if (isset($data['game_title'])) {
+            $this->game = [
+                'title' => $data['game_title'],
+                'slug' => $data['game_slug'] ?? null
+            ];
+        }
+        
+        if (isset($data['cover_filename'])) {
+            $this->cover_image = [
+                'filename' => $data['cover_filename'],
+                'original_name' => $data['cover_original_name'] ?? null
+            ];
+        }
     }
     
     // Getters
@@ -70,6 +100,46 @@ class Article
     public function getGame(): ?array { return $this->game; }
     public function getCoverImage(): ?array { return $this->cover_image; }
     public function getTags(): array { return $this->tags; }
+    
+    // Getters pour les données liées récupérées par les requêtes SQL
+    public function getAuthorName(): ?string { 
+        return $this->author['login'] ?? null; 
+    }
+    
+    public function getAuthorEmail(): ?string { 
+        return $this->author['email'] ?? null; 
+    }
+    
+    public function getCategoryName(): ?string { 
+        return $this->category['name'] ?? null; 
+    }
+    
+    public function getCategorySlug(): ?string { 
+        return $this->category['slug'] ?? null; 
+    }
+    
+    public function getCategoryColor(): ?string { 
+        return $this->category['color'] ?? '#007bff'; 
+    }
+    
+    public function getGameName(): ?string { 
+        return $this->game['title'] ?? null; 
+    }
+    
+    public function getGameSlug(): ?string { 
+        return $this->game['slug'] ?? null; 
+    }
+    
+    public function getCoverImageUrl(): ?string { 
+        if ($this->cover_image && isset($this->cover_image['filename'])) {
+            return "/public/uploads.php?file=" . urlencode($this->cover_image['filename']);
+        }
+        return null;
+    }
+    
+    public function getCoverImageFilename(): ?string { 
+        return $this->cover_image['filename'] ?? null; 
+    }
     
     // Setters
     public function setTitle(string $title): self { $this->title = $title; return $this; }
@@ -173,7 +243,7 @@ class Article
         try {
             $sql = "SELECT a.*, 
                            u.login as author_login, u.email as author_email,
-                           c.name as category_name, c.slug as category_slug,
+                           c.name as category_name, c.slug as category_slug, c.color as category_color,
                            g.title as game_title, g.slug as game_slug,
                            m.filename as cover_filename, m.original_name as cover_original_name
                     FROM articles a
@@ -499,16 +569,5 @@ class Article
         ]);
     }
     
-    /**
-     * Obtenir l'URL de l'image de couverture
-     */
-    public function getCoverImageUrl(): ?string
-    {
-        if (!$this->cover_image_id) {
-            return null;
-        }
-        
-        $coverImage = Media::find($this->cover_image_id);
-        return $coverImage ? $coverImage->getUrl() : null;
-    }
+
 }

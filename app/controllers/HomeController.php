@@ -39,7 +39,9 @@ class HomeController extends Controller
             // Récupérer les trailers (articles avec vidéos)
             $trailers = $this->getTrailers();
             
-            $this->render('home/index', [
+            $this->render('layout/public', [
+                'pageTitle' => 'GameNews - L\'actualité jeux vidéo en Belgique',
+                'pageDescription' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.',
                 'currentTheme' => $currentTheme,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
@@ -47,12 +49,24 @@ class HomeController extends Controller
                 'popularGames' => $popularGames,
                 'trailers' => $trailers,
                 'isLoggedIn' => Auth::isLoggedIn(),
-                'user' => Auth::getUser()
+                'user' => Auth::getUser(),
+                'content' => $this->renderPartial('home/index', [
+                    'currentTheme' => $currentTheme,
+                    'featuredArticles' => $featuredArticles,
+                    'latestArticles' => $latestArticles,
+                    'popularCategories' => $popularCategories,
+                    'popularGames' => $popularGames,
+                    'trailers' => $trailers,
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ])
             ]);
             
         } catch (Exception $e) {
             // En cas d'erreur, afficher une page d'accueil avec des données par défaut
-            $this->render('home/index', [
+            $this->render('layout/public', [
+                'pageTitle' => 'GameNews - L\'actualité jeux vidéo en Belgique',
+                'pageDescription' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.',
                 'featuredArticles' => [],
                 'latestArticles' => [],
                 'popularCategories' => [],
@@ -60,7 +74,17 @@ class HomeController extends Controller
                 'trailers' => [],
                 'isLoggedIn' => Auth::isLoggedIn(),
                 'user' => Auth::getUser(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'content' => $this->renderPartial('home/index', [
+                    'featuredArticles' => [],
+                    'latestArticles' => [],
+                    'popularCategories' => [],
+                    'popularGames' => [],
+                    'trailers' => [],
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser(),
+                    'error' => $e->getMessage()
+                ])
             ]);
         }
     }
@@ -207,16 +231,26 @@ class HomeController extends Controller
             }
             
             if ($config) {
+                $themeName = $config['current_theme'] ?? 'defaut';
                 return [
-                    'name' => $config['current_theme'] ?? 'defaut',
+                    'name' => $themeName,
                     'is_permanent' => $config['is_permanent'] ?? true,
                     'expires_at' => $config['expires_at'] ?? null,
-                    'applied_at' => $config['applied_at'] ?? null
+                    'applied_at' => $config['applied_at'] ?? null,
+                    'left_image' => "themes/{$themeName}/left.png",
+                    'right_image' => "themes/{$themeName}/right.png"
                 ];
             }
         }
         
-        return ['name' => 'defaut', 'is_permanent' => true, 'expires_at' => null, 'applied_at' => null];
+        return [
+            'name' => 'defaut', 
+            'is_permanent' => true, 
+            'expires_at' => null, 
+            'applied_at' => null,
+            'left_image' => 'themes/defaut/left.png',
+            'right_image' => 'themes/defaut/right.png'
+        ];
     }
     
     /**
@@ -270,13 +304,23 @@ class HomeController extends Controller
             
             error_log("🎨 Rendu de l'article: " . $article->getTitle());
             
-            $this->render('articles/show', [
-                'article' => $article,
+            // Utiliser le template unifié public
+            $this->render('layout/public', [
+                'pageTitle' => $article->getTitle() . ' - GameNews Belgium',
+                'pageDescription' => $article->getExcerpt() ?? 'Découvrez cet article sur GameNews, votre source gaming belge.',
                 'currentTheme' => $currentTheme,
+                'article' => $article,
                 'relatedArticles' => $relatedArticles,
                 'popularArticles' => $popularArticles,
                 'isLoggedIn' => Auth::isLoggedIn(),
-                'user' => Auth::getUser()
+                'user' => Auth::getUser(),
+                'additionalCSS' => [
+                    '/public/assets/css/components/article-display.css',
+                    '/public/assets/css/components/content-modules.css',
+                    '/public/assets/css/components/article-hero.css',
+                    '/public/assets/css/components/article-meta.css'
+                ],
+                'additionalJS' => []
             ]);
             
         } catch (Exception $e) {
