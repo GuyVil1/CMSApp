@@ -393,14 +393,35 @@
         // Recherche de jeux
         async function searchGames(query) {
             try {
+                console.log('Recherche de jeux pour:', query);
+                
                 const response = await fetch(`/media.php?action=search-games&q=${encodeURIComponent(query)}&limit=10`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Réponse non-JSON reçue du serveur');
+                }
+                
                 const data = await response.json();
+                console.log('Réponse reçue:', data);
                 
                 if (data.success) {
                     displayGamesDropdown(data.games);
+                } else {
+                    console.error('Erreur serveur:', data.error);
+                    showToast('Erreur lors de la recherche: ' + (data.error || 'Erreur inconnue'), 'error');
                 }
             } catch (error) {
                 console.error('Erreur recherche jeux:', error);
+                showToast('Erreur de connexion lors de la recherche', 'error');
+                
+                // Afficher un message d'erreur dans le dropdown
+                gamesDropdown.innerHTML = '<div class="game-option" style="color: #ff6b6b;">Erreur de connexion</div>';
+                gamesDropdown.style.display = 'block';
             }
         }
         

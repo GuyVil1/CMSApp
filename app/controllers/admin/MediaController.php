@@ -53,8 +53,11 @@ class MediaController extends \Controller
      */
     public function upload(): void
     {
-        // Débogage
-        error_log("MediaController::upload() appelé");
+        // Débogage détaillé
+        error_log("=== DÉBUT UPLOAD ===");
+        error_log("Méthode HTTP: " . $_SERVER['REQUEST_METHOD']);
+        error_log("POST data: " . print_r($_POST, true));
+        error_log("FILES data: " . print_r($_FILES, true));
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             error_log("Méthode non autorisée: " . $_SERVER['REQUEST_METHOD']);
@@ -76,20 +79,46 @@ class MediaController extends \Controller
                 error_log("Extension GD non disponible");
                 throw new \Exception('Extension GD non disponible sur le serveur');
             }
+            error_log("✅ Extension GD disponible: " . gd_info()['GD Version']);
             
             error_log("Vérification des fichiers uploadés...");
-            if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-                $error = $_FILES['file']['error'] ?? 'Fichier non défini';
-                error_log("Erreur upload fichier: " . $error);
-                throw new \Exception('Erreur lors de l\'upload du fichier: ' . $error);
+            if (!isset($_FILES['file'])) {
+                error_log("❌ Aucun fichier dans \$_FILES['file']");
+                throw new \Exception('Aucun fichier reçu');
             }
             
             $file = $_FILES['file'];
             error_log("Fichier reçu: " . $file['name'] . " (" . $file['size'] . " bytes)");
+            error_log("Type MIME du navigateur: " . ($file['type'] ?? 'Non défini'));
+            error_log("Code d'erreur: " . $file['error']);
+            error_log("Fichier temporaire: " . $file['tmp_name']);
+            
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                $errorMessages = [
+                    UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux (php.ini)',
+                    UPLOAD_ERR_FORM_SIZE => 'Fichier trop volumineux (form)',
+                    UPLOAD_ERR_PARTIAL => 'Upload partiel',
+                    UPLOAD_ERR_NO_FILE => 'Aucun fichier',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
+                    UPLOAD_ERR_CANT_WRITE => 'Erreur d\'écriture',
+                    UPLOAD_ERR_EXTENSION => 'Extension bloquée'
+                ];
+                
+                $errorMsg = $errorMessages[$file['error']] ?? 'Erreur inconnue: ' . $file['error'];
+                error_log("❌ Erreur upload: " . $errorMsg);
+                throw new \Exception('Erreur lors de l\'upload: ' . $errorMsg);
+            }
+            
+            // Vérifier que le fichier temporaire existe
+            if (!file_exists($file['tmp_name'])) {
+                error_log("❌ Fichier temporaire n'existe pas: " . $file['tmp_name']);
+                throw new \Exception('Fichier temporaire introuvable');
+            }
             
             // Récupérer les paramètres
             $gameId = !empty($_POST['game_id']) ? (int)$_POST['game_id'] : null;
             $category = $_POST['category'] ?? 'general';
+            error_log("Game ID: " . ($gameId ?? 'null') . ", Catégorie: " . $category);
             
             // Déterminer le dossier d'upload
             $uploadDir = $this->determineUploadDirectory($gameId, $category);
@@ -98,8 +127,19 @@ class MediaController extends \Controller
             // Vérifier que le dossier existe
             if (!is_dir($uploadDir)) {
                 error_log("Création du dossier upload...");
-                mkdir($uploadDir, 0755, true);
+                if (!mkdir($uploadDir, 0755, true)) {
+                    error_log("❌ Impossible de créer le dossier: " . $uploadDir);
+                    throw new \Exception('Impossible de créer le dossier d\'upload');
+                }
+                error_log("✅ Dossier créé: " . $uploadDir);
             }
+            
+            // Vérifier les permissions d'écriture
+            if (!is_writable($uploadDir)) {
+                error_log("❌ Dossier non écrivable: " . $uploadDir);
+                throw new \Exception('Dossier d\'upload non écrivable');
+            }
+            error_log("✅ Dossier écrivable: " . $uploadDir);
             
             // Vérifier le type MIME
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -111,31 +151,63 @@ class MediaController extends \Controller
             // Types autorisés
             $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
             if (!in_array($mimeType, $allowedTypes)) {
-                error_log("Type MIME non autorisé: " . $mimeType);
+                error_log("❌ Type MIME non autorisé: " . $mimeType);
                 throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
             }
+            error_log("✅ Type MIME autorisé: " . $mimeType);
             
             // Vérifier la taille (4MB max)
             $maxSize = 4 * 1024 * 1024;
+            $phpMaxUpload = ini_get('upload_max_filesize');
+            $phpMaxPost = ini_get('post_max_size');
+            
             if ($file['size'] > $maxSize) {
+                error_log("❌ Fichier trop volumineux: " . $file['size'] . " > " . $maxSize);
                 throw new \Exception('Fichier trop volumineux (max 4MB)');
             }
+            
+            // Vérifier les limites PHP
+            if ($file['size'] > $this->parseSize($phpMaxUpload)) {
+                error_log("❌ Fichier dépasse la limite PHP upload_max_filesize: " . $phpMaxUpload);
+                throw new \Exception("Fichier trop volumineux. Limite PHP: {$phpMaxUpload}. Contactez l'administrateur.");
+            }
+            
+            if ($file['size'] > $this->parseSize($phpMaxPost)) {
+                error_log("❌ Fichier dépasse la limite PHP post_max_size: " . $phpMaxPost);
+                throw new \Exception("Fichier trop volumineux. Limite PHP: {$phpMaxPost}. Contactez l'administrateur.");
+            }
+            
+            error_log("✅ Taille OK: " . $file['size'] . " bytes (Limite PHP: {$phpMaxUpload})");
             
             // Générer un nom de fichier unique
             $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
             $filename = uniqid() . '_' . time() . '.' . $extension;
             $filepath = $uploadDir . '/' . $filename;
+            error_log("Nom de fichier généré: " . $filename);
+            error_log("Chemin complet: " . $filepath);
             
             // Déplacer le fichier
+            error_log("Tentative de déplacement du fichier...");
             if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-                throw new \Exception('Erreur lors du déplacement du fichier');
+                $lastError = error_get_last();
+                error_log("❌ Erreur lors du déplacement: " . ($lastError['message'] ?? 'Erreur inconnue'));
+                throw new \Exception('Erreur lors du déplacement du fichier: ' . ($lastError['message'] ?? 'Erreur inconnue'));
+            }
+            error_log("✅ Fichier déplacé avec succès");
+            
+            // Vérifier que le fichier existe maintenant
+            if (!file_exists($filepath)) {
+                error_log("❌ Fichier n'existe pas après déplacement: " . $filepath);
+                throw new \Exception('Fichier introuvable après upload');
             }
             
-            // Créer la vignette si c'est une image (temporairement désactivé pour diagnostic)
+            // Créer la vignette si c'est une image
             try {
+                error_log("Création de la vignette...");
                 $this->createThumbnail($filepath, $filename, $uploadDir);
+                error_log("✅ Vignette créée avec succès");
             } catch (\Exception $e) {
-                error_log("Erreur création vignette: " . $e->getMessage());
+                error_log("⚠️ Erreur création vignette: " . $e->getMessage());
                 // Continuer sans vignette
             }
             
@@ -151,19 +223,21 @@ class MediaController extends \Controller
             ];
             
             error_log("Tentative d'enregistrement en base de données...");
+            error_log("Données média: " . print_r($mediaData, true));
+            
             $media = \Media::create($mediaData);
             
             if (!$media) {
-                error_log("Échec de l'enregistrement en base de données");
+                error_log("❌ Échec de l'enregistrement en base de données");
                 throw new \Exception('Erreur lors de l\'enregistrement en base de données');
             }
             
-            error_log("Média enregistré avec succès, ID: " . $media->getId());
+            error_log("✅ Média enregistré avec succès, ID: " . $media->getId());
             
             // Stocker en cache temporaire (session)
             $this->storeInTempCache($media);
             
-            $this->jsonResponse([
+            $response = [
                 'success' => true,
                 'media' => [
                     'id' => $media->getId(),
@@ -175,11 +249,18 @@ class MediaController extends \Controller
                     'game_id' => $gameId,
                     'category' => $category
                 ]
-            ]);
+            ];
+            
+            error_log("✅ Upload réussi, réponse: " . json_encode($response));
+            $this->jsonResponse($response);
             
         } catch (\Exception $e) {
+            error_log("❌ ERREUR UPLOAD: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
             $this->jsonResponse(['error' => $e->getMessage()], 400);
         }
+        
+        error_log("=== FIN UPLOAD ===");
     }
     
     /**
@@ -216,28 +297,49 @@ class MediaController extends \Controller
      */
     public function searchGames(): void
     {
-        $query = $_GET['q'] ?? '';
-        $limit = (int)($_GET['limit'] ?? 10);
-        
-        if (empty($query)) {
-            $games = \Game::findAll($limit);
-        } else {
-            $games = \Game::search($query, $limit);
+        try {
+            $query = $_GET['q'] ?? '';
+            $limit = (int)($_GET['limit'] ?? 10);
+            
+            error_log("MediaController::searchGames() - Query: '{$query}', Limit: {$limit}");
+            
+            if (empty($query)) {
+                $games = \Game::findAll($limit);
+                error_log("MediaController::searchGames() - Recherche sans query, trouvé " . count($games) . " jeux");
+            } else {
+                $games = \Game::search($query, $limit);
+                error_log("MediaController::searchGames() - Recherche avec query '{$query}', trouvé " . count($games) . " jeux");
+            }
+            
+            $results = array_map(function($game) {
+                return [
+                    'id' => $game->getId(),
+                    'title' => $game->getTitle(),
+                    'slug' => $game->getSlug(),
+                    'hardware' => $game->getHardwareName() ?? 'Aucun hardware'
+                ];
+            }, $games);
+            
+            error_log("MediaController::searchGames() - Résultats préparés: " . json_encode($results));
+            
+            $this->jsonResponse([
+                'success' => true,
+                'games' => $results,
+                'query' => $query,
+                'count' => count($results)
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("MediaController::searchGames() - Erreur: " . $e->getMessage());
+            error_log("MediaController::searchGames() - Trace: " . $e->getTraceAsString());
+            
+            $this->jsonResponse([
+                'success' => false,
+                'error' => 'Erreur lors de la recherche: ' . $e->getMessage(),
+                'query' => $query ?? '',
+                'games' => []
+            ], 500);
         }
-        
-        $results = array_map(function($game) {
-            return [
-                'id' => $game->getId(),
-                'title' => $game->getTitle(),
-                'slug' => $game->getSlug(),
-                'hardware' => $game->getHardwareName()
-            ];
-        }, $games);
-        
-        $this->jsonResponse([
-            'success' => true,
-            'games' => $results
-        ]);
     }
     
     /**
@@ -601,5 +703,25 @@ class MediaController extends \Controller
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
+    }
+
+    /**
+     * Parse la taille en octets depuis une chaîne PHP (ex: 10M, 100K, 1G)
+     */
+    private function parseSize(string $size): int
+    {
+        $unit = strtolower(substr($size, -1));
+        $value = (int)substr($size, 0, -1);
+
+        switch ($unit) {
+            case 'k':
+                return $value * 1024;
+            case 'm':
+                return $value * 1024 * 1024;
+            case 'g':
+                return $value * 1024 * 1024 * 1024;
+            default:
+                return $value;
+        }
     }
 }

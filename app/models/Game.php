@@ -94,6 +94,25 @@ class Game
     }
     
     /**
+     * Rechercher des jeux par titre
+     */
+    public static function search(string $query, int $limit = 20): array
+    {
+        $sql = "SELECT g.*, m.filename as cover_image, h.name as hardware_name 
+                FROM games g 
+                LEFT JOIN media m ON g.cover_image_id = m.id 
+                LEFT JOIN hardware h ON g.hardware_id = h.id 
+                WHERE g.title LIKE ? 
+                ORDER BY g.title ASC 
+                LIMIT ?";
+        
+        $searchTerm = "%{$query}%";
+        $results = Database::query($sql, [$searchTerm, $limit]);
+        
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
      * Compter le nombre total de jeux
      */
     public static function count(): int
