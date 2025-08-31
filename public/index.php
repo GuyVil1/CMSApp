@@ -83,18 +83,18 @@ function route($uri) {
         $controller = 'HomeController';
         $action = 'show';
         
-        // Extraire l'ID de l'article (2ème partie après 'article')
+        // Extraire le slug de l'article (2ème partie après 'article')
         if (isset($parts[1])) {
-            $params = [$parts[1]]; // L'ID de l'article
+            $params = [$parts[1]]; // Le slug de l'article
         } else {
-            // Pas d'ID, rediriger vers 404
-            error_log("❌ Pas d'ID d'article spécifié");
+            // Pas de slug, rediriger vers 404
+            error_log("❌ Pas de slug d'article spécifié");
             return ['error' => '404'];
         }
         
         error_log("🔍 Controller: " . $controller);
         error_log("🔍 Action: " . $action);
-        error_log("🔍 Params: " . print_r($params, true));
+        error_log("🔍 Params (slug): " . print_r($params, true));
         
         // Charger le HomeController
         $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";

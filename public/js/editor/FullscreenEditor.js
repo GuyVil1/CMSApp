@@ -2816,11 +2816,44 @@ class FullscreenEditor {
         try {
             console.log('🖼️ Recréation du module galerie depuis content-module-gallery');
             
+            // Extraire la configuration depuis les classes CSS
+            const galleryContainer = moduleElement.querySelector('.gallery-container');
+            const containerClasses = galleryContainer ? galleryContainer.className : '';
+            
+            console.log('🎨 Classes CSS de la galerie:', containerClasses);
+            
+            // Analyser les classes pour extraire la configuration
+            const layout = this.extractGalleryLayout(containerClasses);
+            const columns = this.extractGalleryColumns(containerClasses);
+            const spacing = this.extractGallerySpacing(containerClasses);
+            const captions = this.extractGalleryCaptions(containerClasses);
+            
+            // Déduire les options depuis le HTML généré
+            const showTitles = moduleElement.querySelector('.image-title') !== null;
+            const showDescriptions = moduleElement.querySelector('.image-description') !== null;
+            const lightbox = moduleElement.querySelector('.lightbox-overlay') !== null;
+            const autoplay = moduleElement.querySelector('.carousel-controls, .slider-controls') !== null;
+
             const galleryData = {
                 images: [],
-                layout: 'grid',
+                layout: layout,
+                columns: columns,
+                spacing: spacing,
+                captions: captions,
+                showTitles: showTitles,
+                showDescriptions: showDescriptions,
+                lightbox: lightbox,
+                autoplay: autoplay,
                 alignment: this.getAlignmentFromClass(moduleElement.className)
             };
+            
+            console.log('⚙️ Configuration galerie extraite:', {
+                layout, columns, spacing, captions
+            });
+            
+            console.log('🔧 Options galerie déduites:', {
+                showTitles, showDescriptions, lightbox, autoplay
+            });
             
             // Extraire les images de la galerie
             const images = moduleElement.querySelectorAll('img');
@@ -2896,6 +2929,37 @@ class FullscreenEditor {
         } catch (error) {
             console.error('❌ Erreur lors de la recréation du module liste:', error);
         }
+    }
+
+    // Méthodes d'extraction des propriétés de galerie
+    extractGalleryLayout(containerClasses) {
+        if (containerClasses.includes('layout-masonry')) return 'masonry';
+        if (containerClasses.includes('layout-carousel')) return 'carousel';
+        if (containerClasses.includes('layout-slider')) return 'slider';
+        if (containerClasses.includes('layout-grid')) return 'grid';
+        return 'grid'; // Par défaut
+    }
+
+    extractGalleryColumns(containerClasses) {
+        if (containerClasses.includes('columns-2')) return 2;
+        if (containerClasses.includes('columns-3')) return 3;
+        if (containerClasses.includes('columns-4')) return 4;
+        if (containerClasses.includes('columns-5')) return 5;
+        return 3; // Par défaut
+    }
+
+    extractGallerySpacing(containerClasses) {
+        if (containerClasses.includes('spacing-small')) return 'small';
+        if (containerClasses.includes('spacing-large')) return 'large';
+        if (containerClasses.includes('spacing-medium')) return 'medium';
+        return 'medium'; // Par défaut
+    }
+
+    extractGalleryCaptions(containerClasses) {
+        if (containerClasses.includes('captions-overlay')) return 'overlay';
+        if (containerClasses.includes('captions-below')) return 'below';
+        if (containerClasses.includes('captions-none')) return 'none';
+        return 'overlay'; // Par défaut
     }
 
     getAlignmentFromClass(className) {

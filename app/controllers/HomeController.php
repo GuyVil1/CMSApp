@@ -256,19 +256,19 @@ class HomeController extends Controller
     /**
      * Afficher un article individuel
      */
-    public function show(int $id): void
+    public function show(string $slug): void
     {
         try {
             // Debug
-            error_log("🔍 HomeController::show() appelé avec ID: " . $id);
+            error_log("🔍 HomeController::show() appelé avec slug: " . $slug);
             
-            // Récupérer l'article par ID
-            $article = \Article::findById($id);
+            // Récupérer l'article par slug
+            $article = \Article::findBySlug($slug);
             
             error_log("📚 Article trouvé: " . ($article ? 'OUI' : 'NON'));
             
             if (!$article) {
-                error_log("❌ Article non trouvé pour ID: " . $id);
+                error_log("❌ Article non trouvé pour slug: " . $slug);
                 // Article non trouvé
                 http_response_code(404);
                 $this->render('layout/404', [

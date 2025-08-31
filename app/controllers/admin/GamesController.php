@@ -404,6 +404,49 @@ class GamesController extends \Controller
         }
     }
 
+    /**
+     * Récupérer les informations d'un jeu (API)
+     * Utilisé par le formulaire d'article pour récupérer la cover automatiquement
+     */
+    public function get(int $id): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            $this->json(['success' => false, 'error' => 'Méthode non autorisée'], 405);
+            return;
+        }
+
+        $game = \Game::find($id);
+        if (!$game) {
+            $this->json(['success' => false, 'error' => 'Jeu non trouvé'], 404);
+            return;
+        }
+
+        // Récupérer les informations de la cover si elle existe
+        $coverImage = null;
+        if ($game->getCoverImageId()) {
+            $media = \Media::find($game->getCoverImageId());
+            if ($media) {
+                $coverImage = [
+                    'id' => $media->getId(),
+                    'url' => $media->getUrl(),
+                    'filename' => $media->getFilename()
+                ];
+            }
+        }
+
+        $this->json([
+            'success' => true,
+            'game' => [
+                'id' => $game->getId(),
+                'title' => $game->getTitle(),
+                'slug' => $game->getSlug(),
+                'description' => $game->getDescription(),
+                'platform' => $game->getPlatform(),
+                'cover_image' => $coverImage
+            ]
+        ]);
+    }
+
     public function delete(int $id): void
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

@@ -71,6 +71,44 @@
             padding: 6px 12px;
             font-size: 12px;
         }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .btn-outline-secondary {
+            background: transparent;
+            border: 1px solid #95a5a6;
+            color: #95a5a6;
+        }
+        .btn-outline-secondary:hover {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        /* Cover image styles */
+        .existing-cover-preview {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
         
         /* Formulaire */
         .form-container {
@@ -121,11 +159,45 @@
             border-radius: 6px;
             background: rgba(255, 255, 255, 0.05);
             min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         
         .preview-content {
             font-size: 14px;
             line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* Styles pour éviter le débordement du contenu HTML */
+        .preview-content * {
+            max-width: 100% !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            box-sizing: border-box !important;
+        }
+        
+        .preview-content img,
+        .preview-content video {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        .preview-content table {
+            max-width: 100% !important;
+            table-layout: fixed !important;
+        }
+        
+        .preview-content pre,
+        .preview-content code {
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
         }
         
         .preview-placeholder {
@@ -559,7 +631,7 @@
                 <div class="content-preview" id="content-preview">
                     <?php if ($article && $article->getContent()): ?>
                         <div class="preview-content">
-                            <?= $article->getContent() ?>
+                            <?= htmlspecialchars($article->getContent()) ?>
                         </div>
                     <?php else: ?>
                         <div class="preview-placeholder">
@@ -625,24 +697,40 @@
                     <!-- Image de couverture -->
                     <div class="form-group" id="cover-image-group">
                         <label for="cover_image_id">🖼️ Image de couverture</label>
-                        
+
+                        <!-- Affichage de l'image de couverture existante (en mode édition) -->
+                        <?php if (isset($article) && $article && $article->getCoverImageId()): ?>
+                            <?php 
+                            $existingCoverImage = \Media::find($article->getCoverImageId());
+                            if ($existingCoverImage): 
+                            ?>
+                            <div id="existing-cover-info" class="existing-cover-preview">
+                                <img src="<?= htmlspecialchars($existingCoverImage->getUrl()) ?>" alt="Image de couverture actuelle" style="max-width: 200px; border-radius: 8px; margin: 10px 0;">
+                                <p class="form-hint">Image de couverture actuelle : <?= htmlspecialchars($existingCoverImage->getFilename()) ?></p>
+                                <input type="hidden" name="current_cover_image_id" value="<?= $existingCoverImage->getId() ?>">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="window.changeCoverImage()">Changer l'image</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.keepCoverImage()" style="display: none;" id="keep-cover-btn">Garder l'image actuelle</button>
+                            </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+
                         <!-- Si un jeu est sélectionné -->
                         <div id="game-cover-info" style="display: none;">
                             <div class="game-cover-preview">
                                 <img id="game-cover-preview" src="" alt="Cover du jeu" style="max-width: 200px; border-radius: 8px; margin: 10px 0;">
                                 <p class="form-hint">✅ Cover du jeu sélectionné (automatique)</p>
-                                <input type="hidden" id="cover_image_id" name="cover_image_id" value="">
+                                <input type="hidden" id="game_cover_image_id" name="game_cover_image_id" value="">
                             </div>
                         </div>
-                        
-                        <!-- Si aucun jeu sélectionné -->
-                        <div id="manual-cover-selection">
-                            <input type="file" id="cover_image_file" name="cover_image_file" accept="image/*" style="margin-bottom: 10px;">
-                            <p class="form-hint">📁 Upload direct d'une image d'illustration (JPG, PNG, WebP - max 4MB)</p>
-                            <div id="upload-preview" style="display: none; margin-top: 10px;">
-                                <img id="preview-image" src="" alt="Aperçu" style="max-width: 200px; border-radius: 8px; border: 1px solid #ccc;">
-                                <p class="form-hint">✅ Image sélectionnée</p>
+
+                        <!-- Sélection manuelle de l'image (upload ou médiathèque) -->
+                        <div id="manual-cover-selection" style="<?= (isset($article) && $article && $article->getCoverImageId()) ? 'display: none;' : 'display: block;' ?>">
+                            <input type="file" id="cover_image_file" name="cover_image_file" accept="image/*" class="form-control">
+                            <div id="upload-preview" style="margin-top: 10px; display: none;">
+                                <img id="preview-image" src="" alt="Prévisualisation" style="max-width: 200px; border-radius: 8px;">
                             </div>
+                            <p class="form-hint">Ou sélectionnez une image existante dans la médiathèque :</p>
+                            <input type="number" id="cover_image_id" name="cover_image_id" class="form-control" placeholder="ID de l'image de la médiathèque" value="<?= htmlspecialchars($article && $article->getCoverImageId() ? $article->getCoverImageId() : '') ?>">
                         </div>
                     </div>
 
@@ -749,16 +837,57 @@
             <!-- Éditeur modulaire plein écran -->
         <script src="/public/js/editor/editor-loader.js?v=<?= time() ?>"></script>
         <script>
-            // Attendre que le DOM soit chargé
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('DOM chargé, initialisation de l\'éditeur modulaire...');
-                
-                let fullscreenEditor = null;
-                
-                // Initialiser l'éditeur modulaire
-                const editorButton = document.getElementById('open-fullscreen-editor');
-                const contentPreview = document.getElementById('content-preview');
-                const contentTextarea = document.getElementById('content');
+                                                               // Attendre que le DOM soit chargé
+                 document.addEventListener('DOMContentLoaded', function() {
+                     console.log('DOM chargé, initialisation de l\'éditeur modulaire...');
+                     
+                     let fullscreenEditor = null;
+                     
+                     // Initialiser l'éditeur modulaire
+                     const editorButton = document.getElementById('open-fullscreen-editor');
+                     const contentPreview = document.getElementById('content-preview');
+                     const contentTextarea = document.getElementById('content');
+                     
+                     // Fonction pour formater la prévisualisation initiale
+                     function formatInitialPreview() {
+                         if (contentPreview) {
+                             const previewContent = contentPreview.querySelector('.preview-content');
+                             if (previewContent) {
+                                 // Appliquer des styles pour éviter le débordement
+                                 previewContent.style.maxWidth = '100%';
+                                 previewContent.style.overflowWrap = 'break-word';
+                                 previewContent.style.wordWrap = 'break-word';
+                                 
+                                 // Nettoyer les éléments qui pourraient causer des problèmes
+                                 const allElements = previewContent.querySelectorAll('*');
+                                 allElements.forEach(element => {
+                                     element.style.maxWidth = '100%';
+                                     element.style.boxSizing = 'border-box';
+                                     
+                                     // Gérer les tableaux
+                                     if (element.tagName === 'TABLE') {
+                                         element.style.tableLayout = 'fixed';
+                                         element.style.width = '100%';
+                                     }
+                                     
+                                     // Gérer les images et vidéos
+                                     if (element.tagName === 'IMG' || element.tagName === 'VIDEO') {
+                                         element.style.maxWidth = '100%';
+                                         element.style.height = 'auto';
+                                     }
+                                     
+                                     // Gérer le code et pre
+                                     if (element.tagName === 'PRE' || element.tagName === 'CODE') {
+                                         element.style.whiteSpace = 'pre-wrap';
+                                         element.style.wordWrap = 'break-word';
+                                     }
+                                 });
+                             }
+                         }
+                     }
+                     
+                     // Nettoyer et formater le contenu de prévisualisation initial
+                     formatInitialPreview();
                 
                 if (editorButton && contentPreview && contentTextarea) {
                     editorButton.addEventListener('click', function() {
@@ -813,21 +942,33 @@
                             
                             fullscreenEditor = new window.FullscreenEditor({
                                 initialContent: contentTextarea.value,
-                                onSave: function(content) {
-                                    console.log('Sauvegarde du contenu:', content.substring(0, 50) + '...');
-                                    // Mettre à jour le textarea et la prévisualisation
-                                    contentTextarea.value = content;
-                                    contentPreview.innerHTML = '<div class="preview-content">' + content + '</div>';
-                                    
-                                    // Fermer l'éditeur
-                                    if (fullscreenEditor) {
-                                        fullscreenEditor.close();
-                                        fullscreenEditor = null;
-                                    }
-                                    
-                                    // Afficher un message de succès
-                                    showNotification('Contenu sauvegardé avec succès !', 'success');
-                                },
+                                                                 onSave: function(content) {
+                                     console.log('Sauvegarde du contenu:', content.substring(0, 50) + '...');
+                                     // Mettre à jour le textarea et la prévisualisation
+                                     contentTextarea.value = content;
+                                     
+                                     // Créer une div temporaire pour nettoyer le HTML
+                                     const tempDiv = document.createElement('div');
+                                     tempDiv.innerHTML = content;
+                                     
+                                     // Appliquer des styles de base pour éviter le débordement
+                                     const previewContent = document.createElement('div');
+                                     previewContent.className = 'preview-content';
+                                     previewContent.innerHTML = content;
+                                     
+                                     // Mettre à jour la prévisualisation
+                                     contentPreview.innerHTML = '';
+                                     contentPreview.appendChild(previewContent);
+                                     
+                                     // Fermer l'éditeur
+                                     if (fullscreenEditor) {
+                                         fullscreenEditor.close();
+                                         fullscreenEditor = null;
+                                     }
+                                     
+                                     // Afficher un message de succès
+                                     showNotification('Contenu sauvegardé avec succès !', 'success');
+                                 },
                                 onClose: function() {
                                     console.log('Fermeture de l\'éditeur');
                                     // Fermer l'éditeur sans sauvegarder
@@ -939,15 +1080,28 @@
                 const gameCoverInfo = document.getElementById('game-cover-info');
                 const manualCoverSelection = document.getElementById('manual-cover-selection');
                 const gameCoverPreview = document.getElementById('game-cover-preview');
-                const coverImageIdInput = document.getElementById('cover_image_id');
+                const gameCoverImageIdInput = document.getElementById('game_cover_image_id');
                 const coverImageFileInput = document.getElementById('cover_image_file');
                 const uploadPreview = document.getElementById('upload-preview');
                 const previewImage = document.getElementById('preview-image');
-                
+                const existingCoverInfo = document.getElementById('existing-cover-info');
+                const keepCoverBtn = document.getElementById('keep-cover-btn');
+
+                // Initialiser l'affichage si un jeu est déjà sélectionné et pas d'image existante
+                if (gameSelect && gameSelect.value && (!existingCoverInfo || existingCoverInfo.style.display === 'none')) {
+                    fetchGameCover(gameSelect.value);
+                }
+
                 if (gameSelect) {
                     gameSelect.addEventListener('change', function() {
                         const selectedGameId = this.value;
-                        
+
+                        // Si une image existante est affichée, la cacher
+                        if (existingCoverInfo && existingCoverInfo.style.display === 'block') {
+                            existingCoverInfo.style.display = 'none';
+                            keepCoverBtn.style.display = 'none';
+                        }
+
                         if (selectedGameId) {
                             // Récupérer les informations du jeu sélectionné
                             fetchGameCover(selectedGameId);
@@ -956,11 +1110,6 @@
                             showManualCoverSelection();
                         }
                     });
-                    
-                    // Initialiser l'affichage
-                    if (gameSelect.value) {
-                        fetchGameCover(gameSelect.value);
-                    }
                 }
 
                 // Gestion de l'upload d'image d'illustration
@@ -972,13 +1121,20 @@
                             reader.onload = function(e) {
                                 previewImage.src = e.target.result;
                                 uploadPreview.style.display = 'block';
-                                coverImageIdInput.value = ''; // Clear previous cover_image_id
+                                // Mettre à jour l'ID de l'image de couverture
+                                document.getElementById('cover_image_id').value = '';
+                                // Cacher l'image existante
+                                if (existingCoverInfo) {
+                                    existingCoverInfo.style.display = 'none';
+                                    keepCoverBtn.style.display = 'none';
+                                }
+                                // Cacher la cover du jeu
+                                gameCoverInfo.style.display = 'none';
                             };
                             reader.readAsDataURL(file);
                         } else {
                             previewImage.src = '';
                             uploadPreview.style.display = 'none';
-                            coverImageIdInput.value = '';
                         }
                     });
                 }
@@ -1005,16 +1161,31 @@
                     gameCoverInfo.style.display = 'block';
                     manualCoverSelection.style.display = 'none';
                     gameCoverPreview.src = coverImage.url;
-                    coverImageIdInput.value = coverImage.id;
+                    gameCoverImageIdInput.value = coverImage.id;
+                    // Mettre à jour l'ID de l'image de couverture
+                    document.getElementById('cover_image_id').value = coverImage.id;
+                    // Cacher l'image existante
+                    if (existingCoverInfo) {
+                        existingCoverInfo.style.display = 'none';
+                        keepCoverBtn.style.display = 'none';
+                    }
+                    uploadPreview.style.display = 'none'; // Hide upload preview
+                    previewImage.src = ''; // Clear upload preview image
                 }
-                
+
                 // Afficher la sélection manuelle
                 function showManualCoverSelection() {
                     gameCoverInfo.style.display = 'none';
                     manualCoverSelection.style.display = 'block';
-                    coverImageIdInput.value = '';
-                    uploadPreview.style.display = 'none';
-                    previewImage.src = '';
+                    gameCoverImageIdInput.value = '';
+                    // Si une image existante est présente, la réafficher
+                    if (existingCoverInfo && existingCoverInfo.dataset.hasImage === 'true') {
+                        existingCoverInfo.style.display = 'block';
+                        keepCoverBtn.style.display = 'none'; // Hide keep button if no game selected
+                    } else {
+                        uploadPreview.style.display = 'none';
+                        previewImage.src = '';
+                    }
                 }
                 
                 // Fonction pour ouvrir la médiathèque
@@ -1147,6 +1318,35 @@
                         tagElement.remove();
                     }
                 };
+
+                // Fonctions pour la gestion de l'image de couverture
+                window.changeCoverImage = function() {
+                    document.getElementById('existing-cover-info').style.display = 'none';
+                    document.getElementById('manual-cover-selection').style.display = 'block';
+                    document.getElementById('keep-cover-btn').style.display = 'block';
+                    document.getElementById('cover_image_id').value = ''; // Clear manual ID
+                    document.getElementById('cover_image_file').value = ''; // Clear file input
+                    document.getElementById('upload-preview').style.display = 'none'; // Hide upload preview
+                    document.getElementById('game-cover-info').style.display = 'none'; // Hide game cover info
+                };
+
+                window.keepCoverImage = function() {
+                    document.getElementById('existing-cover-info').style.display = 'block';
+                    document.getElementById('manual-cover-selection').style.display = 'none';
+                    document.getElementById('keep-cover-btn').style.display = 'none';
+                    // Restore the hidden input value for current_cover_image_id
+                    const currentCoverImageIdInput = document.querySelector('input[name="current_cover_image_id"]');
+                    if (currentCoverImageIdInput) {
+                        document.getElementById('cover_image_id').value = currentCoverImageIdInput.value;
+                    }
+                    document.getElementById('cover_image_file').value = ''; // Clear file input
+                    document.getElementById('upload-preview').style.display = 'none'; // Hide upload preview
+                    // Re-evaluate game cover if a game is selected
+                    if (gameSelect && gameSelect.value) {
+                        fetchGameCover(gameSelect.value);
+                    }
+                };
+
 
 
             });

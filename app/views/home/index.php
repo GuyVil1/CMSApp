@@ -22,7 +22,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
         <div class="featured-left">
             <?php if (!empty($featuredArticles)): ?>
                 <!-- Article principal -->
-                <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['id']; ?>'" style="cursor: pointer;">
+                <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer;">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>">
                     <div class="featured-overlay"></div>
@@ -38,7 +38,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
                 <!-- Articles secondaires -->
                 <div class="featured-bottom">
                     <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
-                        <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['id']; ?>'" style="cursor: pointer;">
+                        <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
                             <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
                                  alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                             <div class="featured-overlay"></div>
@@ -94,7 +94,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
         <!-- Colonne droite (1/3) -->
         <div class="featured-right">
             <?php for ($i = 3; $i < min(6, count($featuredArticles)); $i++): ?>
-                <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['id']; ?>'" style="cursor: pointer;">
+                <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                 <div class="featured-overlay"></div>
@@ -151,7 +151,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
                     ?>
                     
                     <?php foreach ($pageArticles as $article): ?>
-                        <div class="article-card" onclick="window.location.href='/article/<?php echo $article['id']; ?>'" style="cursor: pointer;">
+                        <div class="article-card" onclick="window.location.href='/article/<?php echo $article['slug']; ?>'" style="cursor: pointer;">
                             <div class="article-image">
                                 <img src="/image.php?file=<?php echo urlencode($article['cover_image'] ?? 'default.jpg'); ?>" 
                                      alt="<?php echo htmlspecialchars($article['title']); ?>">
@@ -189,7 +189,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
             <div class="trailers-container">
                 <?php if (!empty($trailers)): ?>
                     <?php foreach ($trailers as $trailer): ?>
-                        <div class="trailer-item" onclick="window.location.href='/article/<?php echo $trailer['id']; ?>'" style="cursor: pointer;">
+                        <div class="trailer-item" onclick="window.location.href='/article/<?php echo $trailer['slug']; ?>'" style="cursor: pointer;">
                             <img src="/image.php?file=<?php echo urlencode($trailer['cover_image'] ?? 'default.jpg'); ?>" 
                                  alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
                             <div class="trailer-overlay"></div>
