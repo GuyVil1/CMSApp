@@ -87,11 +87,19 @@ class ArticlesController extends \Controller
         }
         
         try {
+            // Debug: Afficher les données reçues
+            error_log("🔍 Données POST reçues: " . print_r($_POST, true));
+            
             // Validation des données
             $title = trim($_POST['title'] ?? '');
             $excerpt = trim($_POST['excerpt'] ?? '');
             $content = trim($_POST['content'] ?? '');
             $status = trim($_POST['status'] ?? 'draft');
+            
+            // Debug: Afficher les valeurs après trim
+            error_log("🔍 Titre: '$title'");
+            error_log("🔍 Contenu: '" . substr($content, 0, 100) . "...'");
+            error_log("🔍 Longueur du contenu: " . strlen($content));
             $category_id = !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null;
             $game_id = !empty($_POST['game_id']) ? (int)$_POST['game_id'] : null;
             $featured_position = !empty($_POST['featured_position']) ? (int)$_POST['featured_position'] : null;
@@ -116,17 +124,17 @@ class ArticlesController extends \Controller
             
             // Validation de l'image de couverture
             if (empty($cover_image_id) && empty($uploadedImageId)) {
-                            // Si un jeu est sélectionné, essayer de récupérer sa cover
-            if ($game_id) {
-                $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
-                if ($game && $game['cover_image_id']) {
-                    $cover_image_id = $game['cover_image_id'];
+                // Si un jeu est sélectionné, essayer de récupérer sa cover
+                if ($game_id) {
+                    $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
+                    if ($game && $game['cover_image_id']) {
+                        $cover_image_id = $game['cover_image_id'];
+                    } else {
+                        throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
+                    }
                 } else {
-                    throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
+                    throw new \Exception('L\'image de couverture est obligatoire');
                 }
-            } else {
-                throw new \Exception('L\'image de couverture est obligatoire');
-            }
             }
             
             // Utiliser l'image uploadée si disponible

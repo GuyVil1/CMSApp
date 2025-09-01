@@ -6,6 +6,7 @@
    TITRES
    ======================================== */
 .title {
+    font-family: var(--font-family-heading);
     font-size: var(--font-size-4xl);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-tight);
@@ -13,6 +14,7 @@
 }
 
 .subtitle {
+    font-family: var(--font-family-heading);
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-normal);
@@ -20,6 +22,7 @@
 }
 
 .section-title {
+    font-family: var(--font-family-heading);
     font-size: var(--font-size-3xl);
     font-weight: var(--font-weight-bold);
     color: var(--primary);
@@ -30,6 +33,7 @@
    TITRES D'ARTICLES
    ======================================== */
 .article-title {
+    font-family: var(--font-family-heading);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-tight);
@@ -41,6 +45,7 @@
 }
 
 .featured-title {
+    font-family: var(--font-family-heading);
     color: white;
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
@@ -48,6 +53,7 @@
 }
 
 .trailers-title {
+    font-family: var(--font-family-heading);
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-semibold);
     color: var(--primary);
@@ -83,18 +89,21 @@
    LOGO ET BRANDING
    ======================================== */
 .logo-text h1 {
+    font-family: var(--font-family-heading);
     color: white;
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
 }
 
 .logo-subtitle {
+    font-family: var(--font-family-heading);
     color: var(--belgium-yellow);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
 }
 
 .header-title {
+    font-family: var(--font-family-heading);
     color: white;
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);

@@ -1200,6 +1200,12 @@
                         const title = document.getElementById('title').value.trim();
                         const content = document.getElementById('content').value.trim();
                         
+                        // Debug: Afficher les valeurs dans la console
+                        console.log('🔍 Validation du formulaire:');
+                        console.log('Titre:', title);
+                        console.log('Contenu:', content);
+                        console.log('Longueur du contenu:', content.length);
+                        
                         if (!title) {
                             e.preventDefault();
                             alert('Le titre est obligatoire');
@@ -1207,9 +1213,10 @@
                         }
                         
                         if (!content) {
-                            e.preventDefault();
-                            alert('Le contenu est obligatoire');
-                            return false;
+                            console.log('⚠️ Contenu vide détecté, mais on continue pour debug');
+                            // e.preventDefault();
+                            // alert('Le contenu est obligatoire');
+                            // return false;
                         }
                     });
                 }

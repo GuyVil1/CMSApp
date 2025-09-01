@@ -26,6 +26,7 @@ html {
 /* Corps de page */
 body {
     font-family: var(--font-family);
+    font-size: var(--font-size-base); /* 18px par défaut */
     line-height: var(--line-height-normal);
     color: var(--primary);
     background: var(--background);
