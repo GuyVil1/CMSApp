@@ -25,8 +25,23 @@
 .article-content {
     margin: 2rem 0;
     line-height: 1.8;
-    font-size: var(--font-size-base); /* 18px */
+    font-size: var(--font-size-base) !important; /* 18px - forcé */
     color: #333;
+}
+
+/* Forcer la taille de police pour tout le contenu généré par l'éditeur */
+.article-content * {
+    font-size: inherit !important;
+}
+
+/* Styles spécifiques pour le contenu de l'éditeur WYSIWYG */
+.article-content p,
+.article-content div,
+.article-content span,
+.article-content li {
+    font-size: var(--font-size-base) !important; /* 18px */
+    line-height: 1.8 !important;
+    color: #333 !important;
 }
 
 /* Amélioration de l'affichage du contenu modulaire */
@@ -53,19 +68,31 @@
 .article-content .text-content h3,
 .article-content .text-content h4,
 .article-content .text-content h5,
-.article-content .text-content h6 {
-    font-family: var(--font-family-heading);
-    color: #2c3e50;
-    margin: 1.5rem 0 1rem 0;
-    font-weight: 600;
+.article-content .text-content h6,
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content h4,
+.article-content h5,
+.article-content h6 {
+    font-family: var(--font-family-heading) !important;
+    color: #2c3e50 !important;
+    margin: 1.5rem 0 1rem 0 !important;
+    font-weight: 600 !important;
 }
 
-.article-content .text-content h1 { font-size: 2rem; }
-.article-content .text-content h2 { font-size: 1.8rem; }
-.article-content .text-content h3 { font-size: 1.5rem; }
-.article-content .text-content h4 { font-size: 1.3rem; }
-.article-content .text-content h5 { font-size: 1.1rem; }
-.article-content .text-content h6 { font-size: 1rem; }
+.article-content .text-content h1,
+.article-content h1 { font-size: 2rem !important; }
+.article-content .text-content h2,
+.article-content h2 { font-size: 1.8rem !important; }
+.article-content .text-content h3,
+.article-content h3 { font-size: 1.5rem !important; }
+.article-content .text-content h4,
+.article-content h4 { font-size: 1.3rem !important; }
+.article-content .text-content h5,
+.article-content h5 { font-size: 1.1rem !important; }
+.article-content .text-content h6,
+.article-content h6 { font-size: 1rem !important; }
 
 /* Message pour article sans contenu */
 .no-content {

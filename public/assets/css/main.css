@@ -15,6 +15,7 @@
 @import url('components/buttons.css');
 @import url('components/image-module.css');
 @import url('./components/article-display.css');
+@import url('./components/typography-override.css');
 
 /* ========================================
    IMPORTS - LAYOUT
