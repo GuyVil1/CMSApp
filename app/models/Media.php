@@ -254,6 +254,11 @@ class Media
      */
     public function getFilePath(): string
     {
+        // Si le filename contient déjà 'public/uploads/', on l'utilise directement
+        if (str_starts_with($this->filename, 'public/uploads/')) {
+            return __DIR__ . '/../../' . $this->filename;
+        }
+        // Sinon, on ajoute le préfixe (pour les anciens fichiers)
         return __DIR__ . '/../../public/uploads/' . $this->filename;
     }
     
@@ -262,7 +267,8 @@ class Media
      */
     public function getUrl(): string
     {
-        return '/public/uploads.php?file=' . urlencode($this->filename);
+        // Utiliser uploads.php pour servir les fichiers de manière sécurisée
+        return '/uploads.php?file=' . urlencode($this->filename);
     }
     
     /**
@@ -272,8 +278,16 @@ class Media
     {
         $pathInfo = pathinfo($this->filename);
         $thumbnailName = 'thumb_' . $pathInfo['basename'];
-        $thumbnailPath = dirname($this->filename) . '/' . $thumbnailName;
-        return '/public/uploads.php?file=' . urlencode($thumbnailPath);
+        
+        // Construire le chemin de la miniature
+        if (dirname($this->filename) !== '.') {
+            $thumbnailPath = dirname($this->filename) . '/' . $thumbnailName;
+        } else {
+            $thumbnailPath = $thumbnailName;
+        }
+        
+        // Utiliser uploads.php pour servir les miniatures de manière sécurisée
+        return '/uploads.php?file=' . urlencode($thumbnailPath);
     }
     
     /**

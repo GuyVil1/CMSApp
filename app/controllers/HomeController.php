@@ -302,6 +302,31 @@ class HomeController extends Controller
             // Récupérer les articles populaires pour la sidebar
             $popularArticles = $this->getPopularArticles();
             
+            // Vérifier si c'est un dossier et charger ses chapitres
+            $dossierChapters = null;
+            $isDossier = false;
+            if ($article->getCategoryId() == 10) { // ID de la catégorie "Dossiers"
+                $isDossier = true;
+                $dossierChapters = $this->getDossierChapters($article->getId());
+                error_log("📚 Dossier détecté avec " . count($dossierChapters) . " chapitres");
+            }
+            
+            // Debug complet pour comprendre le problème
+            error_log("🔍 DEBUG DOSSIER:");
+            error_log("🔍 Article ID: " . $article->getId());
+            error_log("🔍 Article Slug: " . $article->getSlug());
+            error_log("🔍 Category ID: " . $article->getCategoryId());
+            error_log("🔍 Category Name: " . $article->getCategoryName());
+            error_log("🔍 Is Dossier: " . ($isDossier ? 'OUI' : 'NON'));
+            error_log("🔍 Nombre de chapitres: " . ($dossierChapters ? count($dossierChapters) : 'NULL'));
+            
+            if ($isDossier && $dossierChapters) {
+                error_log("🔍 Chapitres trouvés:");
+                foreach ($dossierChapters as $index => $chapter) {
+                    error_log("🔍 Chapitre " . ($index + 1) . ": " . $chapter['title'] . " (ID: " . $chapter['id'] . ")");
+                }
+            }
+            
             error_log("🎨 Rendu de l'article: " . $article->getTitle());
             
             // Utiliser le template unifié public
@@ -312,13 +337,16 @@ class HomeController extends Controller
                 'article' => $article,
                 'relatedArticles' => $relatedArticles,
                 'popularArticles' => $popularArticles,
+                'isDossier' => $isDossier,
+                'dossierChapters' => $dossierChapters,
                 'isLoggedIn' => Auth::isLoggedIn(),
                 'user' => Auth::getUser(),
                 'additionalCSS' => [
                     '/public/assets/css/components/article-display.css',
                     '/public/assets/css/components/content-modules.css',
                     '/public/assets/css/components/article-hero.css',
-                    '/public/assets/css/components/article-meta.css'
+                    '/public/assets/css/components/article-meta.css',
+                    '/public/assets/css/components/dossier-chapters.css'
                 ],
                 'additionalJS' => []
             ]);
@@ -411,5 +439,213 @@ class HomeController extends Controller
         ";
         
         return Database::query($sql);
+    }
+    
+    /**
+     * Récupérer les chapitres d'un dossier
+     */
+    private function getDossierChapters(int $dossierId): array
+    {
+        try {
+            error_log("🔍 getDossierChapters appelé avec dossier ID: " . $dossierId);
+            
+            $sql = "
+                SELECT id, title, slug, content, cover_image_id, status, chapter_order, created_at, updated_at
+                FROM dossier_chapters 
+                WHERE dossier_id = ? AND status = 'published'
+                ORDER BY chapter_order ASC
+            ";
+            
+            $chapters = Database::query($sql, [$dossierId]);
+            error_log("🔍 Requête SQL exécutée: " . $sql);
+            error_log("🔍 Paramètres: [" . $dossierId . "]");
+            error_log("🔍 Résultat: " . count($chapters) . " chapitres trouvés");
+            
+            if (empty($chapters)) {
+                error_log("🔍 Aucun chapitre trouvé - vérifions la table:");
+                $checkSql = "SELECT COUNT(*) as total FROM dossier_chapters WHERE dossier_id = ?";
+                $totalResult = Database::queryOne($checkSql, [$dossierId]);
+                error_log("🔍 Total chapitres dans la table: " . ($totalResult['total'] ?? 'ERREUR'));
+                
+                $allChaptersSql = "SELECT id, title, status FROM dossier_chapters WHERE dossier_id = ?";
+                $allChapters = Database::query($allChaptersSql, [$dossierId]);
+                error_log("🔍 Tous les chapitres (tous statuts): " . count($allChapters));
+                foreach ($allChapters as $ch) {
+                    error_log("🔍 - Chapitre ID " . $ch['id'] . ": " . $ch['title'] . " (statut: " . $ch['status'] . ")");
+                }
+            }
+            
+            return $chapters;
+        } catch (Exception $e) {
+            error_log("❌ Erreur lors du chargement des chapitres du dossier: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Afficher un chapitre individuel d'un dossier
+     */
+    public function showChapter(string $dossierSlug, string $chapterSlug): void
+    {
+        try {
+            error_log("🔍 HomeController::showChapter() appelé avec dossier: {$dossierSlug}, chapitre: {$chapterSlug}");
+            
+            // Récupérer le dossier par slug
+            $dossier = \Article::findBySlug($dossierSlug);
+            
+            if (!$dossier) {
+                error_log("❌ Dossier non trouvé pour slug: " . $dossierSlug);
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'message' => 'Dossier non trouvé',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Vérifier que c'est bien un dossier
+            if ($dossier->getCategoryId() != 10) {
+                error_log("❌ Article non-dossier pour slug: " . $dossierSlug);
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'message' => 'Page non trouvée',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Vérifier que le dossier est publié
+            if ($dossier->getStatus() !== 'published' && !Auth::hasRole(['admin', 'editor'])) {
+                error_log("🚫 Dossier non publié, statut: " . $dossier->getStatus());
+                http_response_code(403);
+                $this->render('layout/403', [
+                    'message' => 'Ce dossier n\'est pas encore publié',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Récupérer le chapitre par slug
+            $chapter = $this->getDossierChapterBySlug($dossier->getId(), $chapterSlug);
+            
+            if (!$chapter) {
+                error_log("❌ Chapitre non trouvé pour slug: " . $chapterSlug);
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'message' => 'Chapitre non trouvé',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Vérifier que le chapitre est publié
+            if ($chapter['status'] !== 'published' && !Auth::hasRole(['admin', 'editor'])) {
+                error_log("🚫 Chapitre non publié, statut: " . $chapter['status']);
+                http_response_code(403);
+                $this->render('layout/403', [
+                    'message' => 'Ce chapitre n\'est pas encore publié',
+                    'isLoggedIn' => Auth::isLoggedIn(),
+                    'user' => Auth::getUser()
+                ]);
+                return;
+            }
+            
+            // Récupérer tous les chapitres du dossier pour la navigation
+            $allChapters = $this->getDossierChapters($dossier->getId());
+            
+            // Trouver la position du chapitre actuel
+            $currentChapterIndex = -1;
+            foreach ($allChapters as $index => $ch) {
+                if ($ch['id'] == $chapter['id']) {
+                    $currentChapterIndex = $index;
+                    break;
+                }
+            }
+            
+            // Déterminer les chapitres précédent et suivant
+            $previousChapter = null;
+            $nextChapter = null;
+            
+            if ($currentChapterIndex > 0) {
+                $previousChapter = $allChapters[$currentChapterIndex - 1];
+            }
+            
+            if ($currentChapterIndex < count($allChapters) - 1) {
+                $nextChapter = $allChapters[$currentChapterIndex + 1];
+            }
+            
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
+            error_log("🎨 Rendu du chapitre: " . $chapter['title']);
+            
+            // Utiliser le template unifié public
+            $this->render('layout/public', [
+                'pageTitle' => $chapter['title'] . ' - ' . $dossier->getTitle() . ' - GameNews Belgium',
+                'pageDescription' => 'Chapitre du dossier ' . $dossier->getTitle() . ' sur GameNews, votre source gaming belge.',
+                'currentTheme' => $currentTheme,
+                'dossier' => $dossier,
+                'chapter' => $chapter,
+                'allChapters' => $allChapters,
+                'currentChapterIndex' => $currentChapterIndex,
+                'previousChapter' => $previousChapter,
+                'nextChapter' => $nextChapter,
+                'isDossier' => true,
+                'isChapter' => true,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser(),
+                'additionalCSS' => [
+                    '/public/assets/css/components/article-display.css',
+                    '/public/assets/css/components/content-modules.css',
+                    '/public/assets/css/components/article-hero.css',
+                    '/public/assets/css/components/article-meta.css',
+                    '/public/assets/css/components/dossier-chapters.css'
+                ],
+                'additionalJS' => [],
+                'content' => $this->renderPartial('chapters/show', [
+                    'dossier' => $dossier,
+                    'chapter' => $chapter,
+                    'allChapters' => $allChapters,
+                    'currentChapterIndex' => $currentChapterIndex,
+                    'previousChapter' => $previousChapter,
+                    'nextChapter' => $nextChapter
+                ])
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("❌ Erreur dans HomeController::showChapter(): " . $e->getMessage());
+            http_response_code(500);
+            $this->render('layout/500', [
+                'message' => 'Erreur lors du chargement du chapitre',
+                'error' => Config::isLocal() ? $e->getMessage() : null,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser()
+            ]);
+        }
+    }
+    
+    /**
+     * Récupérer un chapitre spécifique par slug
+     */
+    private function getDossierChapterBySlug(int $dossierId, string $chapterSlug): ?array
+    {
+        try {
+            $sql = "
+                SELECT id, title, slug, content, cover_image_id, status, chapter_order, created_at, updated_at
+                FROM dossier_chapters 
+                WHERE dossier_id = ? AND slug = ? AND status = 'published'
+                LIMIT 1
+            ";
+            
+            $result = Database::queryOne($sql, [$dossierId, $chapterSlug]);
+            return $result ?: null;
+        } catch (Exception $e) {
+            error_log("❌ Erreur lors du chargement du chapitre par slug: " . $e->getMessage());
+            return null;
+        }
     }
 }

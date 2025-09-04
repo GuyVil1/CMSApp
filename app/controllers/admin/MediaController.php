@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 /**
  * Contrôleur MediaController - Gestion des médias dans l'admin
+ * Version améliorée avec gestion d'erreurs avancée
  */
 
 namespace Admin;
@@ -12,9 +13,61 @@ require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../app/models/Media.php';
 require_once __DIR__ . '/../../../app/models/Game.php';
 require_once __DIR__ . '/../../../app/models/Hardware.php';
+require_once __DIR__ . '/../../../app/utils/ImageOptimizer.php';
 
 class MediaController extends \Controller
 {
+    // Configuration des types de fichiers autorisés
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg' => ['jpg', 'jpeg'],
+        'image/png' => ['png'],
+        'image/webp' => ['webp'],
+        'image/gif' => ['gif']
+    ];
+    
+    // Limites de taille
+    private const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+    private const MAX_DIMENSIONS = 4096; // 4096x4096 pixels max
+    
+    // Messages d'erreur contextuels avec solutions
+    private const ERROR_MESSAGES = [
+        'upload_failed' => [
+            'message' => 'L\'upload a échoué',
+            'solution' => 'Vérifiez votre connexion internet et réessayez',
+            'code' => 'UPLOAD_001'
+        ],
+        'file_too_large' => [
+            'message' => 'Fichier trop volumineux',
+            'solution' => 'Compressez votre image ou réduisez sa résolution (max 4MB)',
+            'code' => 'SIZE_001'
+        ],
+        'invalid_type' => [
+            'message' => 'Type de fichier non supporté',
+            'solution' => 'Utilisez JPG, PNG, WebP ou GIF',
+            'code' => 'TYPE_001'
+        ],
+        'dimensions_too_large' => [
+            'message' => 'Dimensions d\'image trop grandes',
+            'solution' => 'Réduisez la résolution (max 4096x4096 pixels)',
+            'code' => 'DIM_001'
+        ],
+        'gd_missing' => [
+            'message' => 'Extension GD non disponible',
+            'solution' => 'Contactez l\'administrateur du serveur',
+            'code' => 'SYS_001'
+        ],
+        'directory_error' => [
+            'message' => 'Erreur de dossier',
+            'solution' => 'Vérifiez les permissions du serveur',
+            'code' => 'DIR_001'
+        ],
+        'database_error' => [
+            'message' => 'Erreur de base de données',
+            'solution' => 'Réessayez dans quelques minutes',
+            'code' => 'DB_001'
+        ]
+    ];
+
     public function __construct()
     {
         parent::__construct();
@@ -49,7 +102,7 @@ class MediaController extends \Controller
     }
     
     /**
-     * Upload d'image
+     * Upload d'image avec gestion d'erreurs avancée
      */
     public function upload(): void
     {
@@ -60,183 +113,91 @@ class MediaController extends \Controller
         error_log("FILES data: " . print_r($_FILES, true));
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            error_log("Méthode non autorisée: " . $_SERVER['REQUEST_METHOD']);
-            $this->jsonResponse(['error' => 'Méthode non autorisée'], 405);
+            $this->jsonResponse($this->formatError('upload_failed', 'Méthode non autorisée'), 405);
             return;
         }
         
         // Vérifier le token CSRF - TEMPORAIREMENT DÉSACTIVÉ POUR DIAGNOSTIC
         /*
         if (!\Auth::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-            $this->jsonResponse(['error' => 'Token CSRF invalide'], 403);
+            $this->jsonResponse($this->formatError('upload_failed', 'Token CSRF invalide'), 403);
             return;
         }
         */
         
         try {
-            // Vérifier que l'extension GD est disponible
-            if (!extension_loaded('gd')) {
-                error_log("Extension GD non disponible");
-                throw new \Exception('Extension GD non disponible sur le serveur');
-            }
-            error_log("✅ Extension GD disponible: " . gd_info()['GD Version']);
+            // Validation de base
+            $this->validateUploadBasics();
             
-            error_log("Vérification des fichiers uploadés...");
-            if (!isset($_FILES['file'])) {
-                error_log("❌ Aucun fichier dans \$_FILES['file']");
-                throw new \Exception('Aucun fichier reçu');
-            }
-            
-            $file = $_FILES['file'];
-            error_log("Fichier reçu: " . $file['name'] . " (" . $file['size'] . " bytes)");
-            error_log("Type MIME du navigateur: " . ($file['type'] ?? 'Non défini'));
-            error_log("Code d'erreur: " . $file['error']);
-            error_log("Fichier temporaire: " . $file['tmp_name']);
-            
-            if ($file['error'] !== UPLOAD_ERR_OK) {
-                $errorMessages = [
-                    UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux (php.ini)',
-                    UPLOAD_ERR_FORM_SIZE => 'Fichier trop volumineux (form)',
-                    UPLOAD_ERR_PARTIAL => 'Upload partiel',
-                    UPLOAD_ERR_NO_FILE => 'Aucun fichier',
-                    UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant',
-                    UPLOAD_ERR_CANT_WRITE => 'Erreur d\'écriture',
-                    UPLOAD_ERR_EXTENSION => 'Extension bloquée'
-                ];
-                
-                $errorMsg = $errorMessages[$file['error']] ?? 'Erreur inconnue: ' . $file['error'];
-                error_log("❌ Erreur upload: " . $errorMsg);
-                throw new \Exception('Erreur lors de l\'upload: ' . $errorMsg);
-            }
-            
-            // Vérifier que le fichier temporaire existe
-            if (!file_exists($file['tmp_name'])) {
-                error_log("❌ Fichier temporaire n'existe pas: " . $file['tmp_name']);
-                throw new \Exception('Fichier temporaire introuvable');
-            }
+            // Récupérer et valider le fichier
+            $file = $this->getAndValidateFile();
             
             // Récupérer les paramètres
             $gameId = !empty($_POST['game_id']) ? (int)$_POST['game_id'] : null;
             $category = $_POST['category'] ?? 'general';
-            error_log("Game ID: " . ($gameId ?? 'null') . ", Catégorie: " . $category);
             
             // Déterminer le dossier d'upload
             $uploadDir = $this->determineUploadDirectory($gameId, $category);
-            error_log("Dossier upload: " . $uploadDir);
             
-            // Vérifier que le dossier existe
-            if (!is_dir($uploadDir)) {
-                error_log("Création du dossier upload...");
-                if (!mkdir($uploadDir, 0755, true)) {
-                    error_log("❌ Impossible de créer le dossier: " . $uploadDir);
-                    throw new \Exception('Impossible de créer le dossier d\'upload');
-                }
-                error_log("✅ Dossier créé: " . $uploadDir);
-            }
+            // Créer le dossier si nécessaire
+            $this->ensureUploadDirectory($uploadDir);
             
-            // Vérifier les permissions d'écriture
-            if (!is_writable($uploadDir)) {
-                error_log("❌ Dossier non écrivable: " . $uploadDir);
-                throw new \Exception('Dossier d\'upload non écrivable');
-            }
-            error_log("✅ Dossier écrivable: " . $uploadDir);
-            
-            // Vérifier le type MIME
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $mimeType = finfo_file($finfo, $file['tmp_name']);
-            finfo_close($finfo);
-            
-            error_log("Type MIME détecté: " . $mimeType);
-            
-            // Types autorisés
-            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-            if (!in_array($mimeType, $allowedTypes)) {
-                error_log("❌ Type MIME non autorisé: " . $mimeType);
-                throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF');
-            }
-            error_log("✅ Type MIME autorisé: " . $mimeType);
-            
-            // Vérifier la taille (4MB max)
-            $maxSize = 4 * 1024 * 1024;
-            $phpMaxUpload = ini_get('upload_max_filesize');
-            $phpMaxPost = ini_get('post_max_size');
-            
-            if ($file['size'] > $maxSize) {
-                error_log("❌ Fichier trop volumineux: " . $file['size'] . " > " . $maxSize);
-                throw new \Exception('Fichier trop volumineux (max 4MB)');
-            }
-            
-            // Vérifier les limites PHP
-            if ($file['size'] > $this->parseSize($phpMaxUpload)) {
-                error_log("❌ Fichier dépasse la limite PHP upload_max_filesize: " . $phpMaxUpload);
-                throw new \Exception("Fichier trop volumineux. Limite PHP: {$phpMaxUpload}. Contactez l'administrateur.");
-            }
-            
-            if ($file['size'] > $this->parseSize($phpMaxPost)) {
-                error_log("❌ Fichier dépasse la limite PHP post_max_size: " . $phpMaxPost);
-                throw new \Exception("Fichier trop volumineux. Limite PHP: {$phpMaxPost}. Contactez l'administrateur.");
-            }
-            
-            error_log("✅ Taille OK: " . $file['size'] . " bytes (Limite PHP: {$phpMaxUpload})");
-            
-            // Générer un nom de fichier unique
-            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = uniqid() . '_' . time() . '.' . $extension;
+            // Générer un nom de fichier unique et sécurisé
+            $filename = $this->generateSecureFilename($file['name']);
             $filepath = $uploadDir . '/' . $filename;
-            error_log("Nom de fichier généré: " . $filename);
-            error_log("Chemin complet: " . $filepath);
             
             // Déplacer le fichier
-            error_log("Tentative de déplacement du fichier...");
-            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-                $lastError = error_get_last();
-                error_log("❌ Erreur lors du déplacement: " . ($lastError['message'] ?? 'Erreur inconnue'));
-                throw new \Exception('Erreur lors du déplacement du fichier: ' . ($lastError['message'] ?? 'Erreur inconnue'));
-            }
-            error_log("✅ Fichier déplacé avec succès");
+            $this->moveUploadedFile($file['tmp_name'], $filepath);
             
-            // Vérifier que le fichier existe maintenant
-            if (!file_exists($filepath)) {
-                error_log("❌ Fichier n'existe pas après déplacement: " . $filepath);
-                throw new \Exception('Fichier introuvable après upload');
-            }
+            // OPTIMISATION AUTOMATIQUE - Nouveau !
+            $optimizationResult = null;
+            $originalFilepath = $filepath;
             
-            // Créer la vignette si c'est une image
-            try {
-                error_log("Création de la vignette...");
-                $this->createThumbnail($filepath, $filename, $uploadDir);
-                error_log("✅ Vignette créée avec succès");
-            } catch (\Exception $e) {
-                error_log("⚠️ Erreur création vignette: " . $e->getMessage());
-                // Continuer sans vignette
-            }
-            
-            // Enregistrer en base de données
-            $mediaData = [
-                'filename' => $this->getRelativePath($filepath),
-                'original_name' => $file['name'],
-                'mime_type' => $mimeType,
-                'size' => $file['size'],
-                'uploaded_by' => \Auth::getUserId(),
-                'game_id' => $gameId,
-                'media_type' => $category
-            ];
-            
-            error_log("Tentative d'enregistrement en base de données...");
-            error_log("Données média: " . print_r($mediaData, true));
-            
-            $media = \Media::create($mediaData);
-            
-            if (!$media) {
-                error_log("❌ Échec de l'enregistrement en base de données");
-                throw new \Exception('Erreur lors de l\'enregistrement en base de données');
+            // Vérifier si c'est une image à optimiser
+            if (str_starts_with($file['type'], 'image/')) {
+                error_log("🔄 Début de l'optimisation pour: " . $file['name']);
+                $baseName = pathinfo($filename, PATHINFO_FILENAME);
+                $optimizationResult = $this->optimizeImage($filepath, $uploadDir, $baseName);
+                error_log("📊 Résultat d'optimisation: " . json_encode($optimizationResult));
+                
+                if ($optimizationResult['success']) {
+                    // Utiliser l'image optimisée WebP comme fichier principal si disponible
+                    $webpPath = $optimizationResult['files']['webp'] ?? null;
+                    if ($webpPath && file_exists($webpPath)) {
+                        $filepath = $webpPath;
+                        $filename = basename($webpPath);
+                        error_log("✅ Utilisation de l'image WebP optimisée: " . $filename);
+                    } else {
+                        // Fallback sur JPG si WebP n'est pas disponible
+                        $jpgPath = $optimizationResult['files']['jpg'] ?? null;
+                        if ($jpgPath && file_exists($jpgPath)) {
+                            $filepath = $jpgPath;
+                            $filename = basename($jpgPath);
+                            error_log("✅ Utilisation de l'image JPG optimisée: " . $filename);
+                        }
+                    }
+                    
+                    // Nettoyer le fichier original si l'optimisation a réussi
+                    if (file_exists($originalFilepath) && $originalFilepath !== $filepath) {
+                        unlink($originalFilepath);
+                        error_log("🗑️ Fichier original supprimé après optimisation");
+                    }
+                } else {
+                    error_log("⚠️ L'optimisation a échoué, utilisation du fichier original");
+                    error_log("⚠️ Erreur d'optimisation: " . ($optimizationResult['error'] ?? 'Erreur inconnue'));
+                }
             }
             
-            error_log("✅ Média enregistré avec succès, ID: " . $media->getId());
+            // Créer la vignette depuis l'image optimisée (ou originale si échec)
+            $thumbnailCreated = $this->createThumbnail($filepath, $filename, $uploadDir);
             
-            // Stocker en cache temporaire (session)
+            // Enregistrer en base de données avec le chemin complet
+            $media = $this->saveMediaToDatabase($file, $filepath, $gameId, $category);
+            
+            // Stocker en cache temporaire
             $this->storeInTempCache($media);
             
+            // Réponse de succès
             $response = [
                 'success' => true,
                 'media' => [
@@ -247,20 +208,190 @@ class MediaController extends \Controller
                     'thumbnail_url' => $media->getThumbnailUrl(),
                     'size' => $media->getFormattedSize(),
                     'game_id' => $gameId,
-                    'category' => $category
+                    'category' => $category,
+                    'thumbnail_created' => $thumbnailCreated
+                ],
+                'message' => 'Fichier uploadé avec succès !',
+                'upload_info' => [
+                    'file_size' => $this->formatBytes($file['size']),
+                    'dimensions' => $this->getImageDimensions($filepath),
+                    'upload_time' => date('Y-m-d H:i:s')
                 ]
             ];
+            
+            // Ajouter les informations d'optimisation si disponible
+            if ($optimizationResult && $optimizationResult['success']) {
+                $response['optimization'] = [
+                    'success' => true,
+                    'compression_ratio' => $optimizationResult['compression_ratio'] . '%',
+                    'original_size' => $this->formatBytes($optimizationResult['original_size']),
+                    'optimized_size' => $this->formatBytes($optimizationResult['optimized_size']),
+                    'space_saved' => $this->formatBytes($optimizationResult['original_size'] - $optimizationResult['optimized_size']),
+                    'formats_available' => $optimizationResult['formats'],
+                    'message' => '🎉 Image optimisée avec succès ! Gain de ' . $optimizationResult['compression_ratio'] . '%'
+                ];
+            } elseif ($optimizationResult && !$optimizationResult['success']) {
+                $response['optimization'] = [
+                    'success' => false,
+                    'error' => $optimizationResult['error'],
+                    'message' => '⚠️ L\'optimisation a échoué, mais l\'upload a réussi'
+                ];
+            }
             
             error_log("✅ Upload réussi, réponse: " . json_encode($response));
             $this->jsonResponse($response);
             
         } catch (\Exception $e) {
+            $errorCode = $this->determineErrorCode($e);
+            $errorData = $this->formatError($errorCode, $e->getMessage());
+            
             error_log("❌ ERREUR UPLOAD: " . $e->getMessage());
+            error_log("Code d'erreur: " . $errorCode);
             error_log("Trace: " . $e->getTraceAsString());
-            $this->jsonResponse(['error' => $e->getMessage()], 400);
+            
+            $this->jsonResponse($errorData, 400);
         }
         
         error_log("=== FIN UPLOAD ===");
+    }
+    
+    /**
+     * Validation de base de l'upload
+     */
+    private function validateUploadBasics(): void
+    {
+        // Vérifier que l'extension GD est disponible
+        if (!extension_loaded('gd')) {
+            throw new \Exception('Extension GD non disponible sur le serveur', 500);
+        }
+        
+        // Vérifier que des fichiers ont été uploadés
+        if (!isset($_FILES['file'])) {
+            throw new \Exception('Aucun fichier reçu', 400);
+        }
+        
+        error_log("✅ Validation de base réussie");
+    }
+    
+    /**
+     * Récupérer et valider le fichier
+     */
+    private function getAndValidateFile(): array
+    {
+        $file = $_FILES['file'];
+        
+        // Vérifier les erreurs d'upload
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $errorMessage = $this->getUploadErrorMessage($file['error']);
+            throw new \Exception($errorMessage, 400);
+        }
+        
+        // Vérifier que le fichier temporaire existe
+        if (!file_exists($file['tmp_name'])) {
+            throw new \Exception('Fichier temporaire introuvable', 400);
+        }
+        
+        // Vérifier le type MIME
+        $mimeType = $this->getFileMimeType($file['tmp_name']);
+        if (!array_key_exists($mimeType, self::ALLOWED_MIME_TYPES)) {
+            throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF', 400);
+        }
+        
+        // Vérifier la taille
+        if ($file['size'] > self::MAX_FILE_SIZE) {
+            throw new \Exception('Fichier trop volumineux (max 4MB)', 400);
+        }
+        
+        // Vérifier les dimensions si c'est une image
+        $this->validateImageDimensions($file['tmp_name'], $mimeType);
+        
+        error_log("✅ Fichier validé: " . $file['name'] . " (" . $file['size'] . " bytes, " . $mimeType . ")");
+        
+        return $file;
+    }
+    
+    /**
+     * Obtenir le type MIME d'un fichier
+     */
+    private function getFileMimeType(string $filepath): string
+    {
+        // Vérifier que le fichier existe
+        if (!file_exists($filepath)) {
+            error_log("⚠️ Fichier introuvable pour getFileMimeType: " . $filepath);
+            // Fallback sur l'extension du fichier
+            $extension = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
+            $extensionMap = [
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'bmp' => 'image/bmp'
+            ];
+            return $extensionMap[$extension] ?? 'application/octet-stream';
+        }
+        
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $filepath);
+        finfo_close($finfo);
+        
+        // Si finfo_file échoue, utiliser l'extension
+        if ($mimeType === false) {
+            error_log("⚠️ finfo_file échoué pour: " . $filepath);
+            $extension = strtolower(pathinfo($filepath, PATHINFO_EXTENSION));
+            $extensionMap = [
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                'bmp' => 'image/bmp'
+            ];
+            return $extensionMap[$extension] ?? 'application/octet-stream';
+        }
+        
+        return $mimeType;
+    }
+    
+    /**
+     * Valider les dimensions d'une image
+     */
+    private function validateImageDimensions(string $filepath, string $mimeType): void
+    {
+        if (!str_starts_with($mimeType, 'image/')) {
+            return; // Pas une image
+        }
+        
+        $imageInfo = getimagesize($filepath);
+        if (!$imageInfo) {
+            throw new \Exception('Impossible de lire les dimensions de l\'image', 400);
+        }
+        
+        $width = $imageInfo[0];
+        $height = $imageInfo[1];
+        
+        if ($width > self::MAX_DIMENSIONS || $height > self::MAX_DIMENSIONS) {
+            throw new \Exception('Dimensions d\'image trop grandes (max 4096x4096 pixels)', 400);
+        }
+        
+        error_log("✅ Dimensions validées: {$width}x{$height} pixels");
+    }
+    
+    /**
+     * Obtenir les dimensions d'une image
+     */
+    private function getImageDimensions(string $filepath): ?array
+    {
+        $imageInfo = getimagesize($filepath);
+        if (!$imageInfo) {
+            return null;
+        }
+        
+        return [
+            'width' => $imageInfo[0],
+            'height' => $imageInfo[1],
+            'aspect_ratio' => round($imageInfo[0] / $imageInfo[1], 2)
+        ];
     }
     
     /**
@@ -278,18 +409,361 @@ class MediaController extends \Controller
             }
         }
         
-        // Image générale - organiser par mois/année
-        $currentMonth = date('m-Y');
-        return $baseDir . 'general/' . $category . '/' . $currentMonth;
+        // Image classique - utiliser le dossier article
+        return $baseDir . 'article';
+    }
+    
+    /**
+     * S'assurer que le dossier d'upload existe
+     */
+    private function ensureUploadDirectory(string $uploadDir): void
+    {
+        if (!is_dir($uploadDir)) {
+            error_log("Création du dossier upload: " . $uploadDir);
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new \Exception('Impossible de créer le dossier d\'upload', 500);
+            }
+            error_log("✅ Dossier créé: " . $uploadDir);
+        }
+        
+        if (!is_writable($uploadDir)) {
+            throw new \Exception('Dossier d\'upload non écrivable', 500);
+        }
+        
+        error_log("✅ Dossier upload prêt: " . $uploadDir);
+    }
+    
+    /**
+     * Générer un nom de fichier sécurisé
+     */
+    private function generateSecureFilename(string $originalName): string
+    {
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $timestamp = time();
+        $randomString = bin2hex(random_bytes(8));
+        
+        return "{$timestamp}_{$randomString}.{$extension}";
+    }
+    
+    /**
+     * Déplacer le fichier uploadé
+     */
+    private function moveUploadedFile(string $tmpPath, string $destination): void
+    {
+        // Vérifier si c'est un vrai fichier uploadé
+        if (is_uploaded_file($tmpPath)) {
+            // Fichier uploadé via HTTP - utiliser move_uploaded_file
+            if (!move_uploaded_file($tmpPath, $destination)) {
+                $lastError = error_get_last();
+                $errorMessage = $lastError['message'] ?? 'Erreur inconnue lors du déplacement';
+                throw new \Exception('Erreur lors du déplacement du fichier: ' . $errorMessage, 500);
+            }
+        } else {
+            // Fichier non-uploadé (test, import, etc.) - utiliser copy
+            if (!copy($tmpPath, $destination)) {
+                $lastError = error_get_last();
+                $errorMessage = $lastError['message'] ?? 'Erreur inconnue lors de la copie';
+                throw new \Exception('Erreur lors de la copie du fichier: ' . $errorMessage, 500);
+            }
+        }
+        
+        if (!file_exists($destination)) {
+            throw new \Exception('Fichier introuvable après déplacement/copie', 500);
+        }
+        
+        error_log("✅ Fichier traité avec succès vers: " . $destination);
+    }
+    
+    /**
+     * Optimiser automatiquement une image avec conversion WebP
+     */
+    private function optimizeImage(string $filepath, string $uploadDir, string $baseName): array
+    {
+        try {
+            error_log("🔄 Début de l'optimisation de l'image: " . $baseName);
+            
+            // Utiliser notre classe ImageOptimizer
+            $optimizationResult = \ImageOptimizer::optimizeImage($filepath, $uploadDir);
+            
+            if (!$optimizationResult['success']) {
+                error_log("⚠️ Échec de l'optimisation: " . ($optimizationResult['error'] ?? 'Erreur inconnue'));
+                return [
+                    'success' => false,
+                    'error' => $optimizationResult['error'] ?? 'Erreur d\'optimisation',
+                    'files' => []
+                ];
+            }
+            
+            error_log("✅ Optimisation réussie ! Compression: " . $optimizationResult['compression_ratio'] . "%");
+            error_log("📊 Taille originale: " . $this->formatBytes($optimizationResult['original_size']));
+            error_log("📊 Taille optimisée: " . $this->formatBytes($optimizationResult['optimized_size']));
+            
+            return $optimizationResult;
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erreur lors de l'optimisation: " . $e->getMessage());
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'files' => []
+            ];
+        }
+    }
+    
+    /**
+     * Créer une vignette pour une image
+     */
+    private function createThumbnail(string $filepath, string $filename, string $uploadDir): bool
+    {
+        try {
+            error_log("Création de la vignette pour: " . $filename);
+            
+            $thumbnailName = 'thumb_' . $filename;
+            $thumbnailPath = $uploadDir . '/' . $thumbnailName;
+            
+            // Dimensions de la vignette
+            $thumbWidth = 320;
+            $thumbHeight = 240;
+            
+            // Obtenir les dimensions de l'image originale
+            $imageInfo = getimagesize($filepath);
+            if (!$imageInfo) {
+                error_log("⚠️ Impossible de lire les dimensions de l'image");
+                return false;
+            }
+            
+            $originalWidth = $imageInfo[0];
+            $originalHeight = $imageInfo[1];
+            $mimeType = $imageInfo['mime'];
+            
+            // Créer l'image source
+            $sourceImage = $this->createSourceImage($filepath, $mimeType);
+            if (!$sourceImage) {
+                error_log("⚠️ Impossible de créer l'image source");
+                return false;
+            }
+            
+            // Calculer les nouvelles dimensions
+            $ratio = min($thumbWidth / $originalWidth, $thumbHeight / $originalHeight);
+            $newWidth = (int)($originalWidth * $ratio);
+            $newHeight = (int)($originalHeight * $ratio);
+            
+            // Créer la vignette
+            $thumbnail = $this->createThumbnailImage($newWidth, $newHeight, $mimeType);
+            
+            // Redimensionner
+            imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
+            
+            // Sauvegarder la vignette
+            $this->saveThumbnail($thumbnail, $thumbnailPath, $mimeType);
+            
+            // Libérer la mémoire
+            imagedestroy($sourceImage);
+            imagedestroy($thumbnail);
+            
+            error_log("✅ Vignette créée avec succès: " . $thumbnailPath);
+            return true;
+            
+        } catch (\Exception $e) {
+            error_log("⚠️ Erreur création vignette: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Créer l'image source selon le type MIME
+     */
+    private function createSourceImage(string $filepath, string $mimeType)
+    {
+        switch ($mimeType) {
+            case 'image/jpeg':
+                return imagecreatefromjpeg($filepath);
+            case 'image/png':
+                return imagecreatefrompng($filepath);
+            case 'image/webp':
+                return imagecreatefromwebp($filepath);
+            case 'image/gif':
+                return imagecreatefromgif($filepath);
+            default:
+                return null;
+        }
+    }
+    
+    /**
+     * Créer l'image de vignette
+     */
+    private function createThumbnailImage(int $width, int $height, string $mimeType)
+    {
+        $thumbnail = imagecreatetruecolor($width, $height);
+        
+        // Préserver la transparence pour PNG et GIF
+        if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
+            imagealphablending($thumbnail, false);
+            imagesavealpha($thumbnail, true);
+            $transparent = imagecolorallocatealpha($thumbnail, 255, 255, 255, 127);
+            imagefill($thumbnail, 0, 0, $transparent);
+        }
+        
+        return $thumbnail;
+    }
+    
+    /**
+     * Sauvegarder la vignette
+     */
+    private function saveThumbnail($thumbnail, string $path, string $mimeType): void
+    {
+        switch ($mimeType) {
+            case 'image/jpeg':
+                imagejpeg($thumbnail, $path, 85);
+                break;
+            case 'image/png':
+                imagepng($thumbnail, $path, 8);
+                break;
+            case 'image/webp':
+                imagewebp($thumbnail, $path, 85);
+                break;
+            case 'image/gif':
+                imagegif($thumbnail, $path);
+                break;
+        }
+    }
+    
+    /**
+     * Sauvegarder le média en base de données
+     */
+    private function saveMediaToDatabase(array $file, string $filename, ?int $gameId, string $category): \Media
+    {
+        // Déterminer le type MIME du fichier final (optimisé) ou utiliser celui du fichier original
+        $finalMimeType = $this->getFileMimeType($filename);
+        if (!$finalMimeType || $finalMimeType === 'application/octet-stream') {
+            // Fallback sur le type MIME du fichier original
+            $finalMimeType = $file['type'];
+        }
+        
+        // Déterminer la taille du fichier final
+        $finalSize = $file['size']; // Taille originale par défaut
+        if (file_exists($filename)) {
+            $finalSize = filesize($filename);
+        }
+        
+        $mediaData = [
+            'filename' => $this->getRelativePath($filename),
+            'original_name' => $file['name'],
+            'mime_type' => $finalMimeType,
+            'size' => $finalSize,
+            'uploaded_by' => \Auth::getUserId(),
+            'game_id' => $gameId,
+            'media_type' => $category
+        ];
+        
+        error_log("Tentative d'enregistrement en base de données...");
+        error_log("Données média: " . print_r($mediaData, true));
+        
+        $media = \Media::create($mediaData);
+        
+        if (!$media) {
+            throw new \Exception('Erreur lors de l\'enregistrement en base de données', 500);
+        }
+        
+        error_log("✅ Média enregistré avec succès, ID: " . $media->getId());
+        return $media;
     }
     
     /**
      * Obtenir le chemin relatif pour la base de données
      */
-    private function getRelativePath(string $fullPath): string
+    private function getRelativePath(string $filename): string
     {
         $uploadsDir = __DIR__ . '/../../../public/uploads/';
-        return str_replace($uploadsDir, '', $fullPath);
+        $relativePath = str_replace($uploadsDir, '', $filename);
+        // Stocker le chemin relatif complet (avec les sous-dossiers)
+        return $relativePath;
+    }
+    
+    /**
+     * Stocker en cache temporaire
+     */
+    private function storeInTempCache(\Media $media): void
+    {
+        if (!isset($_SESSION['temp_media'])) {
+            $_SESSION['temp_media'] = [];
+        }
+        
+        $_SESSION['temp_media'][] = $media->getId();
+        
+        // Limiter à 10 éléments
+        if (count($_SESSION['temp_media']) > 10) {
+            array_shift($_SESSION['temp_media']);
+        }
+    }
+    
+    /**
+     * Obtenir le message d'erreur d'upload
+     */
+    private function getUploadErrorMessage(int $errorCode): string
+    {
+        $errorMessages = [
+            UPLOAD_ERR_INI_SIZE => 'Fichier trop volumineux (limite php.ini)',
+            UPLOAD_ERR_FORM_SIZE => 'Fichier trop volumineux (limite formulaire)',
+            UPLOAD_ERR_PARTIAL => 'Upload partiel - fichier corrompu',
+            UPLOAD_ERR_NO_FILE => 'Aucun fichier reçu',
+            UPLOAD_ERR_NO_TMP_DIR => 'Dossier temporaire manquant sur le serveur',
+            UPLOAD_ERR_CANT_WRITE => 'Erreur d\'écriture sur le serveur',
+            UPLOAD_ERR_EXTENSION => 'Extension bloquée par le serveur'
+        ];
+        
+        return $errorMessages[$errorCode] ?? 'Erreur d\'upload inconnue (code: ' . $errorCode . ')';
+    }
+    
+    /**
+     * Déterminer le code d'erreur selon l'exception
+     */
+    private function determineErrorCode(\Exception $e): string
+    {
+        $message = strtolower($e->getMessage());
+        
+        if (strpos($message, 'gd') !== false) return 'gd_missing';
+        if (strpos($message, 'taille') !== false || strpos($message, 'volumineux') !== false) return 'file_too_large';
+        if (strpos($message, 'type') !== false || strpos($message, 'format') !== false) return 'invalid_type';
+        if (strpos($message, 'dimensions') !== false) return 'dimensions_too_large';
+        if (strpos($message, 'dossier') !== false || strpos($message, 'directory') !== false) return 'directory_error';
+        if (strpos($message, 'base de données') !== false || strpos($message, 'database') !== false) return 'database_error';
+        
+        return 'upload_failed';
+    }
+    
+    /**
+     * Formater une erreur avec message et solution
+     */
+    private function formatError(string $errorCode, string $customMessage = ''): array
+    {
+        $errorData = self::ERROR_MESSAGES[$errorCode] ?? self::ERROR_MESSAGES['upload_failed'];
+        
+        return [
+            'success' => false,
+            'error' => [
+                'message' => $customMessage ?: $errorData['message'],
+                'solution' => $errorData['solution'],
+                'code' => $errorData['code'],
+                'timestamp' => date('Y-m-d H:i:s'),
+                'request_id' => uniqid('req_', true)
+            ]
+        ];
+    }
+    
+    /**
+     * Formater les bytes en unités lisibles
+     */
+    private function formatBytes(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= pow(1024, $pow);
+        
+        return round($bytes, 2) . ' ' . $units[$pow];
     }
     
     /**
@@ -527,174 +1001,6 @@ class MediaController extends \Controller
 
     
     /**
-     * Créer une vignette pour une image
-     */
-    private function createThumbnail(string $filepath, string $filename, string $uploadDir): void
-    {
-        error_log("Création vignette pour: " . $filename);
-        
-        $thumbnailName = 'thumb_' . $filename;
-        $thumbnailPath = $uploadDir . '/' . $thumbnailName;
-        
-        // Dimensions de la vignette
-        $thumbWidth = 320;
-        $thumbHeight = 240;
-        
-        // Obtenir les dimensions de l'image originale
-        $imageInfo = getimagesize($filepath);
-        if (!$imageInfo) {
-            error_log("Impossible de lire les dimensions de l'image: " . $filepath);
-            return;
-        }
-        
-        error_log("Type MIME détecté: " . $imageInfo['mime']);
-        
-        $originalWidth = $imageInfo[0];
-        $originalHeight = $imageInfo[1];
-        $mimeType = $imageInfo['mime'];
-        
-        // Créer l'image source
-        $sourceImage = null;
-        switch ($mimeType) {
-            case 'image/jpeg':
-                $sourceImage = imagecreatefromjpeg($filepath);
-                break;
-            case 'image/png':
-                error_log("Tentative de création d'image PNG depuis: " . $filepath);
-                $sourceImage = imagecreatefrompng($filepath);
-                if (!$sourceImage) {
-                    error_log("Échec de création d'image PNG. Erreur GD: " . error_get_last()['message'] ?? 'Inconnue');
-                }
-                break;
-            case 'image/webp':
-                $sourceImage = imagecreatefromwebp($filepath);
-                break;
-            case 'image/gif':
-                $sourceImage = imagecreatefromgif($filepath);
-                break;
-        }
-        
-        if (!$sourceImage) {
-            error_log("Impossible de créer l'image source pour: " . $filepath);
-            return;
-        }
-        
-        // Calculer les nouvelles dimensions
-        $ratio = min($thumbWidth / $originalWidth, $thumbHeight / $originalHeight);
-        $newWidth = (int)($originalWidth * $ratio);
-        $newHeight = (int)($originalHeight * $ratio);
-        
-        // Créer la vignette
-        $thumbnail = imagecreatetruecolor($newWidth, $newHeight);
-        
-        // Préserver la transparence pour PNG et GIF
-        if ($mimeType === 'image/png' || $mimeType === 'image/gif') {
-            imagealphablending($thumbnail, false);
-            imagesavealpha($thumbnail, true);
-            $transparent = imagecolorallocatealpha($thumbnail, 255, 255, 255, 127);
-            imagefill($thumbnail, 0, 0, $transparent);
-        }
-        
-        // Redimensionner
-        imagecopyresampled($thumbnail, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
-        
-        // Sauvegarder la vignette
-        switch ($mimeType) {
-            case 'image/jpeg':
-                imagejpeg($thumbnail, $thumbnailPath, 85);
-                break;
-            case 'image/png':
-                error_log("Sauvegarde vignette PNG vers: " . $thumbnailPath);
-                $result = imagepng($thumbnail, $thumbnailPath, 8);
-                if (!$result) {
-                    error_log("Échec de sauvegarde vignette PNG. Erreur GD: " . error_get_last()['message'] ?? 'Inconnue');
-                } else {
-                    error_log("Vignette PNG sauvegardée avec succès");
-                }
-                break;
-            case 'image/webp':
-                imagewebp($thumbnail, $thumbnailPath, 85);
-                break;
-            case 'image/gif':
-                imagegif($thumbnail, $thumbnailPath);
-                break;
-        }
-        
-        // Libérer la mémoire
-        imagedestroy($sourceImage);
-        imagedestroy($thumbnail);
-    }
-    
-    /**
-     * Stocker en cache temporaire
-     */
-    private function storeInTempCache(\Media $media): void
-    {
-        if (!isset($_SESSION['temp_media'])) {
-            $_SESSION['temp_media'] = [];
-        }
-        
-        $_SESSION['temp_media'][] = $media->getId();
-        
-        // Limiter à 10 éléments
-        if (count($_SESSION['temp_media']) > 10) {
-            array_shift($_SESSION['temp_media']);
-        }
-    }
-    
-    /**
-     * Récupérer les images en cache temporaire
-     */
-    public function getTempCache(): void
-    {
-        $tempUploads = $_SESSION['temp_uploads'] ?? [];
-        
-        // Nettoyer les anciennes entrées (plus de 1 heure)
-        $tempUploads = array_filter($tempUploads, function($upload) {
-            return (time() - $upload['uploaded_at']) < 3600; // 1 heure
-        });
-        
-        $_SESSION['temp_uploads'] = $tempUploads;
-        
-        $this->jsonResponse([
-            'success' => true,
-            'uploads' => $tempUploads
-        ]);
-    }
-    
-    /**
-     * Liste des médias via API
-     */
-    public function list(): void
-    {
-        try {
-            $media = Database::query("
-                SELECT id, filename, original_name, mime_type, size, created_at 
-                FROM media 
-                ORDER BY created_at DESC
-            ");
-            
-            $mediaList = [];
-            foreach ($media as $item) {
-                $mediaList[] = [
-                    'id' => $item['id'],
-                    'filename' => $item['filename'],
-                    'original_name' => $item['original_name'],
-                    'mime_type' => $item['mime_type'],
-                    'size' => $item['size'],
-                    'url' => '/public/uploads/' . $item['filename'],
-                    'created_at' => $item['created_at']
-                ];
-            }
-            
-            $this->jsonResponse(['success' => true, 'media' => $mediaList]);
-            
-        } catch (Exception $e) {
-            $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
-        }
-    }
-    
-    /**
      * Réponse JSON
      */
     private function jsonResponse(array $data, int $statusCode = 200): void
@@ -703,25 +1009,5 @@ class MediaController extends \Controller
         header('Content-Type: application/json');
         echo json_encode($data);
         exit;
-    }
-
-    /**
-     * Parse la taille en octets depuis une chaîne PHP (ex: 10M, 100K, 1G)
-     */
-    private function parseSize(string $size): int
-    {
-        $unit = strtolower(substr($size, -1));
-        $value = (int)substr($size, 0, -1);
-
-        switch ($unit) {
-            case 'k':
-                return $value * 1024;
-            case 'm':
-                return $value * 1024 * 1024;
-            case 'g':
-                return $value * 1024 * 1024 * 1024;
-            default:
-                return $value;
-        }
     }
 }

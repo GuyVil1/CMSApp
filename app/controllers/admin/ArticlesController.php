@@ -575,6 +575,282 @@ class ArticlesController extends \Controller
     }
 
     /**
+     * Sauvegarder les chapitres d'un dossier
+     */
+    public function saveChapters(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Méthode non autorisée']);
+            return;
+        }
+        
+        try {
+            // Vérifier que l'utilisateur est connecté
+            if (!\Auth::isLoggedIn()) {
+                http_response_code(401);
+                echo json_encode(['error' => 'Non autorisé']);
+                return;
+            }
+            
+            // Récupérer les données
+            $articleId = (int)($_POST['article_id'] ?? 0);
+            $chaptersJson = $_POST['chapters'] ?? '';
+            
+            if (!$articleId) {
+                throw new \Exception('ID de l\'article manquant');
+            }
+            
+            if (empty($chaptersJson)) {
+                throw new \Exception('Aucun chapitre à sauvegarder');
+            }
+            
+            // Décoder la chaîne JSON en tableau
+            $chapters = json_decode($chaptersJson, true);
+            if ($chapters === null) {
+                throw new \Exception('Format des chapitres invalide (JSON invalide)');
+            }
+            
+            if (!is_array($chapters)) {
+                throw new \Exception('Format des chapitres invalide (doit être un tableau)');
+            }
+            
+            // Vérifier que l'article existe et est bien un dossier
+            $article = \Article::findById($articleId);
+            if (!$article) {
+                throw new \Exception('Article non trouvé');
+            }
+            
+            if ($article->getCategoryId() != 10) { // ID 10 = Dossiers
+                throw new \Exception('Cet article n\'est pas un dossier');
+            }
+            
+            // Commencer une transaction
+            \Database::beginTransaction();
+            
+            try {
+                // Supprimer les anciens chapitres
+                \Database::query("DELETE FROM dossier_chapters WHERE dossier_id = ?", [$articleId]);
+                
+                // Insérer les nouveaux chapitres
+                $insertSql = "INSERT INTO dossier_chapters (dossier_id, title, slug, content, cover_image_id, status, chapter_order, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+                
+                foreach ($chapters as $index => $chapter) {
+                    $title = trim($chapter['title'] ?? '');
+                    $slug = trim($chapter['slug'] ?? '');
+                    $content = trim($chapter['content'] ?? '');
+                    $coverImageId = !empty($chapter['cover_image_id']) ? (int)$chapter['cover_image_id'] : null;
+                    $status = trim($chapter['status'] ?? 'draft');
+                    
+                    if (empty($title)) {
+                        continue; // Ignorer les chapitres sans titre
+                    }
+                    
+                    // Générer un slug si vide
+                    if (empty($slug)) {
+                        $slug = \Article::generateSlug($title);
+                    }
+                    
+                    // Valider le statut
+                    if (!in_array($status, ['draft', 'published'])) {
+                        $status = 'draft';
+                    }
+                    
+                    \Database::query($insertSql, [
+                        $articleId,
+                        $title,
+                        $slug,
+                        $content,
+                        $coverImageId,
+                        $status,
+                        $index + 1
+                    ]);
+                }
+                
+                // Mettre à jour le progrès du dossier
+                $totalChapters = count(array_filter($chapters, function($c) { return !empty(trim($c['title'] ?? '')); }));
+                $publishedChapters = count(array_filter($chapters, function($c) { return trim($c['status'] ?? '') === 'published'; }));
+                
+                $progress = $totalChapters > 0 ? round(($publishedChapters / $totalChapters) * 100) : 0;
+                
+                \Database::query(
+                    "UPDATE articles SET dossier_progress = ?, updated_at = NOW() WHERE id = ?",
+                    [$progress, $articleId]
+                );
+                
+                // Valider la transaction
+                \Database::commit();
+                
+                // Log de l'activité
+                \Auth::logActivity(\Auth::getUserId(), "Chapitres sauvegardés pour le dossier : " . $article->getTitle());
+                
+                // Définir le bon Content-Type
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Chapitres sauvegardés avec succès',
+                    'total_chapters' => $totalChapters,
+                    'published_chapters' => $publishedChapters,
+                    'progress' => $progress
+                ]);
+                
+            } catch (\Exception $e) {
+                \Database::rollback();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur : ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Charger les chapitres d'un dossier
+     */
+    public function loadChapters(int $articleId): void
+    {
+        try {
+            // Vérifier que l'utilisateur est connecté
+            if (!\Auth::isLoggedIn()) {
+                http_response_code(401);
+                echo json_encode(['error' => 'Non autorisé']);
+                return;
+            }
+            
+            // Vérifier que l'article existe et est bien un dossier
+            $article = \Article::findById($articleId);
+            if (!$article) {
+                throw new \Exception('Article non trouvé');
+            }
+            
+            if ($article->getCategoryId() != 10) { // ID 10 = Dossiers
+                throw new \Exception('Cet article n\'est pas un dossier');
+            }
+            
+            // Récupérer les chapitres
+            $chapters = \Database::query(
+                "SELECT id, title, slug, content, cover_image_id, status, chapter_order, created_at, updated_at FROM dossier_chapters WHERE dossier_id = ? ORDER BY chapter_order ASC",
+                [$articleId]
+            );
+            
+            // Définir le bon Content-Type
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'chapters' => $chapters
+            ]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Erreur : ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Mettre à jour le statut d'un chapitre
+     */
+    public function updateChapterStatus(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
+            return;
+        }
+        
+        try {
+            $chapterId = (int)($_POST['chapter_id'] ?? 0);
+            $status = trim($_POST['status'] ?? '');
+            
+            if (!$chapterId) {
+                throw new \Exception('ID de chapitre manquant');
+            }
+            
+            if (!in_array($status, ['draft', 'published'])) {
+                throw new \Exception('Statut invalide');
+            }
+            
+            // Mettre à jour le statut du chapitre
+            $sql = "UPDATE dossier_chapters SET status = ?, updated_at = NOW() WHERE id = ?";
+            $result = \Database::execute($sql, [$status, $chapterId]);
+            
+            if ($result === false) {
+                throw new \Exception('Erreur lors de la mise à jour du statut');
+            }
+            
+            // Log de l'activité
+            $statusText = $status === 'published' ? 'publié' : 'mis en brouillon';
+            \Auth::logActivity(\Auth::getUserId(), "Chapitre $statusText (ID: $chapterId)");
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Statut du chapitre mis à jour avec succès',
+                'status' => $status
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erreur lors de la mise à jour du statut du chapitre: " . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Supprimer un chapitre
+     */
+    public function deleteChapter(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Méthode non autorisée']);
+            return;
+        }
+        
+        try {
+            $chapterId = (int)($_POST['chapter_id'] ?? 0);
+            
+            if (!$chapterId) {
+                throw new \Exception('ID de chapitre manquant');
+            }
+            
+            // Récupérer les informations du chapitre avant suppression
+            $chapter = \Database::queryOne("SELECT title, dossier_id FROM dossier_chapters WHERE id = ?", [$chapterId]);
+            if (!$chapter) {
+                throw new \Exception('Chapitre non trouvé');
+            }
+            
+            // Supprimer le chapitre
+            $sql = "DELETE FROM dossier_chapters WHERE id = ?";
+            $result = \Database::execute($sql, [$chapterId]);
+            
+            if ($result === false) {
+                throw new \Exception('Erreur lors de la suppression du chapitre');
+            }
+            
+            // Log de l'activité
+            \Auth::logActivity(\Auth::getUserId(), "Chapitre supprimé : {$chapter['title']} (ID: $chapterId)");
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Chapitre supprimé avec succès'
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erreur lors de la suppression du chapitre: " . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erreur : ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Gérer l'upload d'une image
      */
     private function handleImageUpload(array $file): int

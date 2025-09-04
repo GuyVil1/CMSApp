@@ -1,6 +1,6 @@
 <?php
 /**
- * Vue de gestion des médias - Admin
+ * Vue de gestion des médias - Admin - Version moderne
  */
 ?>
 
@@ -11,183 +11,996 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des médias - GameNews Belgium</title>
     <link rel="stylesheet" href="/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .upload-form {
-            background: var(--admin-card-bg);
-            border: 1px solid var(--admin-border);
-            border-radius: 12px;
-            padding: var(--admin-spacing-lg);
-            margin-bottom: var(--admin-spacing-lg);
+        /* Variables CSS modernes - NOUVELLE PALETTE PROFESSIONNELLE */
+        :root {
+            /* Couleurs principales - Palette professionnelle */
+            --primary-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            --secondary-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            --success-gradient: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            --warning-gradient: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            --danger-gradient: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            
+            /* Couleurs d'accent - Plus subtiles */
+            --accent-blue: #3498db;
+            --accent-green: #27ae60;
+            --accent-orange: #f39c12;
+            --accent-red: #e74c3c;
+            --accent-purple: #9b59b6;
+            
+            /* Couleurs de fond - Plus professionnelles */
+            --bg-primary: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+            --bg-secondary: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            --bg-dark: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            
+            /* Glassmorphism raffiné */
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-bg-light: rgba(255, 255, 255, 0.25);
+            --glass-bg-dark: rgba(44, 62, 80, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --glass-border-dark: rgba(44, 62, 80, 0.3);
+            
+            /* Ombres et profondeur */
+            --shadow-soft: 0 8px 32px rgba(44, 62, 80, 0.1);
+            --shadow-medium: 0 12px 40px rgba(44, 62, 80, 0.15);
+            --shadow-strong: 0 20px 60px rgba(44, 62, 80, 0.2);
+            
+            /* Transitions */
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+            
+            /* Couleurs de texte */
+            --text-primary: #2c3e50;
+            --text-secondary: #34495e;
+            --text-light: #7f8c8d;
+            --text-white: #ffffff;
+            --text-muted: #95a5a6;
         }
-        
+
+        /* Reset et base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        /* Container principal */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header moderne */
+        .admin-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+        }
+
+        .header-content h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-white);
+            margin: 0 0 20px 0;
+            text-shadow: 0 4px 8px rgba(44, 62, 80, 0.3);
+        }
+
+        .header-actions .btn {
+            background: var(--accent-blue);
+            color: var(--text-white);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .header-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        /* Formulaire d'upload moderne */
+        .upload-form {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-blue);
+        }
+
+        .upload-form h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: var(--admin-spacing-md);
-            margin-bottom: var(--admin-spacing-md);
+            gap: 30px;
+            margin-bottom: 30px;
         }
-        
+
+        /* Sélecteur de jeu moderne */
         .game-selector {
             position: relative;
         }
-        
+
         .game-search {
             width: 100%;
-            padding: 12px;
-            background: var(--admin-input-bg);
-            border: 1px solid var(--admin-border);
-            border-radius: 5px;
-            color: var(--admin-text);
+            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            color: #333;
             font-size: 1rem;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
         }
-        
+
         .game-search:focus {
             outline: none;
-            border-color: var(--admin-primary);
-            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+            transform: translateY(-1px);
         }
-        
+
         .games-dropdown {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
-            background: var(--admin-light);
-            border: 1px solid var(--admin-border);
-            border-radius: 5px;
-            max-height: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            max-height: 250px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
+            box-shadow: var(--shadow-strong);
+            margin-top: 10px;
         }
-        
+
         .game-option {
-            padding: 10px 12px;
+            padding: 15px 20px;
             cursor: pointer;
-            border-bottom: 1px solid var(--admin-border);
-            transition: background 0.2s;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            transition: var(--transition-smooth);
         }
-        
+
         .game-option:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateX(5px);
         }
-        
+
         .game-option.selected {
-            background: var(--admin-primary);
-            color: var(--admin-dark);
+            background: var(--accent-blue);
+            color: white;
         }
-        
+
         .game-info {
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 5px;
         }
-        
+
         .game-title {
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 1rem;
         }
-        
+
         .game-details {
-            font-size: 0.8em;
-            color: var(--admin-text-muted);
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
-        
+
+        /* Sélecteur de catégorie moderne */
         .category-selector {
             display: flex;
-            gap: var(--admin-spacing-sm);
+            gap: 15px;
             flex-wrap: wrap;
         }
-        
+
         .category-option {
-            padding: 8px 16px;
-            background: var(--admin-input-bg);
-            border: 1px solid var(--admin-border);
-            border-radius: 20px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 25px;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9em;
+            transition: var(--transition-smooth);
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-soft);
         }
-        
+
         .category-option:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
-        
+
         .category-option.selected {
-            background: var(--admin-primary);
-            color: var(--admin-dark);
-            border-color: var(--admin-primary);
+            background: var(--accent-blue);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
         }
-        
+
+        /* Zone d'upload moderne */
+        .upload-area {
+            border: 3px dashed rgba(52, 152, 219, 0.3);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(52, 152, 219, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--accent-blue);
+            background: rgba(52, 152, 219, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        .upload-hint {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Prévisualisation moderne */
         .upload-preview {
-            margin-top: var(--admin-spacing-md);
+            margin-top: 30px;
+            text-align: center;
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        /* Filtres modernes */
+        .media-filters {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .media-filters h3 {
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
             text-align: center;
         }
-        
-        .preview-image {
-            max-width: 200px;
-            max-height: 150px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid var(--admin-border);
-        }
-        
-        .upload-status {
-            margin-top: var(--admin-spacing-sm);
-            padding: var(--admin-spacing-sm);
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        
-        .upload-status.success {
-            background: rgba(39, 174, 96, 0.1);
-            border: 1px solid var(--admin-success);
-            color: #51cf66;
-        }
-        
-        .upload-status.error {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid var(--admin-secondary);
-            color: #ff6b6b;
-        }
-        
-        .media-filters {
-            background: var(--admin-card-bg);
-            border: 1px solid var(--admin-border);
-            border-radius: 12px;
-            padding: var(--admin-spacing-lg);
-            margin-bottom: var(--admin-spacing-lg);
-        }
-        
+
         .filter-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--admin-spacing-md);
+            gap: 20px;
             align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-select {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: var(--transition-fast);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Boutons des filtres */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: var(--text-white);
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-secondary {
+            background: var(--accent-orange);
+            color: var(--text-white);
+        }
+
+        .btn-secondary:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Grille de statistiques */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            color: var(--accent-blue);
+            margin-bottom: 15px;
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Grille des médias */
+        .table-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .media-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .media-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-blue);
+        }
+
+        .media-preview {
+            height: 200px;
+            background: var(--glass-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .media-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-smooth);
+        }
+
+        .media-card:hover .media-image {
+            transform: scale(1.05);
+        }
+
+        .media-info {
+            padding: 20px;
+        }
+
+        .media-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        .media-details {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .media-actions .btn {
+            flex: 1;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-container {
+                padding: 15px;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .preview-image {
+            max-width: 250px;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition-smooth);
+        }
+
+        .preview-image:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .upload-status {
+            margin-top: 20px;
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .upload-status.success {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .upload-status.error {
+            background: var(--danger-gradient);
+            color: white;
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Filtres modernes */
+        .media-filters {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        /* Boutons modernes */
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        /* Statistiques modernes */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Grille de médias moderne */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .media-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .media-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .media-preview {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .media-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-smooth);
+        }
+
+        .media-card:hover .media-image {
+            transform: scale(1.1);
+        }
+
+        .media-info {
+            padding: 25px;
+        }
+
+        .media-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .media-details {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 5px 5px 5px 0;
+        }
+
+        .media-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        /* Pagination moderne */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .page-link {
+            padding: 12px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .page-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-strong);
+        }
+
+        .page-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Loading moderne */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Toast moderne */
+        .toast {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 20px 30px;
+            color: white;
+            font-weight: 500;
+            box-shadow: var(--shadow-strong);
+            z-index: 10001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(100%);
+            transition: var(--transition-smooth);
+            max-width: 400px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-container {
+                padding: 15px;
+            }
+            
+            .upload-form, .media-filters {
+                padding: 25px;
+            }
+        }
+
+        /* Animations d'entrée */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .slide-up {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        /* Effets de survol avancés */
+        .hover-lift {
+            transition: var(--transition-smooth);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-strong);
         }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Header -->
+        <!-- Header moderne -->
         <header class="admin-header">
             <div class="header-content">
-                <h1>🖼️ Gestion des Médias</h1>
+                <h1><i class="fas fa-images"></i> Bibliothèque de Médias</h1>
                 <div class="header-actions">
-                    <a href="/admin.php" class="btn btn-secondary">← Retour au tableau de bord</a>
+                    <a href="/admin.php" class="btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour au tableau de bord
+                    </a>
                 </div>
             </div>
         </header>
 
-        <!-- Formulaire d'upload amélioré -->
+        <!-- Formulaire d'upload moderne -->
         <div class="upload-form">
-            <h3 style="color: var(--admin-primary); margin-bottom: var(--admin-spacing-md);">📁 Upload de média</h3>
+            <h3><i class="fas fa-cloud-upload-alt"></i> Upload de média</h3>
             
             <form id="uploadForm" enctype="multipart/form-data">
                 <div class="form-row">
                     <!-- Sélection de jeu -->
                     <div class="form-group">
-                        <label for="gameSearch" class="form-label">🎮 Jeu associé (optionnel)</label>
+                        <label for="gameSearch" class="form-label">
+                            <i class="fas fa-gamepad"></i> Jeu associé (optionnel)
+                        </label>
                         <div class="game-selector">
                             <input type="text" id="gameSearch" class="game-search" 
                                    placeholder="Rechercher un jeu..." autocomplete="off">
@@ -199,47 +1012,64 @@
                     
                     <!-- Catégorie -->
                     <div class="form-group">
-                        <label class="form-label">📂 Catégorie</label>
+                        <label class="form-label">
+                            <i class="fas fa-folder"></i> Catégorie
+                        </label>
                         <div class="category-selector">
-                            <div class="category-option selected" data-category="screenshots">Screenshots</div>
-                            <div class="category-option" data-category="news">News</div>
-                            <div class="category-option" data-category="events">Événements</div>
-                            <div class="category-option" data-category="other">Autre</div>
+                            <div class="category-option selected" data-category="screenshots">
+                                <i class="fas fa-camera"></i> Screenshots
+                            </div>
+                            <div class="category-option" data-category="news">
+                                <i class="fas fa-newspaper"></i> News
+                            </div>
+                            <div class="category-option" data-category="events">
+                                <i class="fas fa-calendar-alt"></i> Événements
+                            </div>
+                            <div class="category-option" data-category="other">
+                                <i class="fas fa-ellipsis-h"></i> Autre
+                            </div>
                         </div>
                         <input type="hidden" id="category" name="category" value="screenshots">
                     </div>
                 </div>
                 
-                <!-- Zone d'upload -->
+                <!-- Zone d'upload moderne -->
                 <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📁</div>
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
                     <div class="upload-text">Glissez-déposez vos fichiers ici</div>
                     <div class="upload-hint">ou cliquez pour sélectionner des fichiers</div>
                     <input type="file" id="fileInput" class="file-input" accept="image/*" multiple>
                 </div>
                 
-                <!-- Prévisualisation -->
+                <!-- Prévisualisation moderne -->
                 <div class="upload-preview" id="uploadPreview" style="display: none;">
                     <img id="previewImage" class="preview-image" alt="Aperçu">
                     <div class="upload-status" id="uploadStatus"></div>
                 </div>
                 
-                <div class="upload-hint" style="text-align: center; margin-top: var(--admin-spacing-sm);">
+                <div class="upload-hint" style="text-align: center; margin-top: 20px; color: #666;">
+                    <i class="fas fa-info-circle"></i>
                     Formats acceptés : JPG, PNG, WebP, GIF • Taille maximale : 4MB par fichier
                 </div>
             </form>
         </div>
 
-        <!-- Filtres -->
+        <!-- Filtres modernes -->
         <div class="media-filters">
-            <h3 style="color: var(--admin-primary); margin-bottom: var(--admin-spacing-md);">🔍 Filtres</h3>
+            <h3><i class="fas fa-filter"></i> Filtres et recherche</h3>
             <div class="filter-row">
                 <div class="form-group">
-                    <label for="filterSearch" class="form-label">Rechercher</label>
+                    <label for="filterSearch" class="form-label">
+                        <i class="fas fa-search"></i> Rechercher
+                    </label>
                     <input type="text" id="filterSearch" class="form-input" placeholder="Nom du fichier...">
                 </div>
                 <div class="form-group">
-                    <label for="filterGame" class="form-label">Jeu</label>
+                    <label for="filterGame" class="form-label">
+                        <i class="fas fa-gamepad"></i> Jeu
+                    </label>
                     <select id="filterGame" class="form-select">
                         <option value="">Tous les jeux</option>
                         <?php foreach ($games as $game): ?>
@@ -248,7 +1078,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="filterCategory" class="form-label">Catégorie</label>
+                    <label for="filterCategory" class="form-label">
+                        <i class="fas fa-folder"></i> Catégorie
+                    </label>
                     <select id="filterCategory" class="form-select">
                         <option value="">Toutes les catégories</option>
                         <option value="screenshots">Screenshots</option>
@@ -258,40 +1090,46 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <button type="button" id="applyFilters" class="btn btn-primary">🔍 Appliquer</button>
-                    <button type="button" id="resetFilters" class="btn btn-secondary">🔄 Réinitialiser</button>
+                    <button type="button" id="applyFilters" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Appliquer
+                    </button>
+                    <button type="button" id="resetFilters" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Statistiques -->
+        <!-- Statistiques modernes -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon">🖼️</div>
-                <div class="stat-content">
-                    <div class="stat-number"><?= $totalMedias ?></div>
-                    <div class="stat-label">Total des médias</div>
+                <div class="stat-icon">
+                    <i class="fas fa-images"></i>
                 </div>
+                <div class="stat-number"><?= $totalMedias ?></div>
+                <div class="stat-label">Total des médias</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🎮</div>
-                <div class="stat-content">
-                    <div class="stat-number"><?= count($games) ?></div>
-                    <div class="stat-label">Jeux disponibles</div>
+                <div class="stat-icon">
+                    <i class="fas fa-gamepad"></i>
                 </div>
+                <div class="stat-number"><?= count($games) ?></div>
+                <div class="stat-label">Jeux disponibles</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📂</div>
-                <div class="stat-content">
-                    <div class="stat-number"><?= $currentPage ?></div>
-                    <div class="stat-label">Page actuelle</div>
+                <div class="stat-icon">
+                    <i class="fas fa-folder"></i>
                 </div>
+                <div class="stat-number"><?= $currentPage ?></div>
+                <div class="stat-label">Page actuelle</div>
             </div>
         </div>
 
-        <!-- Liste des médias -->
+        <!-- Liste des médias moderne -->
         <div class="table-container">
-            <h3 style="color: var(--admin-primary); margin-bottom: var(--admin-spacing-md);">📋 Liste des médias</h3>
+            <h3 style="color: var(--text-secondary); margin-bottom: 25px; font-size: 1.8rem;">
+                <i class="fas fa-list"></i> Bibliothèque des médias
+            </h3>
             <div class="media-grid" id="mediaGrid">
                 <?php foreach ($medias as $media): ?>
                 <div class="media-card" data-id="<?= $media->getId() ?>" 
@@ -299,25 +1137,31 @@
                      data-category="<?= $media->getMediaType() ?>">
                     <div class="media-preview">
                         <?php if ($media->isImage()): ?>
-                            <img src="/public/uploads.php?file=<?= urlencode($media->getFilename()) ?>" 
+                            <img src="<?= $media->getUrl() ?>" 
                                  alt="<?= htmlspecialchars($media->getOriginalName()) ?>" 
                                  class="media-image">
                         <?php else: ?>
-                            <div class="icon">🎥</div>
+                            <div class="icon" style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; opacity: 0.5;">
+                                <i class="fas fa-video"></i>
+                            </div>
                         <?php endif; ?>
                     </div>
                     <div class="media-info">
                         <div class="media-name"><?= htmlspecialchars($media->getOriginalName()) ?></div>
                         <div class="media-details">
-                            <?= $media->getFormattedSize() ?> • <?= $media->getMimeType() ?><br>
+                            <i class="fas fa-file"></i> <?= $media->getFormattedSize() ?> • <?= $media->getMimeType() ?><br>
                             <?php if ($media->getGameId()): ?>
-                                <span class="badge badge-platform">Jeu associé</span><br>
+                                <span class="badge"><i class="fas fa-gamepad"></i> Jeu associé</span><br>
                             <?php endif; ?>
-                            Ajouté le <?= date('d/m/Y H:i', strtotime($media->getCreatedAt())) ?>
+                            <i class="fas fa-clock"></i> Ajouté le <?= date('d/m/Y H:i', strtotime($media->getCreatedAt())) ?>
                         </div>
                         <div class="media-actions">
-                            <button class="btn btn-sm" onclick="copyUrl('<?= $media->getUrl() ?>')">Copier URL</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteMedia(<?= $media->getId() ?>)">Supprimer</button>
+                            <button class="btn btn-sm btn-primary" onclick="copyUrl('<?= $media->getUrl() ?>')">
+                                <i class="fas fa-copy"></i> Copier URL
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteMedia(<?= $media->getId() ?>)">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -325,11 +1169,13 @@
             </div>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination moderne -->
         <?php if ($totalPages > 1): ?>
         <div class="pagination">
             <?php if ($currentPage > 1): ?>
-                <a href="?page=<?= $currentPage - 1 ?>" class="page-link">← Précédent</a>
+                <a href="?page=<?= $currentPage - 1 ?>" class="page-link">
+                    <i class="fas fa-chevron-left"></i> Précédent
+                </a>
             <?php endif; ?>
             
             <?php for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++): ?>
@@ -337,19 +1183,23 @@
             <?php endfor; ?>
             
             <?php if ($currentPage < $totalPages): ?>
-                <a href="?page=<?= $currentPage + 1 ?>" class="page-link">Suivant →</a>
+                <a href="?page=<?= $currentPage + 1 ?>" class="page-link">
+                    Suivant <i class="fas fa-chevron-right"></i>
+                </a>
             <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
 
-    <!-- Loading -->
+    <!-- Loading moderne -->
     <div class="loading" id="loading">
-        <div class="upload-icon">⏳</div>
-        <div class="upload-text">Upload en cours...</div>
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="upload-text">Upload en cours...</div>
+        </div>
     </div>
 
-    <!-- Toast -->
+    <!-- Toast moderne -->
     <div class="toast" id="toast"></div>
 
     <script>
@@ -393,7 +1243,7 @@
         // Recherche de jeux
         async function searchGames(query) {
             try {
-                console.log('Recherche de jeux pour:', query);
+                console.log('🔍 Recherche de jeux pour:', query);
                 
                 const response = await fetch(`/media.php?action=search-games&q=${encodeURIComponent(query)}&limit=10`);
                 
@@ -407,20 +1257,20 @@
                 }
                 
                 const data = await response.json();
-                console.log('Réponse reçue:', data);
+                console.log('✅ Réponse reçue:', data);
                 
                 if (data.success) {
                     displayGamesDropdown(data.games);
                 } else {
-                    console.error('Erreur serveur:', data.error);
+                    console.error('❌ Erreur serveur:', data.error);
                     showToast('Erreur lors de la recherche: ' + (data.error || 'Erreur inconnue'), 'error');
                 }
             } catch (error) {
-                console.error('Erreur recherche jeux:', error);
+                console.error('❌ Erreur recherche jeux:', error);
                 showToast('Erreur de connexion lors de la recherche', 'error');
                 
                 // Afficher un message d'erreur dans le dropdown
-                gamesDropdown.innerHTML = '<div class="game-option" style="color: #ff6b6b;">Erreur de connexion</div>';
+                gamesDropdown.innerHTML = '<div class="game-option" style="color: #ff6b6b;"><i class="fas fa-exclamation-triangle"></i> Erreur de connexion</div>';
                 gamesDropdown.style.display = 'block';
             }
         }
@@ -430,7 +1280,7 @@
             gamesDropdown.innerHTML = '';
             
             if (games.length === 0) {
-                gamesDropdown.innerHTML = '<div class="game-option">Aucun jeu trouvé</div>';
+                gamesDropdown.innerHTML = '<div class="game-option"><i class="fas fa-info-circle"></i> Aucun jeu trouvé</div>';
             } else {
                 games.forEach(game => {
                     const option = document.createElement('div');
@@ -456,7 +1306,7 @@
             gameId.value = game.id;
             gamesDropdown.style.display = 'none';
             
-            showToast(`Jeu sélectionné : ${game.title}`, 'success');
+            showToast(`🎮 Jeu sélectionné : ${game.title}`, 'success');
         }
         
         // Gestion des catégories
@@ -499,7 +1349,7 @@
                     showPreview(file);
                     uploadFile(file);
                 } else {
-                    showToast('Format de fichier non supporté', 'error');
+                    showToast('❌ Format de fichier non supporté', 'error');
                 }
             });
         }
@@ -527,7 +1377,7 @@
             uploadStatus.className = 'upload-status';
             
             try {
-                const response = await fetch('/media.php?action=upload', {
+                const response = await fetch('/admin/media/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -535,21 +1385,21 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    uploadStatus.textContent = 'Upload réussi !';
+                    uploadStatus.textContent = '✅ Upload réussi !';
                     uploadStatus.className = 'upload-status success';
-                    showToast('Fichier uploadé avec succès !', 'success');
+                    showToast('🎉 Fichier uploadé avec succès !', 'success');
                     
                     // Recharger la page après un délai
                     setTimeout(() => location.reload(), 1500);
                 } else {
-                    uploadStatus.textContent = result.error || 'Erreur lors de l\'upload';
+                    uploadStatus.textContent = result.error || '❌ Erreur lors de l\'upload';
                     uploadStatus.className = 'upload-status error';
-                    showToast(result.error || 'Erreur lors de l\'upload', 'error');
+                    showToast(result.error || '❌ Erreur lors de l\'upload', 'error');
                 }
             } catch (error) {
-                uploadStatus.textContent = 'Erreur de connexion';
+                uploadStatus.textContent = '❌ Erreur de connexion';
                 uploadStatus.className = 'upload-status error';
-                showToast('Erreur de connexion', 'error');
+                showToast('❌ Erreur de connexion', 'error');
             } finally {
                 loading.classList.remove('show');
             }
@@ -557,7 +1407,7 @@
         
         // Supprimer un média
         async function deleteMedia(id) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce média ?')) {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce média ?')) {
                 return;
             }
             
@@ -565,7 +1415,7 @@
             formData.append('csrf_token', csrfToken);
             
             try {
-                const response = await fetch(`/media.php?action=delete&id=${id}`, {
+                const response = await fetch(`/admin/media/delete/${id}`, {
                     method: 'POST',
                     body: formData
                 });
@@ -573,22 +1423,22 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showToast('Média supprimé avec succès !', 'success');
+                    showToast('🗑️ Média supprimé avec succès !', 'success');
                     document.querySelector(`[data-id="${id}"]`).remove();
                 } else {
-                    showToast(result.error || 'Erreur lors de la suppression', 'error');
+                    showToast(result.error || '❌ Erreur lors de la suppression', 'error');
                 }
             } catch (error) {
-                showToast('Erreur de connexion', 'error');
+                showToast('❌ Erreur de connexion', 'error');
             }
         }
         
         // Copier l'URL d'un média
         function copyUrl(url) {
             navigator.clipboard.writeText(url).then(() => {
-                showToast('URL copiée dans le presse-papiers !', 'success');
+                showToast('📋 URL copiée dans le presse-papiers !', 'success');
             }).catch(() => {
-                showToast('Erreur lors de la copie', 'error');
+                showToast('❌ Erreur lors de la copie', 'error');
             });
         }
         
@@ -627,28 +1477,36 @@
             mediaCards.forEach(card => card.style.display = 'block');
         }
         
-        // Afficher un toast
+        // Afficher un toast moderne
         function showToast(message, type = 'success') {
             toast.textContent = message;
             
-            if (type === 'success') {
-                toast.style.background = 'rgba(39, 174, 96, 0.9)';
-                toast.style.border = '1px solid var(--admin-success)';
-            } else if (type === 'error') {
-                toast.style.background = 'rgba(231, 76, 60, 0.9)';
-                toast.style.border = '1px solid var(--admin-secondary)';
-            } else {
-                toast.style.background = 'rgba(52, 152, 219, 0.9)';
-                toast.style.border = '1px solid var(--admin-info)';
+            // Ajouter des icônes selon le type
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = '✅ ';
+                    toast.style.background = 'var(--success-gradient)';
+                    break;
+                case 'error':
+                    icon = '❌ ';
+                    toast.style.background = 'var(--danger-gradient)';
+                    break;
+                case 'warning':
+                    icon = '⚠️ ';
+                    toast.style.background = 'var(--warning-gradient)';
+                    break;
+                default:
+                    icon = 'ℹ️ ';
+                    toast.style.background = 'var(--primary-gradient)';
             }
             
-            toast.style.opacity = '1';
-            toast.style.visibility = 'visible';
+            toast.textContent = icon + message;
+            toast.classList.add('show');
             
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.visibility = 'hidden';
-            }, 3000);
+                toast.classList.remove('show');
+            }, 4000);
         }
         
         // Fermer le dropdown en cliquant ailleurs
@@ -656,6 +1514,16 @@
             if (!e.target.closest('.game-selector')) {
                 gamesDropdown.style.display = 'none';
             }
+        });
+
+        // Animation d'entrée des éléments
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.stat-card, .media-card, .upload-form, .media-filters');
+            elements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.classList.add('fade-in');
+                }, index * 100);
+            });
         });
     </script>
 </body>

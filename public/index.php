@@ -77,6 +77,16 @@ function route($uri) {
     error_log("🔍 URI: " . $uri);
     error_log("🔍 Parts: " . print_r($parts, true));
     
+    // Route spéciale pour uploads.php
+    if ($parts[0] === 'uploads.php') {
+        error_log("🔍 Route uploads.php détectée");
+        return [
+            'controller' => 'SpecialController',
+            'action' => 'uploads',
+            'params' => []
+        ];
+    }
+    
     // Route spéciale pour article
     if ($parts[0] === 'article') {
         error_log("🔍 Route article détectée");
@@ -86,6 +96,13 @@ function route($uri) {
         // Extraire le slug de l'article (2ème partie après 'article')
         if (isset($parts[1])) {
             $params = [$parts[1]]; // Le slug de l'article
+            
+            // Vérifier s'il y a un slug de chapitre (3ème partie)
+            if (isset($parts[2])) {
+                $action = 'showChapter';
+                $params = [$parts[1], $parts[2]]; // [slug_dossier, slug_chapitre]
+                error_log("🔍 Chapitre détecté: " . $parts[2] . " pour dossier: " . $parts[1]);
+            }
         } else {
             // Pas de slug, rediriger vers 404
             error_log("❌ Pas de slug d'article spécifié");
@@ -123,6 +140,26 @@ function route($uri) {
             // Pour les URLs admin, l'action est la 3ème partie si elle existe
             $action = $parts[2] ?? 'index';
             $params = array_slice($parts, 3);
+            
+            // Gestion spéciale pour les actions de chapitres
+            if ($controllerName === 'ArticlesController' && in_array($action, ['save-chapters', 'load-chapters', 'update-chapter-status', 'delete-chapter'])) {
+                // Convertir les tirets en camelCase pour les méthodes
+                if ($action === 'save-chapters') {
+                    $action = 'saveChapters';
+                } elseif ($action === 'load-chapters') {
+                    $action = 'loadChapters';
+                } elseif ($action === 'update-chapter-status') {
+                    $action = 'updateChapterStatus';
+                } elseif ($action === 'delete-chapter') {
+                    $action = 'deleteChapter';
+                }
+            }
+            
+            return [
+                'controller' => $controller,
+                'action' => $action,
+                'params' => $params
+            ];
         } else {
             return ['error' => '404'];
         }

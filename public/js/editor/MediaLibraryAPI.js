@@ -1,11 +1,14 @@
 /**
- * API d'intégration pour le système de médias
+ * API d'intégration pour le système de médias - Version améliorée
  * Interface entre l'éditeur modulaire et la bibliothèque de médias
+ * Avec gestion d'erreurs avancée et notifications contextuelles
  */
 class MediaLibraryAPI {
     constructor() {
         this.baseUrl = '/media.php';
         this.csrfToken = this.getCsrfToken();
+        this.errorHandler = new MediaErrorHandler();
+        this.notificationManager = new NotificationManager();
     }
 
     /**
@@ -17,14 +20,14 @@ class MediaLibraryAPI {
     }
 
     /**
-     * Rechercher des médias
+     * Rechercher des médias avec gestion d'erreurs avancée
      */
     async searchMedia(query = '', filters = {}) {
         try {
             const params = new URLSearchParams({
                 action: 'search',
                 q: query,
-                limit: filters.limit || 100 // Augmenter la limite par défaut à 100
+                limit: filters.limit || 100
             });
 
             if (filters.game_id) params.append('game_id', filters.game_id);
@@ -32,17 +35,18 @@ class MediaLibraryAPI {
             if (filters.type) params.append('type', filters.type);
 
             console.log('🔍 Recherche de médias avec paramètres:', Object.fromEntries(params));
-            const response = await fetch(`${this.baseUrl}?${params}`);
-            const data = await response.json();
-
-            if (data.success) {
-                console.log(`✅ ${data.medias.length} médias trouvés sur ${data.total} total`);
-                return data.medias || [];
+            
+            const response = await this.makeRequest(`${this.baseUrl}?${params}`);
+            
+            if (response.success) {
+                console.log(`✅ ${response.medias.length} médias trouvés sur ${response.total} total`);
+                return response.medias || [];
             } else {
-                throw new Error(data.error || 'Erreur lors de la recherche');
+                throw new Error(response.error?.message || 'Erreur lors de la recherche');
             }
         } catch (error) {
             console.error('❌ Erreur recherche médias:', error);
+            this.errorHandler.handleError(error, 'search');
             return [];
         }
     }
@@ -58,16 +62,16 @@ class MediaLibraryAPI {
                 limit: limit
             });
 
-            const response = await fetch(`${this.baseUrl}?${params}`);
-            const data = await response.json();
-
-            if (data.success) {
-                return data.games || [];
+            const response = await this.makeRequest(`${this.baseUrl}?${params}`);
+            
+            if (response.success) {
+                return response.games || [];
             } else {
-                throw new Error(data.error || 'Erreur lors de la recherche de jeux');
+                throw new Error(response.error?.message || 'Erreur lors de la recherche de jeux');
             }
         } catch (error) {
-            console.error('Erreur recherche jeux:', error);
+            console.error('❌ Erreur recherche jeux:', error);
+            this.errorHandler.handleError(error, 'game_search');
             return [];
         }
     }
@@ -82,16 +86,16 @@ class MediaLibraryAPI {
                 id: id
             });
 
-            const response = await fetch(`${this.baseUrl}?${params}`);
-            const data = await response.json();
-
-            if (data.success) {
-                return data.media;
+            const response = await this.makeRequest(`${this.baseUrl}?${params}`);
+            
+            if (response.success) {
+                return response.media;
             } else {
-                throw new Error(data.error || 'Média non trouvé');
+                throw new Error(response.error?.message || 'Média non trouvé');
             }
         } catch (error) {
-            console.error('Erreur récupération média:', error);
+            console.error('❌ Erreur récupération média:', error);
+            this.errorHandler.handleError(error, 'get_media');
             return null;
         }
     }
@@ -106,53 +110,101 @@ class MediaLibraryAPI {
                 limit: 1000
             });
 
-            const response = await fetch(`${this.baseUrl}?${params}`);
-            const data = await response.json();
-
-            if (data.success) {
-                return data.games || [];
+            const response = await this.makeRequest(`${this.baseUrl}?${params}`);
+            
+            if (response.success) {
+                return response.games || [];
             } else {
-                throw new Error(data.error || 'Erreur lors de la récupération des jeux');
+                throw new Error(response.error?.message || 'Erreur lors de la récupération des jeux');
             }
         } catch (error) {
-            console.error('Erreur récupération jeux:', error);
+            console.error('❌ Erreur récupération jeux:', error);
+            this.errorHandler.handleError(error, 'get_games');
             return [];
         }
     }
 
     /**
-     * Ouvrir le sélecteur de médias
+     * Effectuer une requête HTTP avec gestion d'erreurs
+     */
+    async makeRequest(url, options = {}) {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                ...options
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Réponse non-JSON reçue du serveur');
+            }
+
+            return await response.json();
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                throw new Error('Erreur de connexion au serveur');
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Ouvrir le sélecteur de médias avec gestion d'erreurs
      */
     openMediaSelector(options = {}) {
         return new Promise((resolve, reject) => {
-            const modal = this.createMediaSelectorModal(options);
-            document.body.appendChild(modal);
+            try {
+                const modal = this.createMediaSelectorModal(options);
+                document.body.appendChild(modal);
 
-            // Gestionnaire de sélection
-            const handleSelection = (selectedMedia) => {
-                document.body.removeChild(modal);
-                resolve(selectedMedia);
-            };
+                // Gestionnaire de sélection
+                const handleSelection = (selectedMedia) => {
+                    document.body.removeChild(modal);
+                    resolve(selectedMedia);
+                };
 
-            // Gestionnaire d'annulation
-            const handleCancel = () => {
-                document.body.removeChild(modal);
-                reject(new Error('Sélection annulée'));
-            };
+                // Gestionnaire d'annulation
+                const handleCancel = () => {
+                    document.body.removeChild(modal);
+                    reject(new Error('Sélection annulée'));
+                };
 
-            // Écouter les événements
-            modal.addEventListener('mediaSelected', (e) => {
-                handleSelection(e.detail);
-            });
+                // Gestionnaire d'erreur
+                const handleError = (error) => {
+                    document.body.removeChild(modal);
+                    this.errorHandler.handleError(error, 'media_selector');
+                    reject(error);
+                };
 
-            modal.addEventListener('mediaSelectorClosed', () => {
-                handleCancel();
-            });
+                // Écouter les événements
+                modal.addEventListener('mediaSelected', (e) => {
+                    handleSelection(e.detail);
+                });
+
+                modal.addEventListener('mediaSelectorClosed', () => {
+                    handleCancel();
+                });
+
+                modal.addEventListener('mediaSelectorError', (e) => {
+                    handleError(e.detail);
+                });
+
+            } catch (error) {
+                this.errorHandler.handleError(error, 'modal_creation');
+                reject(error);
+            }
         });
     }
 
     /**
-     * Créer le modal de sélection de médias
+     * Créer le modal de sélection de médias amélioré
      */
     createMediaSelectorModal(options = {}) {
         const allowMultiple = options.allowMultiple || false;
@@ -182,10 +234,17 @@ class MediaLibraryAPI {
                             </select>
                             <button type="button" class="search-btn" id="searchBtn">🔍</button>
                         </div>
+                        <div class="search-help">
+                            <i class="fas fa-info-circle"></i>
+                            Utilisez les filtres pour affiner votre recherche
+                        </div>
                     </div>
                     
                     <div class="media-grid" id="mediaGrid">
-                        <div class="loading">Chargement...</div>
+                        <div class="loading">
+                            <div class="loading-spinner"></div>
+                            <div>Chargement...</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -216,122 +275,150 @@ class MediaLibraryAPI {
     }
 
     /**
-     * Initialiser le sélecteur de médias
+     * Initialiser le sélecteur de médias avec gestion d'erreurs
      */
     async initMediaSelector(modal, options) {
-        const allowMultiple = options.allowMultiple || false;
-        const searchInput = modal.querySelector('#mediaSearch');
-        const gameFilter = modal.querySelector('#gameFilter');
-        const categoryFilter = modal.querySelector('#categoryFilter');
-        const searchBtn = modal.querySelector('#searchBtn');
-        const mediaGrid = modal.querySelector('#mediaGrid');
-        const selectBtn = modal.querySelector('[data-action="select"]');
-        const closeBtn = modal.querySelector('[data-action="close"]');
-        const cancelBtn = modal.querySelector('[data-action="cancel"]');
-        const loadMoreBtn = modal.querySelector('#loadMoreBtn');
-        const mediaCountSpan = modal.querySelector('#mediaCount');
+        try {
+            const allowMultiple = options.allowMultiple || false;
+            const searchInput = modal.querySelector('#mediaSearch');
+            const gameFilter = modal.querySelector('#gameFilter');
+            const categoryFilter = modal.querySelector('#categoryFilter');
+            const searchBtn = modal.querySelector('#searchBtn');
+            const mediaGrid = modal.querySelector('#mediaGrid');
+            const selectBtn = modal.querySelector('[data-action="select"]');
+            const closeBtn = modal.querySelector('[data-action="close"]');
+            const cancelBtn = modal.querySelector('[data-action="cancel"]');
+            const loadMoreBtn = modal.querySelector('#loadMoreBtn');
+            const mediaCountSpan = modal.querySelector('#mediaCount');
 
+            let selectedMedia = allowMultiple ? [] : null;
+            let currentMedias = [];
+            let currentPage = 1;
+            let totalMedias = 0;
+            let isLoading = false;
 
-        let selectedMedia = allowMultiple ? [] : null;
-        let currentMedias = [];
-        let currentPage = 1;
-        let totalMedias = 0;
+            // Charger les jeux pour le filtre
+            try {
+                const games = await this.getAllGames();
+                games.forEach(game => {
+                    const option = document.createElement('option');
+                    option.value = game.id;
+                    option.textContent = game.title;
+                    gameFilter.appendChild(option);
+                });
+            } catch (error) {
+                console.warn('⚠️ Impossible de charger la liste des jeux:', error);
+                // Continuer sans les jeux
+            }
 
-        // Charger les jeux pour le filtre
-        const games = await this.getAllGames();
-        games.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game.id;
-            option.textContent = game.title;
-            gameFilter.appendChild(option);
-        });
+            // Fonction de recherche avec gestion d'erreurs
+            const performSearch = async () => {
+                if (isLoading) return;
+                
+                try {
+                    isLoading = true;
+                    const query = searchInput.value;
+                    const gameId = gameFilter.value;
+                    const category = categoryFilter.value;
 
-        // Fonction de recherche
-        const performSearch = async () => {
-            const query = searchInput.value;
-            const gameId = gameFilter.value;
-            const category = categoryFilter.value;
+                    mediaGrid.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Recherche en cours...</div></div>';
+                    loadMoreBtn.style.display = 'none';
 
-            mediaGrid.innerHTML = '<div class="loading">Recherche en cours...</div>';
-            loadMoreBtn.style.display = 'none'; // Masquer le bouton "Charger plus" pendant la recherche
+                    console.log('🔍 Recherche avec filtres:', { query, gameId, category });
 
-            console.log('�� Recherche avec filtres:', { query, gameId, category });
+                    const medias = await this.searchMedia(query, {
+                        game_id: gameId || null,
+                        category: category || null,
+                        limit: 100,
+                        page: currentPage
+                    });
 
-            const medias = await this.searchMedia(query, {
-                game_id: gameId || null,
-                category: category || null,
-                limit: 100, // Augmenter la limite pour afficher plus de médias
-                page: currentPage // Passer le numéro de page
+                    currentMedias = medias;
+                    totalMedias = medias.length;
+                    mediaCountSpan.textContent = totalMedias;
+                    
+                    this.renderMediaGrid(mediaGrid, medias, selectedMedia, allowMultiple, (newSelectedMedia) => {
+                        selectedMedia = newSelectedMedia;
+                        this.updateSelectButton(selectedMedia, allowMultiple);
+                    });
+
+                    if (totalMedias > 100) {
+                        loadMoreBtn.style.display = 'block';
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+
+                } catch (error) {
+                    console.error('❌ Erreur lors de la recherche:', error);
+                    mediaGrid.innerHTML = `
+                        <div class="error-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>Erreur lors de la recherche</div>
+                            <button type="button" class="btn btn-secondary" onclick="performSearch()">
+                                Réessayer
+                            </button>
+                        </div>
+                    `;
+                    this.errorHandler.handleError(error, 'media_search');
+                } finally {
+                    isLoading = false;
+                }
+            };
+
+            // Événements de recherche avec debounce
+            searchInput.addEventListener('input', debounce(performSearch, 300));
+            gameFilter.addEventListener('change', performSearch);
+            categoryFilter.addEventListener('change', performSearch);
+            searchBtn.addEventListener('click', performSearch);
+
+            // Événements de fermeture
+            closeBtn.addEventListener('click', () => {
+                modal.dispatchEvent(new CustomEvent('mediaSelectorClosed'));
             });
 
-            currentMedias = medias;
-            totalMedias = medias.length; // Mettre à jour le total
-            mediaCountSpan.textContent = totalMedias;
-            console.log(`📚 ${medias.length} médias chargés dans la grille`);
-            
-            this.renderMediaGrid(mediaGrid, medias, selectedMedia, allowMultiple, (newSelectedMedia) => {
-                selectedMedia = newSelectedMedia;
-                this.updateSelectButton(selectedMedia, allowMultiple);
+            cancelBtn.addEventListener('click', () => {
+                modal.dispatchEvent(new CustomEvent('mediaSelectorClosed'));
             });
 
-            // Afficher le bouton "Charger plus" si le total est supérieur à la limite
-            if (totalMedias > 100) { // Par exemple, si 150 médias sont trouvés, mais la limite est 100
-                loadMoreBtn.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'none';
-            }
-        };
+            // Événement de chargement plus
+            loadMoreBtn.addEventListener('click', async () => {
+                if (isLoading) return;
+                currentPage++;
+                await performSearch();
+            });
 
-        // Événements de recherche
-        searchInput.addEventListener('input', debounce(performSearch, 300));
-        gameFilter.addEventListener('change', performSearch);
-        categoryFilter.addEventListener('change', performSearch);
-        searchBtn.addEventListener('click', performSearch);
+            // Événement de sélection
+            selectBtn.addEventListener('click', () => {
+                if (selectedMedia) {
+                    modal.dispatchEvent(new CustomEvent('mediaSelected', {
+                        detail: selectedMedia
+                    }));
+                }
+            });
 
-        // Événements de fermeture
-        closeBtn.addEventListener('click', () => {
-            modal.dispatchEvent(new CustomEvent('mediaSelectorClosed'));
-        });
-
-        cancelBtn.addEventListener('click', () => {
-            modal.dispatchEvent(new CustomEvent('mediaSelectorClosed'));
-        });
-
-        // Événement de chargement plus
-        loadMoreBtn.addEventListener('click', async () => {
-            currentPage++;
+            // Recherche initiale
             await performSearch();
-        });
 
-        // Événement de sélection
-        selectBtn.addEventListener('click', () => {
-            console.log('🔘 Bouton sélectionner cliqué, selectedMedia:', selectedMedia);
-            if (selectedMedia) {
-                console.log('✅ Déclenchement de l\'événement mediaSelected');
-                modal.dispatchEvent(new CustomEvent('mediaSelected', {
-                    detail: selectedMedia
-                }));
-            } else {
-                console.log('❌ Aucun média sélectionné');
-            }
-        });
-
-        // Événement de chargement plus
-        loadMoreBtn.addEventListener('click', async () => {
-            currentPage++;
-            await performSearch();
-        });
-
-        // Recherche initiale
-        await performSearch();
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'initialisation du sélecteur:', error);
+            modal.dispatchEvent(new CustomEvent('mediaSelectorError', {
+                detail: error
+            }));
+        }
     }
 
     /**
-     * Rendre la grille de médias
+     * Rendre la grille de médias avec gestion d'erreurs
      */
     renderMediaGrid(container, medias, selectedMedia, allowMultiple = false, onSelectionChange = null) {
         if (medias.length === 0) {
-            container.innerHTML = '<div class="no-results">Aucun média trouvé</div>';
+            container.innerHTML = `
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <div>Aucun média trouvé</div>
+                    <div class="no-results-hint">Essayez de modifier vos critères de recherche</div>
+                </div>
+            `;
             return;
         }
 
@@ -346,47 +433,52 @@ class MediaLibraryAPI {
                     <div class="media-preview">
                         <img src="/public/uploads.php?file=${encodeURIComponent(media.filename)}" 
                              alt="${media.original_name}" 
-                             class="media-thumbnail">
+                             class="media-thumbnail"
+                             loading="lazy"
+                             onerror="this.src='/public/images/default-article.jpg'">
                         ${allowMultiple ? '<div class="selection-indicator">✓</div>' : ''}
                     </div>
                     <div class="media-info">
-                        <div class="media-name">${media.original_name}</div>
+                        <div class="media-name" title="${media.original_name}">${media.original_name}</div>
                         <div class="media-details">
-                            ${media.formatted_size} • ${media.mime_type}
+                            <i class="fas fa-file"></i> ${media.formatted_size} • ${media.mime_type}
                         </div>
+                        ${media.game_id ? `<div class="media-game"><i class="fas fa-gamepad"></i> Jeu associé</div>` : ''}
                     </div>
                 </div>
             `;
         }).join('');
 
-        // Événements de sélection
+        // Événements de sélection avec gestion d'erreurs
         container.querySelectorAll('.media-item').forEach(item => {
             item.addEventListener('click', () => {
-                const mediaId = item.dataset.mediaId;
-                const media = medias.find(m => m.id == mediaId);
-                
-                if (media) {
-                    console.log('🎯 Média sélectionné:', media);
+                try {
+                    const mediaId = item.dataset.mediaId;
+                    const media = medias.find(m => m.id == mediaId);
                     
-                    if (allowMultiple) {
-                        // Sélection multiple
-                        const index = selectedMedia.findIndex(m => m.id === media.id);
-                        if (index > -1) {
-                            selectedMedia.splice(index, 1); // Désélectionner
+                    if (media) {
+                        console.log('🎯 Média sélectionné:', media);
+                        
+                        if (allowMultiple) {
+                            const index = selectedMedia.findIndex(m => m.id === media.id);
+                            if (index > -1) {
+                                selectedMedia.splice(index, 1);
+                            } else {
+                                selectedMedia.push(media);
+                            }
+                            this.updateMediaSelection(container, selectedMedia, allowMultiple);
                         } else {
-                            selectedMedia.push(media); // Sélectionner
+                            selectedMedia = media;
+                            this.updateMediaSelection(container, media);
                         }
-                        this.updateMediaSelection(container, selectedMedia, allowMultiple);
-                    } else {
-                        // Sélection unique
-                        selectedMedia = media;
-                        this.updateMediaSelection(container, media);
+                        
+                        if (onSelectionChange) {
+                            onSelectionChange(selectedMedia);
+                        }
                     }
-                    
-                    // Appeler le callback si fourni
-                    if (onSelectionChange) {
-                        onSelectionChange(selectedMedia);
-                    }
+                } catch (error) {
+                    console.error('❌ Erreur lors de la sélection:', error);
+                    this.errorHandler.handleError(error, 'media_selection');
                 }
             });
         });
@@ -428,7 +520,7 @@ class MediaLibraryAPI {
     }
 
     /**
-     * Ajouter les styles CSS
+     * Ajouter les styles CSS améliorés
      */
     addMediaSelectorStyles() {
         if (document.getElementById('media-selector-styles')) return;
@@ -446,6 +538,7 @@ class MediaLibraryAPI {
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             }
 
             .media-selector-overlay {
@@ -454,146 +547,196 @@ class MediaLibraryAPI {
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background: rgba(0, 0, 0, 0.7);
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(10px);
             }
 
             .media-selector-container {
                 position: relative;
                 width: 90%;
-                max-width: 800px;
-                max-height: 80vh;
+                max-width: 900px;
+                max-height: 85vh;
                 background: white;
-                border-radius: 12px;
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                border-radius: 20px;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
                 display: flex;
                 flex-direction: column;
+                overflow: hidden;
             }
 
             .media-selector-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 20px;
+                padding: 25px 30px;
                 border-bottom: 1px solid #eee;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
             }
 
             .media-selector-header h3 {
                 margin: 0;
-                color: #333;
+                font-size: 1.5rem;
+                font-weight: 600;
             }
 
             .close-btn {
-                background: none;
+                background: rgba(255, 255, 255, 0.2);
                 border: none;
+                color: white;
                 font-size: 20px;
                 cursor: pointer;
-                padding: 5px;
-                border-radius: 5px;
+                padding: 10px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
             }
 
             .close-btn:hover {
-                background: #f5f5f5;
+                background: rgba(255, 255, 255, 0.3);
+                transform: scale(1.1);
             }
 
             .media-selector-body {
                 flex: 1;
-                padding: 20px;
+                padding: 30px;
                 overflow-y: auto;
             }
 
             .search-section {
-                margin-bottom: 20px;
+                margin-bottom: 30px;
             }
 
             .search-row {
                 display: grid;
                 grid-template-columns: 1fr auto auto auto;
-                gap: 10px;
+                gap: 15px;
                 align-items: center;
+                margin-bottom: 15px;
             }
 
             .search-input {
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 14px;
+                padding: 15px 20px;
+                border: 2px solid #e1e5e9;
+                border-radius: 12px;
+                font-size: 16px;
+                transition: all 0.3s ease;
+            }
+
+            .search-input:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
 
             .filter-select {
-                padding: 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                font-size: 14px;
-                min-width: 150px;
+                padding: 15px 20px;
+                border: 2px solid #e1e5e9;
+                border-radius: 12px;
+                font-size: 16px;
+                min-width: 180px;
+                background: white;
+                transition: all 0.3s ease;
+            }
+
+            .filter-select:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
 
             .search-btn {
-                padding: 10px 15px;
-                background: #007bff;
+                padding: 15px 25px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
                 border: none;
-                border-radius: 5px;
+                border-radius: 12px;
                 cursor: pointer;
+                font-size: 16px;
+                font-weight: 600;
+                transition: all 0.3s ease;
             }
 
             .search-btn:hover {
-                background: #0056b3;
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            }
+
+            .search-help {
+                font-size: 14px;
+                color: #666;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
 
             .media-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 20px;
             }
 
             .media-item {
-                border: 2px solid #eee;
-                border-radius: 8px;
-                padding: 10px;
+                border: 2px solid #e1e5e9;
+                border-radius: 15px;
+                padding: 15px;
                 cursor: pointer;
-                transition: all 0.2s;
+                transition: all 0.3s ease;
+                background: white;
+                position: relative;
+                overflow: hidden;
             }
 
             .media-item:hover {
-                border-color: #007bff;
-                transform: translateY(-2px);
+                border-color: #667eea;
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px rgba(102, 126, 234, 0.15);
             }
 
             .media-item.selected {
                 border-color: #28a745;
-                background: #f8fff9;
+                background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+                transform: translateY(-5px);
+                box-shadow: 0 15px 30px rgba(40, 167, 69, 0.15);
             }
 
             .media-item.selected .selection-indicator {
-                display: block;
+                display: flex;
             }
 
             .selection-indicator {
                 position: absolute;
-                top: 5px;
-                right: 5px;
-                width: 20px;
-                height: 20px;
+                top: 10px;
+                right: 10px;
+                width: 25px;
+                height: 25px;
                 background: #28a745;
                 color: white;
                 border-radius: 50%;
                 display: none;
                 align-items: center;
                 justify-content: center;
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: bold;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             }
 
             .media-preview {
-                margin-bottom: 10px;
+                margin-bottom: 15px;
                 position: relative;
+                border-radius: 10px;
+                overflow: hidden;
             }
 
             .media-thumbnail {
                 width: 100%;
-                height: 120px;
+                height: 140px;
                 object-fit: cover;
-                border-radius: 5px;
+                border-radius: 10px;
+                transition: transform 0.3s ease;
+            }
+
+            .media-item:hover .media-thumbnail {
+                transform: scale(1.05);
             }
 
             .media-info {
@@ -602,57 +745,75 @@ class MediaLibraryAPI {
 
             .media-name {
                 font-weight: 600;
-                margin-bottom: 5px;
-                font-size: 12px;
+                margin-bottom: 8px;
+                font-size: 14px;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+                color: #333;
             }
 
             .media-details {
-                font-size: 11px;
+                font-size: 12px;
                 color: #666;
+                margin-bottom: 8px;
+            }
+
+            .media-game {
+                font-size: 12px;
+                color: #667eea;
+                font-weight: 500;
             }
 
             .media-selector-footer {
                 display: flex;
-                justify-content: space-between; /* Changed to space-between */
-                align-items: center; /* Added to align items */
-                gap: 10px;
-                padding: 20px;
+                justify-content: space-between;
+                align-items: center;
+                padding: 25px 30px;
                 border-top: 1px solid #eee;
+                background: #f8f9fa;
             }
 
             .media-count {
                 font-size: 14px;
                 color: #666;
+                font-weight: 500;
             }
 
             .footer-actions {
                 display: flex;
-                gap: 10px;
+                gap: 15px;
             }
 
             .btn {
-                padding: 10px 20px;
+                padding: 12px 24px;
                 border: none;
-                border-radius: 5px;
+                border-radius: 10px;
                 cursor: pointer;
                 font-size: 14px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
             }
 
             .btn-primary {
-                background: #007bff;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
             }
 
             .btn-primary:hover:not(:disabled) {
-                background: #0056b3;
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
             }
 
             .btn-primary:disabled {
                 background: #ccc;
                 cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
             }
 
             .btn-secondary {
@@ -661,23 +822,325 @@ class MediaLibraryAPI {
             }
 
             .btn-secondary:hover {
-                background: #545b62;
+                background: #5a6268;
+                transform: translateY(-2px);
             }
 
             .loading {
                 text-align: center;
-                padding: 40px;
+                padding: 60px 20px;
                 color: #666;
+            }
+
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #667eea;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            }
+
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
             }
 
             .no-results {
                 text-align: center;
-                padding: 40px;
+                padding: 60px 20px;
                 color: #666;
+            }
+
+            .no-results i {
+                font-size: 3rem;
+                margin-bottom: 20px;
+                opacity: 0.5;
+            }
+
+            .no-results-hint {
+                font-size: 14px;
+                color: #999;
+                margin-top: 10px;
+            }
+
+            .error-state {
+                text-align: center;
+                padding: 60px 20px;
+                color: #dc3545;
+            }
+
+            .error-state i {
+                font-size: 3rem;
+                margin-bottom: 20px;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .media-selector-container {
+                    width: 95%;
+                    max-height: 90vh;
+                }
+
+                .search-row {
+                    grid-template-columns: 1fr;
+                    gap: 10px;
+                }
+
+                .media-grid {
+                    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                    gap: 15px;
+                }
+
+                .media-selector-header,
+                .media-selector-body,
+                .media-selector-footer {
+                    padding: 20px;
+                }
             }
         `;
 
         document.head.appendChild(style);
+    }
+}
+
+/**
+ * Gestionnaire d'erreurs pour l'API des médias
+ */
+class MediaErrorHandler {
+    constructor() {
+        this.errorTypes = {
+            'search': 'Recherche de médias',
+            'game_search': 'Recherche de jeux',
+            'get_media': 'Récupération de média',
+            'get_games': 'Récupération de jeux',
+            'media_selector': 'Sélecteur de médias',
+            'modal_creation': 'Création de modal',
+            'media_search': 'Recherche dans le sélecteur',
+            'media_selection': 'Sélection de média'
+        };
+    }
+
+    /**
+     * Gérer une erreur avec contexte
+     */
+    handleError(error, context) {
+        const contextName = this.errorTypes[context] || 'Opération';
+        const errorMessage = this.formatErrorMessage(error, contextName);
+        
+        console.error(`❌ ${contextName}:`, error);
+        
+        // Afficher une notification d'erreur
+        if (window.NotificationManager) {
+            window.NotificationManager.showError(errorMessage);
+        }
+        
+        // Envoyer l'erreur à un service de monitoring si disponible
+        this.logError(error, context);
+    }
+
+    /**
+     * Formater le message d'erreur pour l'utilisateur
+     */
+    formatErrorMessage(error, contextName) {
+        if (error.message.includes('connexion')) {
+            return `Erreur de connexion lors de ${contextName.toLowerCase()}. Vérifiez votre connexion internet.`;
+        }
+        
+        if (error.message.includes('JSON')) {
+            return `Erreur de communication avec le serveur lors de ${contextName.toLowerCase()}.`;
+        }
+        
+        if (error.message.includes('HTTP')) {
+            return `Erreur serveur lors de ${contextName.toLowerCase()}. Réessayez dans quelques minutes.`;
+        }
+        
+        return `Une erreur est survenue lors de ${contextName.toLowerCase()}: ${error.message}`;
+    }
+
+    /**
+     * Logger l'erreur pour le debugging
+     */
+    logError(error, context) {
+        const errorLog = {
+            timestamp: new Date().toISOString(),
+            context: context,
+            message: error.message,
+            stack: error.stack,
+            userAgent: navigator.userAgent,
+            url: window.location.href
+        };
+        
+        // Envoyer à un service de monitoring ou stocker localement
+        console.group('📊 Erreur MediaLibrary');
+        console.log('Contexte:', context);
+        console.log('Message:', error.message);
+        console.log('Stack:', error.stack);
+        console.log('Timestamp:', errorLog.timestamp);
+        console.groupEnd();
+    }
+}
+
+/**
+ * Gestionnaire de notifications pour l'API des médias
+ */
+class NotificationManager {
+    constructor() {
+        this.notifications = [];
+        this.container = this.createContainer();
+    }
+
+    /**
+     * Créer le conteneur de notifications
+     */
+    createContainer() {
+        const container = document.createElement('div');
+        container.id = 'media-notifications';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10002;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        `;
+        document.body.appendChild(container);
+        return container;
+    }
+
+    /**
+     * Afficher une notification de succès
+     */
+    showSuccess(message, duration = 4000) {
+        this.showNotification(message, 'success', duration);
+    }
+
+    /**
+     * Afficher une notification d'erreur
+     */
+    showError(message, duration = 6000) {
+        this.showNotification(message, 'error', duration);
+    }
+
+    /**
+     * Afficher une notification d'avertissement
+     */
+    showWarning(message, duration = 5000) {
+        this.showNotification(message, 'warning', duration);
+    }
+
+    /**
+     * Afficher une notification d'information
+     */
+    showInfo(message, duration = 4000) {
+        this.showNotification(message, 'info', duration);
+    }
+
+    /**
+     * Afficher une notification
+     */
+    showNotification(message, type = 'info', duration = 4000) {
+        const notification = document.createElement('div');
+        notification.className = `media-notification ${type}`;
+        
+        const icon = this.getIconForType(type);
+        
+        notification.innerHTML = `
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <div class="notification-message">${message}</div>
+            </div>
+            <button class="notification-close">×</button>
+        `;
+
+        // Styles de la notification
+        notification.style.cssText = `
+            background: ${this.getBackgroundForType(type)};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: 100%;
+        `;
+
+        // Ajouter au conteneur
+        this.container.appendChild(notification);
+
+        // Animation d'entrée
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+            notification.style.opacity = '1';
+        }, 100);
+
+        // Gestionnaire de fermeture
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            this.removeNotification(notification);
+        });
+
+        // Auto-fermeture
+        if (duration > 0) {
+            setTimeout(() => {
+                this.removeNotification(notification);
+            }, duration);
+        }
+
+        // Stocker la référence
+        this.notifications.push(notification);
+    }
+
+    /**
+     * Supprimer une notification
+     */
+    removeNotification(notification) {
+        notification.style.transform = 'translateX(100%)';
+        notification.style.opacity = '0';
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+            
+            const index = this.notifications.indexOf(notification);
+            if (index > -1) {
+                this.notifications.splice(index, 1);
+            }
+        }, 300);
+    }
+
+    /**
+     * Obtenir l'icône pour le type de notification
+     */
+    getIconForType(type) {
+        const icons = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+        return icons[type] || icons.info;
+    }
+
+    /**
+     * Obtenir la couleur de fond pour le type de notification
+     */
+    getBackgroundForType(type) {
+        const backgrounds = {
+            success: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+            error: 'linear-gradient(135deg, #dc3545 0%, #fd7e14 100%)',
+            warning: 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)',
+            info: 'linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%)'
+        };
+        return backgrounds[type] || backgrounds.info;
     }
 }
 
@@ -698,3 +1161,5 @@ function debounce(func, wait) {
 
 // Rendre disponible globalement
 window.MediaLibraryAPI = MediaLibraryAPI;
+window.MediaErrorHandler = MediaErrorHandler;
+window.NotificationManager = NotificationManager;
