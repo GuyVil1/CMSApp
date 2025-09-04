@@ -2290,9 +2290,9 @@
                                 <button type="button" class="btn btn-info" onclick="uploadChapterCover(this)" title="Uploader image de couverture">
                                     <span class="icon">🖼️</span> Image de couverture
                                 </button>
-                                <button type="button" class="btn btn-${chapter.status === 'published' ? 'warning' : 'success'}" 
-                                        onclick="toggleChapterStatus(this, '${chapter.id}')" title="${chapter.status === 'published' ? 'Mettre en brouillon' : 'Publier'}">
-                                    <span class="icon">${chapter.status === 'published' ? '📝' : '📤'}</span> ${chapter.status === 'published' ? 'Dépublier' : 'Publier'}
+                                <button type="button" class="btn btn-${(chapter.status || 'draft') === 'published' ? 'warning' : 'success'}" 
+                                        onclick="toggleChapterStatus(this, '${chapter.id}')" title="${(chapter.status || 'draft') === 'published' ? 'Mettre en brouillon' : 'Publier'}">
+                                    <span class="icon">${(chapter.status || 'draft') === 'published' ? '📝' : '📤'}</span> ${(chapter.status || 'draft') === 'published' ? 'Dépublier' : 'Publier'}
                                 </button>
                                 <button type="button" class="btn btn-danger" onclick="deleteChapter(this, '${chapter.id}')" title="Supprimer le chapitre">
                                     <span class="icon">🗑️</span> Supprimer
@@ -2302,7 +2302,7 @@
                         
                         <div class="chapter-content">
                             <div class="chapter-preview">
-                                <span class="chapter-status ${chapter.status || 'draft'}">${chapter.status === 'published' ? 'Publié' : 'Brouillon'}</span>
+                                <span class="chapter-status ${chapter.status || 'draft'}">${(chapter.status || 'draft') === 'published' ? 'Publié' : 'Brouillon'}</span>
                                 <span class="chapter-excerpt">${chapter.content ? (chapter.content.substring(0, 100) + (chapter.content.length > 100 ? '...' : '')) : 'Aucun contenu rédigé'}</span>
                             </div>
                             
@@ -2474,7 +2474,8 @@
                 
                 // Fonction pour basculer le statut d'un chapitre (Publier/Dépublier)
                 window.toggleChapterStatus = function(button, chapterId) {
-                    const chapterItem = button.closest('.chapter-item');
+                    console.log('🔄 toggleChapterStatus appelé avec chapterId:', chapterId);
+                    const chapterItem = button.closest('.chapter-item, .chapter-list-item');
                     const statusBadge = chapterItem.querySelector('.chapter-status');
                     const currentStatus = statusBadge.textContent;
                     const newStatus = currentStatus === 'Brouillon' ? 'published' : 'draft';
@@ -2502,6 +2503,7 @@
                 
                 // Fonction pour mettre à jour le statut d'un chapitre dans la base de données
                 function updateChapterStatus(chapterId, newStatus) {
+                    console.log('💾 updateChapterStatus appelé avec chapterId:', chapterId, 'newStatus:', newStatus);
                     const formData = new FormData();
                     formData.append('chapter_id', chapterId);
                     formData.append('status', newStatus);
@@ -2526,6 +2528,23 @@
                         location.reload();
                     });
                 }
+                
+                // Fonction pour basculer le statut d'un chapitre depuis la liste principale
+                window.toggleChapterStatusFromList = function(button) {
+                    const chapterItem = button.closest('.chapter-list-item');
+                    const chapterId = chapterItem.dataset.chapterId;
+                    
+                    if (!chapterId) {
+                        console.error('❌ ChapterId non trouvé dans la liste');
+                        showNotification('❌ Erreur : ID du chapitre non trouvé', 'error');
+                        return;
+                    }
+                    
+                    console.log('🔄 toggleChapterStatusFromList appelé avec chapterId:', chapterId);
+                    
+                    // Appeler la fonction principale avec le chapterId
+                    window.toggleChapterStatus(button, chapterId);
+                };
                 
                 // Fonction pour supprimer un chapitre depuis la liste
                 window.deleteChapterFromList = function(button) {
@@ -3093,7 +3112,10 @@
                         const slug = chapterItem.querySelector('.chapter-slug').value.trim();
                         const content = chapterItem.dataset.chapterContent || '';
                         const coverImageId = chapterItem.dataset.coverImageId || null;
-                        const status = 'draft'; // Par défaut en brouillon
+                        // Préserver le statut actuel du chapitre
+                        const statusElement = chapterItem.querySelector('.chapter-status');
+                        const currentStatus = statusElement ? statusElement.textContent.trim() : 'Brouillon';
+                        const status = currentStatus === 'Publié' ? 'published' : 'draft';
                         
                         return {
                             title: title,
@@ -3248,7 +3270,7 @@
                                 <button type="button" class="btn btn-sm btn-primary" onclick="editChapterFromList(this)" title="Modifier le contenu">
                                     <span class="icon">✏️</span>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-warning" onclick="toggleChapterStatus(this)" title="Publier/Dépublier">
+                                <button type="button" class="btn btn-sm btn-warning" onclick="toggleChapterStatusFromList(this)" title="Publier/Dépublier">
                                     <span class="icon">📢</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-danger" onclick="deleteChapterFromList(this)" title="Supprimer">

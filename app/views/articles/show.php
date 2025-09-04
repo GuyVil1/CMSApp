@@ -79,42 +79,6 @@ $pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet ar
     <?php endif; ?>
 </div>
 
-<!-- Navigation des chapitres (pour les dossiers) -->
-<?php if (isset($isDossier) && $isDossier && !empty($dossierChapters)): ?>
-    <div class="dossier-chapters-navigation">
-        <div class="chapters-navigation-header">
-            <h2 class="chapters-title">📚 Chapitres du dossier</h2>
-            <p class="chapters-subtitle">Découvrez tous les chapitres de ce dossier</p>
-        </div>
-        
-        <div class="chapters-grid">
-            <?php foreach ($dossierChapters as $index => $chapter): ?>
-                <div class="chapter-card">
-                    <div class="chapter-number"><?= $index + 1 ?></div>
-                    <div class="chapter-content">
-                        <h3 class="chapter-title">
-                            <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($chapter['slug']) ?>" 
-                               class="chapter-link">
-                                <?= htmlspecialchars($chapter['title']) ?>
-                            </a>
-                        </h3>
-                        <div class="chapter-meta">
-                            <span class="chapter-status published">Publié</span>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        
-        <div class="chapters-navigation-actions">
-            <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($dossierChapters[0]['slug']) ?>" 
-               class="btn btn-primary">
-                Commencer la lecture
-            </a>
-        </div>
-    </div>
-<?php endif; ?>
-
 <!-- Contenu de l'article -->
 <div class="article-content">
     <?php if ($cleanedContent): ?>
@@ -127,6 +91,55 @@ $pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet ar
         </div>
     <?php endif; ?>
 </div>
+
+<!-- Navigation des chapitres (pour les dossiers) -->
+<?php if (isset($isDossier) && $isDossier && !empty($dossierChapters)): ?>
+    <div class="dossier-chapters-navigation">
+        <div class="chapters-header">
+            <h2 class="chapters-title">📚 Chapitres du dossier</h2>
+            <p class="chapters-subtitle">Découvrez tous les chapitres de ce dossier</p>
+        </div>
+        
+        <div class="chapters-grid">
+            <?php foreach ($dossierChapters as $index => $chapter): ?>
+                <div class="chapter-card">
+                    <div class="chapter-image">
+                        <?php if (!empty($chapter['cover_image'])): ?>
+                            <img src="/uploads.php?file=<?= urlencode($chapter['cover_image']) ?>" 
+                                 alt="<?= htmlspecialchars($chapter['title']) ?>">
+                        <?php else: ?>
+                            <img src="/public/assets/images/default-article.jpg" 
+                                 alt="<?= htmlspecialchars($chapter['title']) ?>">
+                        <?php endif; ?>
+                        <div class="chapter-number"><?= $index + 1 ?></div>
+                    </div>
+                    <div class="chapter-content">
+                        <h3 class="chapter-title">
+                            <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($chapter['slug']) ?>" 
+                               class="chapter-link">
+                                <?= htmlspecialchars($chapter['title']) ?>
+                            </a>
+                        </h3>
+                        <?php if (!empty($chapter['excerpt'])): ?>
+                            <p class="chapter-excerpt"><?= htmlspecialchars($chapter['excerpt']) ?></p>
+                        <?php endif; ?>
+                        <div class="chapter-meta">
+                            <span class="chapter-reading-time">⏱️ <?= $chapter['reading_time'] ?? 5 ?> min</span>
+                            <span class="chapter-status published">Publié</span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        
+        <div class="chapters-actions">
+            <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($dossierChapters[0]['slug']) ?>" 
+               class="btn btn-primary">
+                Commencer la lecture
+            </a>
+        </div>
+    </div>
+<?php endif; ?>
 
 <!-- Actions de l'article (pour les admins/éditeurs) -->
 <?php if (Auth::hasAnyRole(['admin', 'editor'])): ?>

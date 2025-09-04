@@ -162,7 +162,7 @@ $pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. 
                                         <?php echo htmlspecialchars($article['category_name'] ?? 'NEWS'); ?>
                                     </span>
                                     <span class="article-date">
-                                        <?php echo date('d/m/Y', strtotime($article['published_at'])); ?>
+                                        <?php echo date('d/m/Y', strtotime($article['published_at'] ?? $article['created_at'])); ?>
                                     </span>
                                 </div>
                                 <h3 class="article-title"><?php echo htmlspecialchars($article['title']); ?></h3>

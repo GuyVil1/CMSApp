@@ -96,7 +96,7 @@ class HomeController extends Controller
     {
         $sql = "
             SELECT 
-                a.id, a.title, a.slug, a.excerpt, a.status, a.published_at,
+                a.id, a.title, a.slug, a.excerpt, a.status, a.published_at, a.created_at,
                 a.featured_position, a.author_id, a.category_id, a.game_id,
                 c.name as category_name, c.color as category_color,
                 u.login as author_name,
@@ -123,7 +123,7 @@ class HomeController extends Controller
     {
         $sql = "
             SELECT 
-                a.id, a.title, a.slug, a.excerpt, a.status, a.published_at,
+                a.id, a.title, a.slug, a.excerpt, a.status, a.published_at, a.created_at,
                 a.author_id, a.category_id, a.game_id,
                 c.name as category_name, c.color as category_color,
                 u.login as author_name,
@@ -189,7 +189,7 @@ class HomeController extends Controller
     {
         $sql = "
             SELECT 
-                a.id, a.title, a.slug, a.excerpt, a.published_at,
+                a.id, a.title, a.slug, a.excerpt, a.published_at, a.created_at,
                 c.name as category_name,
                 u.login as author_name,
                 m.filename as cover_image
@@ -425,7 +425,7 @@ class HomeController extends Controller
     private function getPopularArticles(): array
     {
         $sql = "
-            SELECT a.id, a.title, a.slug, a.excerpt, a.published_at,
+            SELECT a.id, a.title, a.slug, a.excerpt, a.published_at, a.created_at,
                    c.name as category_name, c.color as category_color,
                    u.login as author_name,
                    m.filename as cover_image
@@ -450,10 +450,15 @@ class HomeController extends Controller
             error_log("🔍 getDossierChapters appelé avec dossier ID: " . $dossierId);
             
             $sql = "
-                SELECT id, title, slug, content, cover_image_id, status, chapter_order, created_at, updated_at
-                FROM dossier_chapters 
-                WHERE dossier_id = ? AND status = 'published'
-                ORDER BY chapter_order ASC
+                SELECT 
+                    dc.id, dc.title, dc.slug, dc.content, dc.excerpt, dc.chapter_order, 
+                    dc.reading_time, dc.created_at, dc.updated_at,
+                    m.filename as cover_image,
+                    m.original_name as cover_image_name
+                FROM dossier_chapters dc
+                LEFT JOIN media m ON dc.cover_image_id = m.id
+                WHERE dc.dossier_id = ? AND dc.status = 'published'
+                ORDER BY dc.chapter_order ASC
             ";
             
             $chapters = Database::query($sql, [$dossierId]);
@@ -603,7 +608,8 @@ class HomeController extends Controller
                     '/public/assets/css/components/content-modules.css',
                     '/public/assets/css/components/article-hero.css',
                     '/public/assets/css/components/article-meta.css',
-                    '/public/assets/css/components/dossier-chapters.css'
+                    '/public/assets/css/components/dossier-chapters.css',
+                    '/public/assets/css/components/chapter-navigation.css'
                 ],
                 'additionalJS' => [],
                 'content' => $this->renderPartial('chapters/show', [
