@@ -505,31 +505,23 @@ class GalleryModule extends BaseModule {
         
         return `
             <div class="gallery-carousel ${spacingClass} ${captionsClass}">
-                <div class="carousel-container">
-                    <div class="carousel-track">
-                        ${this.galleryData.images.map((image, index) => `
-                            <div class="carousel-slide" data-index="${index}">
-                                ${this.renderGalleryImage(image)}
-                            </div>
-                        `).join('')}
-                    </div>
+                <div class="carousel-track">
+                    ${this.galleryData.images.map((image, index) => `
+                        <div class="carousel-slide" data-index="${index}">
+                            ${this.renderGalleryImage(image)}
+                        </div>
+                    `).join('')}
                 </div>
                 
                 ${this.galleryData.images.length > 1 ? `
-                    <div class="carousel-controls">
-                        <button type="button" class="carousel-btn carousel-prev" aria-label="Image précédente">
-                            <span class="icon">⬅️</span>
-                        </button>
-                        <div class="carousel-indicators">
-                            ${this.galleryData.images.map((_, index) => `
-                                <button type="button" class="carousel-indicator ${index === 0 ? 'active' : ''}" data-index="${index}" aria-label="Image ${index + 1}">
-                                    <span class="indicator-dot"></span>
-                                </button>
-                            `).join('')}
-                        </div>
-                        <button type="button" class="carousel-btn carousel-next" aria-label="Image suivante">
-                            <span class="icon">➡️</span>
-                        </button>
+                    <button type="button" class="carousel-nav carousel-prev" aria-label="Image précédente">
+                        <span class="icon">⬅️</span>
+                    </button>
+                    <button type="button" class="carousel-nav carousel-next" aria-label="Image suivante">
+                        <span class="icon">➡️</span>
+                    </button>
+                    <div class="carousel-counter">
+                        <span class="current-slide">1</span> / <span class="total-slides">${this.galleryData.images.length}</span>
                     </div>
                 ` : ''}
             </div>
@@ -559,27 +551,23 @@ class GalleryModule extends BaseModule {
         
         return `
             <div class="gallery-slider ${spacingClass} ${captionsClass}">
-                <div class="slider-container">
-                    <div class="slider-track">
-                        ${this.galleryData.images.map((image, index) => `
-                            <div class="slider-slide" data-index="${index}">
-                                ${this.renderGalleryImage(image)}
-                            </div>
-                        `).join('')}
-                    </div>
+                <div class="slider-track">
+                    ${this.galleryData.images.map((image, index) => `
+                        <div class="slider-slide" data-index="${index}">
+                            ${this.renderGalleryImage(image)}
+                        </div>
+                    `).join('')}
                 </div>
                 
                 ${this.galleryData.images.length > 1 ? `
-                    <div class="slider-controls">
-                        <button type="button" class="slider-btn slider-prev" aria-label="Image précédente">
-                            <span class="icon">⬅️</span>
-                        </button>
-                        <div class="slider-counter">
-                            <span class="current-slide">1</span> / <span class="total-slides">${this.galleryData.images.length}</span>
-                        </div>
-                        <button type="button" class="slider-btn slider-next" aria-label="Image suivante">
-                            <span class="icon">➡️</span>
-                        </button>
+                    <button type="button" class="slider-nav slider-prev" aria-label="Image précédente">
+                        <span class="icon">⬅️</span>
+                    </button>
+                    <button type="button" class="slider-nav slider-next" aria-label="Image suivante">
+                        <span class="icon">➡️</span>
+                    </button>
+                    <div class="slider-counter">
+                        <span class="current-slide">1</span> / <span class="total-slides">${this.galleryData.images.length}</span>
                     </div>
                 ` : ''}
             </div>
@@ -594,7 +582,8 @@ class GalleryModule extends BaseModule {
         const slides = carousel.querySelectorAll('.carousel-slide');
         const prevBtn = carousel.querySelector('.carousel-prev');
         const nextBtn = carousel.querySelector('.carousel-next');
-        const indicators = carousel.querySelectorAll('.carousel-indicator');
+        const counter = carousel.querySelector('.carousel-counter');
+        const currentSlideSpan = counter?.querySelector('.current-slide');
 
         let currentIndex = 0;
         const totalSlides = slides.length;
@@ -611,31 +600,26 @@ class GalleryModule extends BaseModule {
             // Mettre à jour la position du track
             track.style.transform = `translateX(-${index * 100}%)`;
             
-            // Mettre à jour les indicateurs
-            indicators.forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === index);
-            });
+            // Mettre à jour le compteur
+            if (currentSlideSpan) {
+                currentSlideSpan.textContent = index + 1;
+            }
         };
 
         // Événements des boutons
         if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 showSlide(currentIndex - 1);
             });
         }
 
         if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 showSlide(currentIndex + 1);
             });
         }
-
-        // Événements des indicateurs
-        indicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
-                showSlide(index);
-            });
-        });
 
         // Navigation au clavier
         carousel.addEventListener('keydown', (e) => {
@@ -648,6 +632,9 @@ class GalleryModule extends BaseModule {
 
         // Rendre le carousel focusable
         carousel.setAttribute('tabindex', '0');
+
+        // Initialiser à la première slide
+        showSlide(0);
     }
 
     initMasonry() {
@@ -721,7 +708,12 @@ class GalleryModule extends BaseModule {
 
     initSlider() {
         const slider = this.element.querySelector('.gallery-slider');
-        if (!slider) return;
+        if (!slider) {
+            console.log('❌ Slider non trouvé dans initSlider');
+            return;
+        }
+
+        console.log('🔧 Initialisation du slider dans l\'éditeur:', slider);
 
         const track = slider.querySelector('.slider-track');
         const slides = slider.querySelectorAll('.slider-slide');
@@ -730,38 +722,64 @@ class GalleryModule extends BaseModule {
         const counter = slider.querySelector('.slider-counter');
         const currentSlideSpan = counter?.querySelector('.current-slide');
 
+        console.log('🔍 Éléments slider trouvés:', {
+            track: !!track,
+            slides: slides.length,
+            prevBtn: !!prevBtn,
+            nextBtn: !!nextBtn,
+            counter: !!counter
+        });
+
         let currentIndex = 0;
         const totalSlides = slides.length;
 
-        if (totalSlides <= 1) return;
+        if (totalSlides <= 1) {
+            console.log('⏭️ Pas assez de slides pour le slider:', totalSlides);
+            return;
+        }
 
         // Fonction pour afficher une slide
         const showSlide = (index) => {
+            console.log('🎯 showSlide appelée avec index:', index, 'totalSlides:', totalSlides);
+            
             if (index < 0) index = totalSlides - 1;
             if (index >= totalSlides) index = 0;
             
             currentIndex = index;
             
             // Mettre à jour la position du track
-            track.style.transform = `translateX(-${index * 100}%)`;
+            const transform = `translateX(-${index * 100}%)`;
+            track.style.transform = transform;
+            console.log('🎯 Transform appliqué:', transform);
             
             // Mettre à jour le compteur
             if (currentSlideSpan) {
                 currentSlideSpan.textContent = index + 1;
+                console.log('🎯 Compteur mis à jour:', index + 1);
             }
         };
 
         // Événements des boutons
         if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
+            console.log('🔧 Ajout de l\'événement click sur prevBtn');
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('👆 Clic sur bouton précédent, index actuel:', currentIndex);
                 showSlide(currentIndex - 1);
             });
+        } else {
+            console.warn('⚠️ Bouton précédent non trouvé');
         }
 
         if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
+            console.log('🔧 Ajout de l\'événement click sur nextBtn');
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('👆 Clic sur bouton suivant, index actuel:', currentIndex);
                 showSlide(currentIndex + 1);
             });
+        } else {
+            console.warn('⚠️ Bouton suivant non trouvé');
         }
 
         // Navigation au clavier
@@ -775,6 +793,11 @@ class GalleryModule extends BaseModule {
 
         // Rendre le slider focusable
         slider.setAttribute('tabindex', '0');
+
+        // Initialiser à la première slide
+        showSlide(0);
+
+        console.log('✅ Slider initialisé dans l\'éditeur');
     }
 
     destroy() {
@@ -786,16 +809,27 @@ class GalleryModule extends BaseModule {
     getContent() {
         if (this.galleryData.images.length === 0) return '';
         
-        const layoutClass = this.getLayoutClass();
-        const columnsClass = this.getColumnsClass();
-        const spacingClass = this.getSpacingClass();
-        const captionsClass = this.getCaptionsClass();
+        // Générer le contenu selon le type de galerie
+        switch (this.galleryData.layout) {
+            case 'carousel':
+                return this.renderCarousel();
+            case 'masonry':
+                return this.renderMasonry();
+            case 'slider':
+                return this.renderSlider();
+            case 'grid':
+            default:
+                const layoutClass = this.getLayoutClass();
+                const columnsClass = this.getColumnsClass();
+                const spacingClass = this.getSpacingClass();
+                const captionsClass = this.getCaptionsClass();
 
-        return `
-            <div class="gallery-container ${layoutClass} ${columnsClass} ${spacingClass} ${captionsClass}">
-                ${this.galleryData.images.map(image => this.renderGalleryImage(image)).join('')}
-            </div>
-        `;
+                return `
+                    <div class="gallery-container ${layoutClass} ${columnsClass} ${spacingClass} ${captionsClass}">
+                        ${this.galleryData.images.map(image => this.renderGalleryImage(image)).join('')}
+                    </div>
+                `;
+        }
     }
 
     getOptionsHTML() {

@@ -20,6 +20,21 @@ class Game
     private ?string $releaseDate;
     private string $createdAt;
     
+    // Nouveaux champs
+    private ?float $score;
+    private bool $isTested;
+    private ?string $developer;
+    private ?string $publisher;
+    private ?int $pegiRating;
+    
+    // Liens d'achat
+    private ?string $steamUrl;
+    private ?string $eshopUrl;
+    private ?string $xboxUrl;
+    private ?string $psnUrl;
+    private ?string $epicUrl;
+    private ?string $gogUrl;
+    
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -39,6 +54,21 @@ class Game
         $this->hardwareId = $data['hardware_id'] ? (int)$data['hardware_id'] : null;
         $this->releaseDate = $data['release_date'] ?? null;
         $this->createdAt = $data['created_at'] ?? '';
+        
+        // Nouveaux champs
+        $this->score = isset($data['score']) ? (float)$data['score'] : null;
+        $this->isTested = (bool)($data['is_tested'] ?? false);
+        $this->developer = $data['developer'] ?? null;
+        $this->publisher = $data['publisher'] ?? null;
+        $this->pegiRating = $data['pegi_rating'] ? (int)$data['pegi_rating'] : null;
+        
+        // Liens d'achat
+        $this->steamUrl = $data['steam_url'] ?? null;
+        $this->eshopUrl = $data['eshop_url'] ?? null;
+        $this->xboxUrl = $data['xbox_url'] ?? null;
+        $this->psnUrl = $data['psn_url'] ?? null;
+        $this->epicUrl = $data['epic_url'] ?? null;
+        $this->gogUrl = $data['gog_url'] ?? null;
     }
 
     // Getters
@@ -52,6 +82,21 @@ class Game
     public function getHardwareId(): ?int { return $this->hardwareId; }
     public function getReleaseDate(): ?string { return $this->releaseDate; }
     public function getCreatedAt(): string { return $this->createdAt; }
+    
+    // Nouveaux getters
+    public function getScore(): ?float { return $this->score; }
+    public function isTested(): bool { return $this->isTested; }
+    public function getDeveloper(): ?string { return $this->developer; }
+    public function getPublisher(): ?string { return $this->publisher; }
+    public function getPegiRating(): ?int { return $this->pegiRating; }
+    
+    // Getters pour les liens d'achat
+    public function getSteamUrl(): ?string { return $this->steamUrl; }
+    public function getEshopUrl(): ?string { return $this->eshopUrl; }
+    public function getXboxUrl(): ?string { return $this->xboxUrl; }
+    public function getPsnUrl(): ?string { return $this->psnUrl; }
+    public function getEpicUrl(): ?string { return $this->epicUrl; }
+    public function getGogUrl(): ?string { return $this->gogUrl; }
 
 
     
@@ -168,8 +213,8 @@ class Game
      */
     public static function create(array $data): ?self
     {
-        $sql = "INSERT INTO games (title, slug, description, platform, genre_id, cover_image_id, hardware_id, release_date) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO games (title, slug, description, platform, genre_id, cover_image_id, hardware_id, release_date, score, is_tested, developer, publisher, pegi_rating, steam_url, eshop_url, xbox_url, psn_url, epic_url, gog_url) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['title'],
@@ -179,7 +224,18 @@ class Game
             $data['genre_id'] ?? null,
             $data['cover_image_id'] ?? null,
             $data['hardware_id'] ?? null,
-            $data['release_date'] ?? null
+            $data['release_date'] ?? null,
+            $data['score'] ?? null,
+            $data['is_tested'] ?? false,
+            $data['developer'] ?? null,
+            $data['publisher'] ?? null,
+            $data['pegi_rating'] ?? null,
+            $data['steam_url'] ?? null,
+            $data['eshop_url'] ?? null,
+            $data['xbox_url'] ?? null,
+            $data['psn_url'] ?? null,
+            $data['epic_url'] ?? null,
+            $data['gog_url'] ?? null
         ];
         
         if (Database::execute($sql, $params)) {
@@ -197,7 +253,9 @@ class Game
     {
         $sql = "UPDATE games SET 
                 title = ?, slug = ?, description = ?, platform = ?, 
-                genre_id = ?, cover_image_id = ?, hardware_id = ?, release_date = ? 
+                genre_id = ?, cover_image_id = ?, hardware_id = ?, release_date = ?,
+                score = ?, is_tested = ?, developer = ?, publisher = ?, pegi_rating = ?,
+                steam_url = ?, eshop_url = ?, xbox_url = ?, psn_url = ?, epic_url = ?, gog_url = ?
                 WHERE id = ?";
         
         $params = [
@@ -209,6 +267,17 @@ class Game
             $data['cover_image_id'] ?? $this->coverImageId,
             $data['hardware_id'] ?? $this->hardwareId,
             $data['release_date'] ?? $this->releaseDate,
+            $data['score'] ?? $this->score,
+            $data['is_tested'] ?? $this->isTested,
+            $data['developer'] ?? $this->developer,
+            $data['publisher'] ?? $this->publisher,
+            $data['pegi_rating'] ?? $this->pegiRating,
+            $data['steam_url'] ?? $this->steamUrl,
+            $data['eshop_url'] ?? $this->eshopUrl,
+            $data['xbox_url'] ?? $this->xboxUrl,
+            $data['psn_url'] ?? $this->psnUrl,
+            $data['epic_url'] ?? $this->epicUrl,
+            $data['gog_url'] ?? $this->gogUrl,
             $this->id
         ];
         

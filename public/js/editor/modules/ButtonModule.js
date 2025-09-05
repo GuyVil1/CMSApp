@@ -45,20 +45,40 @@ class ButtonModule extends BaseModule {
     }
 
     renderButton() {
-        const buttonClass = `btn btn-${this.buttonData.style} btn-${this.buttonData.size}`;
-        const style = `
-            background-color: ${this.buttonData.backgroundColor};
-            color: ${this.buttonData.textColor};
-            border: ${this.buttonData.borderWidth}px solid ${this.buttonData.borderColor};
-            border-radius: ${this.buttonData.borderRadius}px;
-            padding: ${this.buttonData.padding}px ${this.buttonData.padding * 2}px;
-            text-align: ${this.buttonData.alignment};
-            text-decoration: ${this.buttonData.underline ? 'underline' : 'none'};
-            font-weight: ${this.buttonData.bold ? 'bold' : 'normal'};
-            font-style: ${this.buttonData.italic ? 'italic' : 'normal'};
-        `;
+        const buttonClass = this.getButtonClass();
+        const alignmentClass = this.getAlignmentClass();
+        const widthClass = this.getWidthClass();
+        const animationClass = this.getAnimationClass();
+        const customStyles = this.getCustomStyles();
         
-        return `<button class="button-text ${buttonClass}" style="${style}" contenteditable="true">${this.buttonData.text}</button>`;
+        // Construire le contenu du bouton avec icône
+        let buttonContent = '';
+        if (this.buttonData.icon && this.buttonData.iconPosition === 'left') {
+            buttonContent += `<span class="button-icon">${this.buttonData.icon}</span>`;
+        }
+        buttonContent += `<span class="button-text" contenteditable="true">${this.buttonData.text}</span>`;
+        if (this.buttonData.icon && this.buttonData.iconPosition === 'right') {
+            buttonContent += `<span class="button-icon">${this.buttonData.icon}</span>`;
+        }
+        
+        // Construire l'élément bouton
+        const buttonElement = this.buttonData.link ? 'a' : 'button';
+        const hrefAttr = this.buttonData.link ? `href="${this.buttonData.link}"` : '';
+        const targetAttr = this.buttonData.link && this.buttonData.target !== '_self' ? `target="${this.buttonData.target}"` : '';
+        
+        return `
+            <div class="button-container ${alignmentClass} ${widthClass}">
+                <${buttonElement} 
+                    class="content-module-button ${buttonClass} ${animationClass}" 
+                    ${hrefAttr} 
+                    ${targetAttr}
+                    style="${customStyles}"
+                    ${buttonElement === 'button' ? 'type="button"' : ''}
+                >
+                    ${buttonContent}
+                </${buttonElement}>
+            </div>
+        `;
     }
 
     getButtonClass() {
@@ -88,9 +108,9 @@ class ButtonModule extends BaseModule {
     getCustomStyles() {
         if (this.buttonData.style === 'custom') {
             return `
-                background-color: ${this.buttonData.customBgColor};
-                border-color: ${this.buttonData.customBorderColor};
-                color: ${this.buttonData.customTextColor};
+                background-color: ${this.buttonData.customBgColor} !important;
+                border-color: ${this.buttonData.customBorderColor} !important;
+                color: ${this.buttonData.customTextColor} !important;
             `;
         }
         return '';
@@ -101,6 +121,10 @@ class ButtonModule extends BaseModule {
         super.bindEvents();
         
         // Ajouter les événements spécifiques au bouton
+        this.bindButtonEvents();
+    }
+
+    bindButtonEvents() {
         const buttonText = this.element.querySelector('.button-text');
         if (!buttonText) return;
 
@@ -112,16 +136,15 @@ class ButtonModule extends BaseModule {
         // Gestion de la perte de focus
         buttonText.addEventListener('blur', (e) => {
             if (!e.target.textContent.trim()) {
-                e.target.textContent = 'Nouveau bouton';
-                this.buttonData.text = 'Nouveau bouton';
+                e.target.textContent = 'Cliquez ici';
+                this.buttonData.text = 'Cliquez ici';
             }
         });
 
-        // Clic pour éditer
+        // Clic pour éditer (éviter la propagation vers le module)
         buttonText.addEventListener('click', (e) => {
-            if (e.target === buttonText) {
-                this.showButtonEditor();
-            }
+            e.stopPropagation();
+            this.select();
         });
     }
 
@@ -394,6 +417,8 @@ class ButtonModule extends BaseModule {
         const buttonDisplay = this.element.querySelector('.button-display');
         if (buttonDisplay) {
             buttonDisplay.innerHTML = this.renderButton();
+            // Re-binder les événements après le rendu
+            this.bindButtonEvents();
         }
     }
 
@@ -410,6 +435,8 @@ class ButtonModule extends BaseModule {
         const buttonDisplay = this.element.querySelector('.button-display');
         if (buttonDisplay) {
             buttonDisplay.innerHTML = this.renderButton();
+            // Re-binder les événements après le rendu
+            this.bindButtonEvents();
         }
     }
 

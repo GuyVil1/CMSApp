@@ -86,11 +86,27 @@ class AuthController extends Controller
                 $error = 'Tous les champs sont requis';
             } elseif (!$this->validateEmail($email)) {
                 $error = 'Email invalide';
-            } elseif (strlen($password) < 8) {
-                $error = 'Le mot de passe doit contenir au moins 8 caractères';
-            } elseif ($password !== $password_confirm) {
-                $error = 'Les mots de passe ne correspondent pas';
             } else {
+                // Validation avancée du mot de passe
+                $passwordErrors = $this->validatePassword($password);
+                if (!empty($passwordErrors)) {
+                    $error = implode('. ', $passwordErrors);
+                }
+            }
+            
+            if (empty($error)) {
+                // Validation du nom d'utilisateur
+                $usernameErrors = $this->validateUsername($login);
+                if (!empty($usernameErrors)) {
+                    $error = implode('. ', $usernameErrors);
+                }
+            }
+            
+            if (empty($error) && $password !== $password_confirm) {
+                $error = 'Les mots de passe ne correspondent pas';
+            }
+            
+            if (empty($error)) {
                 // Créer l'utilisateur
                 $userData = [
                     'login' => $login,

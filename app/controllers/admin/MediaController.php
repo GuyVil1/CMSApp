@@ -85,6 +85,9 @@ class MediaController extends \Controller
         $limit = 20;
         $offset = ($page - 1) * $limit;
         
+        // Vérifier si on est en mode sélection
+        $selectMode = isset($_GET['select_mode']) && $_GET['select_mode'] == '1';
+        
         $medias = \Media::findAll($limit, $offset);
         $totalMedias = \Media::count();
         $totalPages = ceil($totalMedias / $limit);
@@ -97,7 +100,8 @@ class MediaController extends \Controller
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalMedias' => $totalMedias,
-            'games' => $games
+            'games' => $games,
+            'selectMode' => $selectMode
         ]);
     }
     
@@ -117,13 +121,11 @@ class MediaController extends \Controller
             return;
         }
         
-        // Vérifier le token CSRF - TEMPORAIREMENT DÉSACTIVÉ POUR DIAGNOSTIC
-        /*
+        // Vérifier le token CSRF
         if (!\Auth::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->jsonResponse($this->formatError('upload_failed', 'Token CSRF invalide'), 403);
             return;
         }
-        */
         
         try {
             // Validation de base

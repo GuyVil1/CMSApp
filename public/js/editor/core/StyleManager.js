@@ -4263,6 +4263,431 @@ class StyleManager {
             background: var(--bg-hover);
             border-color: var(--belgium-yellow);
         }
+
+        /* ========================================
+           STYLES POUR LE MODULE BOUTON
+           ======================================== */
+        
+        .button-container {
+            display: flex;
+            margin: 10px 0;
+        }
+
+        .button-container.button-align-left {
+            justify-content: flex-start;
+        }
+
+        .button-container.button-align-center {
+            justify-content: center;
+        }
+
+        .button-container.button-align-right {
+            justify-content: flex-end;
+        }
+
+        .button-container.button-full-width {
+            width: 100%;
+        }
+
+        .content-module-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 16px;
+            line-height: 1.4;
+            text-align: center;
+            white-space: nowrap;
+            user-select: none;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-module-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .content-module-button:active {
+            transform: translateY(0);
+        }
+
+        .content-module-button:focus {
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Styles de base des boutons */
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            border-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+            border-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #545b62 0%, #3d4043 100%);
+            border-color: #545b62;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+            border-color: #28a745;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+            border-color: #1e7e34;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            border-color: #c82333;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+            border-color: #ffc107;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%);
+            border-color: #e0a800;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-color: #17a2b8;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            border-color: #138496;
+        }
+
+        .btn-light {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            border-color: #f8f9fa;
+        }
+
+        .btn-light:hover {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            border-color: #e9ecef;
+        }
+
+        .btn-dark {
+            background: linear-gradient(135deg, #343a40 0%, #23272b 100%);
+            color: white;
+            border-color: #343a40;
+        }
+
+        .btn-dark:hover {
+            background: linear-gradient(135deg, #23272b 0%, #1d2124 100%);
+            border-color: #23272b;
+        }
+
+        /* Styles outline */
+        .btn-outline-primary {
+            background: transparent;
+            color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-outline-primary:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-outline-secondary {
+            background: transparent;
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Tailles */
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-medium {
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        /* Effets */
+        .btn-rounded {
+            border-radius: 50px;
+        }
+
+        .btn-shadow {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Animations */
+        .btn-animation-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-animation-bounce {
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .btn-animation-shake {
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .btn-animation-glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+            to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6); }
+        }
+
+        /* Icônes dans les boutons */
+        .button-icon {
+            display: inline-flex;
+            align-items: center;
+            font-size: 1.1em;
+        }
+
+        .button-text {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Styles pour l'éditeur de bouton */
+        .button-editor {
+            padding: 20px;
+        }
+
+        .editor-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .editor-section h4 {
+            margin: 0 0 15px 0;
+            color: var(--belgium-yellow);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .content-group {
+            margin-bottom: 15px;
+        }
+
+        .content-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .content-group input,
+        .content-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.9em;
+        }
+
+        .content-group input:focus,
+        .content-group select:focus {
+            outline: none;
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .style-buttons,
+        .size-buttons,
+        .alignment-buttons,
+        .width-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .style-btn,
+        .size-btn,
+        .align-btn,
+        .width-btn {
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85em;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .style-btn:hover,
+        .size-btn:hover,
+        .align-btn:hover,
+        .width-btn:hover {
+            background: var(--bg-light);
+            border-color: var(--belgium-yellow);
+        }
+
+        .style-btn.active,
+        .size-btn.active,
+        .align-btn.active,
+        .width-btn.active {
+            background: var(--belgium-yellow);
+            color: var(--primary);
+            border-color: var(--belgium-yellow);
+            font-weight: 600;
+        }
+
+        .effects-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .effects-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .effects-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .animation-group {
+            margin-bottom: 15px;
+        }
+
+        .color-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .color-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .color-group input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .save-btn,
+        .cancel-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .save-btn {
+            background: var(--belgium-yellow);
+            color: var(--primary);
+        }
+
+        .save-btn:hover {
+            background: #ffd700;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: var(--secondary);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .cancel-btn:hover {
+            background: var(--bg-light);
+        }
             </style>
         `;
         

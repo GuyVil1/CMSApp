@@ -308,6 +308,11 @@ class FullscreenEditor {
         this.modal.addEventListener('drop', (e) => {
             e.preventDefault();
             
+            // Vérifier si le drop a déjà été traité par un gestionnaire plus spécifique
+            if (e.defaultPrevented || e._dropHandled) {
+                return;
+            }
+            
             const column = e.target.closest('.content-column');
             if (column) {
                 column.classList.remove('drop-zone-active');
@@ -317,6 +322,7 @@ class FullscreenEditor {
                 if (draggedModuleId) {
                     console.log('🔄 Drop de module existant dans colonne vide');
                     this.handleModuleDropInColumn(draggedModuleId, column);
+                    e._dropHandled = true;
                     return;
                 }
                 
@@ -325,6 +331,7 @@ class FullscreenEditor {
                 if (moduleType) {
                     console.log('🎯 Drop du module', moduleType, 'dans la colonne');
                     this.addModule(moduleType, column);
+                    e._dropHandled = true;
                 }
             } else {
                 // Drop sur le modal mais pas sur une colonne spécifique
@@ -335,6 +342,7 @@ class FullscreenEditor {
                     const targetColumn = this.getTargetColumn();
                     if (targetColumn) {
                         this.addModule(moduleType, targetColumn);
+                        e._dropHandled = true;
                     }
                 }
             }
@@ -775,6 +783,76 @@ class FullscreenEditor {
                         background: #ffffff;
                         color: #333333;
                         line-height: 1.6;
+                    }
+                    
+                    /* Styles pour les sliders */
+                    .gallery-slider {
+                        position: relative;
+                        width: 100%;
+                        overflow: hidden;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .slider-track {
+                        display: flex;
+                        transition: transform 0.3s ease;
+                        width: 100%;
+                    }
+                    
+                    .slider-slide {
+                        min-width: 100%;
+                        flex-shrink: 0;
+                    }
+                    
+                    .slider-slide img {
+                        width: 100%;
+                        height: auto;
+                        display: block;
+                    }
+                    
+                    .slider-nav {
+                        position: absolute;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        background: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        border: none;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        transition: background 0.2s;
+                        z-index: 10;
+                    }
+                    
+                    .slider-nav:hover {
+                        background: rgba(0, 0, 0, 0.9);
+                    }
+                    
+                    .slider-prev {
+                        left: 15px;
+                    }
+                    
+                    .slider-next {
+                        right: 15px;
+                    }
+                    
+                    .slider-counter {
+                        position: absolute;
+                        bottom: 15px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        background: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        padding: 8px 16px;
+                        border-radius: 20px;
+                        font-size: 14px;
+                        font-weight: 500;
                     }
                     
                     /* Lightbox styles */
@@ -2226,6 +2304,101 @@ class FullscreenEditor {
                      // Initialize lightbox with a small delay to ensure DOM is ready
                      setTimeout(initLightbox, 100);
                      document.addEventListener('DOMContentLoaded', initLightbox);
+                     
+                     // Initialize sliders
+                     function initSliders() {
+                         console.log('🔧 Initialisation des sliders dans l\'aperçu...');
+                         const sliders = document.querySelectorAll('.gallery-slider');
+                         console.log('🔍 Sliders trouvés dans l\'aperçu:', sliders.length);
+                         
+                         sliders.forEach((slider, index) => {
+                             console.log(\`🔧 Initialisation du slider \${index + 1} dans l'aperçu\`);
+                             
+                             const track = slider.querySelector('.slider-track');
+                             const slides = slider.querySelectorAll('.slider-slide');
+                             const prevBtn = slider.querySelector('.slider-prev');
+                             const nextBtn = slider.querySelector('.slider-next');
+                             const counter = slider.querySelector('.slider-counter');
+                             const currentSlideSpan = counter?.querySelector('.current-slide');
+                             
+                             console.log('🔍 Éléments slider trouvés:', {
+                                 track: !!track,
+                                 slides: slides.length,
+                                 prevBtn: !!prevBtn,
+                                 nextBtn: !!nextBtn,
+                                 counter: !!counter
+                             });
+                             
+                             if (!track || slides.length <= 1) {
+                                 console.log('⏭️ Pas assez de slides pour le slider:', slides.length);
+                                 return;
+                             }
+                             
+                             let currentIndex = 0;
+                             const totalSlides = slides.length;
+                             
+                             // Fonction pour afficher une slide
+                             const showSlide = (index) => {
+                                 console.log('🎯 showSlide appelée avec index:', index, 'totalSlides:', totalSlides);
+                                 
+                                 if (index < 0) index = totalSlides - 1;
+                                 if (index >= totalSlides) index = 0;
+                                 
+                                 currentIndex = index;
+                                 
+                                 // Mettre à jour la position du track
+                                 const transform = \`translateX(-\${index * 100}%)\`;
+                                 track.style.transform = transform;
+                                 console.log('🎯 Transform appliqué:', transform);
+                                 
+                                 // Mettre à jour le compteur
+                                 if (currentSlideSpan) {
+                                     currentSlideSpan.textContent = index + 1;
+                                     console.log('🎯 Compteur mis à jour:', index + 1);
+                                 }
+                             };
+                             
+                             // Événements des boutons
+                             if (prevBtn) {
+                                 console.log('🔧 Ajout de l\'événement click sur prevBtn');
+                                 prevBtn.addEventListener('click', (e) => {
+                                     e.preventDefault();
+                                     console.log('👆 Clic sur bouton précédent, index actuel:', currentIndex);
+                                     showSlide(currentIndex - 1);
+                                 });
+                             }
+                             
+                             if (nextBtn) {
+                                 console.log('🔧 Ajout de l\'événement click sur nextBtn');
+                                 nextBtn.addEventListener('click', (e) => {
+                                     e.preventDefault();
+                                     console.log('👆 Clic sur bouton suivant, index actuel:', currentIndex);
+                                     showSlide(currentIndex + 1);
+                                 });
+                             }
+                             
+                             // Navigation au clavier
+                             slider.addEventListener('keydown', (e) => {
+                                 if (e.key === 'ArrowLeft') {
+                                     showSlide(currentIndex - 1);
+                                 } else if (e.key === 'ArrowRight') {
+                                     showSlide(currentIndex + 1);
+                                 }
+                             });
+                             
+                             // Rendre le slider focusable
+                             slider.setAttribute('tabindex', '0');
+                             
+                             // Initialiser à la première slide
+                             showSlide(0);
+                             
+                             console.log('✅ Slider initialisé dans l\'aperçu:', slider);
+                         });
+                     }
+                     
+                     // Initialize sliders with a small delay to ensure DOM is ready
+                     setTimeout(initSliders, 100);
+                     document.addEventListener('DOMContentLoaded', initSliders);
                 </script>
             </body>
             </html>
@@ -2316,7 +2489,7 @@ class FullscreenEditor {
     bindColumnDragEvents(column) {
         column.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.dropEffect = 'copy';
             
             // Ajouter un indicateur visuel
             if (!column.classList.contains('drop-zone')) {
@@ -2335,23 +2508,42 @@ class FullscreenEditor {
             e.preventDefault();
             column.classList.remove('drop-zone');
             
+            console.log('🎯 Drop détecté sur la colonne');
+            console.log('DataTransfer types:', e.dataTransfer.types);
+            console.log('module-id:', e.dataTransfer.getData('module-id'));
+            console.log('text/plain:', e.dataTransfer.getData('text/plain'));
+            
+            // Vérifier d'abord si c'est un déplacement de module existant
             const draggedModuleId = e.dataTransfer.getData('module-id');
-            if (!draggedModuleId) return;
-            
-            const draggedModule = this.getModuleById(draggedModuleId);
-            if (!draggedModule) return;
-            
-            // Déplacer le module vers cette colonne
-            column.appendChild(draggedModule.element);
-            
-            // Supprimer le placeholder si il existe
-            const placeholder = column.querySelector('.column-placeholder');
-            if (placeholder) {
-                placeholder.remove();
+            if (draggedModuleId) {
+                console.log('🔄 Déplacement de module existant:', draggedModuleId);
+                const draggedModule = this.getModuleById(draggedModuleId);
+                if (draggedModule) {
+                    // Déplacer le module vers cette colonne
+                    column.appendChild(draggedModule.element);
+                    
+                    // Supprimer le placeholder si il existe
+                    const placeholder = column.querySelector('.column-placeholder');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                    
+                    // Nettoyer les colonnes vides
+                    this.cleanupEmptyColumns();
+                    e._dropHandled = true; // Marquer comme traité pour éviter la duplication
+                    return;
+                }
             }
             
-            // Nettoyer les colonnes vides
-            this.cleanupEmptyColumns();
+            // Sinon, c'est la création d'un nouveau module depuis la barre latérale
+            const moduleType = e.dataTransfer.getData('text/plain');
+            if (moduleType) {
+                console.log('🎯 Création d\'un nouveau module', moduleType, 'dans la colonne');
+                this.addModule(moduleType, column);
+                e._dropHandled = true; // Marquer comme traité pour éviter la duplication
+            } else {
+                console.log('❌ Aucun type de module trouvé dans le drop');
+            }
         });
     }
 

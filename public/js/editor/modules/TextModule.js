@@ -56,11 +56,15 @@ class TextModule extends BaseModule {
             e.preventDefault();
             const text = e.clipboardData.getData('text/plain');
             document.execCommand('insertText', false, text);
+            // Nettoyer le contenu après collage
+            setTimeout(() => {
+                this.content = this.cleanContent(content.innerHTML);
+            }, 10);
         });
 
         // Sauvegarder le contenu lors des modifications
         content.addEventListener('input', (e) => {
-            this.content = content.innerHTML;
+            this.content = this.cleanContent(content.innerHTML);
         });
 
         // S'assurer que le contenu est éditable
@@ -86,6 +90,38 @@ class TextModule extends BaseModule {
             case 'right': return 'text-align-right';
             default: return 'text-align-left';
         }
+    }
+
+    /**
+     * Nettoie le contenu HTML pour supprimer les styles indésirables
+     */
+    cleanContent(html) {
+        // Créer un élément temporaire pour parser le HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Supprimer les attributs de style indésirables
+        const elements = tempDiv.querySelectorAll('*');
+        elements.forEach(element => {
+            // Supprimer les styles de fond et autres styles indésirables
+            if (element.style) {
+                element.style.removeProperty('background-color');
+                element.style.removeProperty('background');
+                element.style.removeProperty('color'); // On garde seulement les couleurs intentionnelles
+                element.style.removeProperty('font-family');
+                element.style.removeProperty('font-size');
+                element.style.removeProperty('line-height');
+                element.style.removeProperty('margin');
+                element.style.removeProperty('padding');
+                
+                // Si l'élément n'a plus de styles, supprimer l'attribut style
+                if (!element.style.cssText.trim()) {
+                    element.removeAttribute('style');
+                }
+            }
+        });
+        
+        return tempDiv.innerHTML;
     }
 
     getOptionsHTML() {

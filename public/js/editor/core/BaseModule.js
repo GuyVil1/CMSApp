@@ -146,7 +146,9 @@ class BaseModule {
 
     handleDragOver(e) {
         e.preventDefault();
+        // 💡 COMPORTEMENT INTELLIGENT : Permettre le drop avec insertion en dessous
         e.dataTransfer.dropEffect = 'move';
+        console.log('✅ Dragover sur module - insertion en dessous autorisée');
     }
 
     handleDrop(e) {
@@ -167,15 +169,16 @@ class BaseModule {
             return;
         }
         
-        // Déterminer la position de drop
-        const dropPosition = this.getDropPosition(e);
-        console.log('📍 Position de drop:', dropPosition);
-        
-        this.moveModuleToPosition(draggedModule, dropPosition);
+        // 💡 COMPORTEMENT INTELLIGENT : Insérer en dessous du module cible
+        console.log('📍 Insertion du module en dessous du module cible');
+        this.insertModuleBelow(draggedModule);
     }
 
     handleDragEnter(e) {
         e.preventDefault();
+        // 💡 COMPORTEMENT INTELLIGENT : Permettre le dragenter avec indicateur visuel
+        console.log('✅ Dragenter sur module - insertion en dessous autorisée');
+        
         if (!this.element.classList.contains('dragging')) {
             this.element.classList.add('drop-target');
         }
@@ -186,6 +189,24 @@ class BaseModule {
         if (!this.element.contains(e.relatedTarget)) {
             this.element.classList.remove('drop-target');
         }
+    }
+
+    insertModuleBelow(draggedModule) {
+        // Trouver le parent (colonne) du module cible
+        const targetColumn = this.element.closest('.content-column');
+        if (!targetColumn) {
+            console.log('❌ Colonne parente non trouvée');
+            return;
+        }
+        
+        // Insérer le module dragué après le module cible
+        this.element.insertAdjacentElement('afterend', draggedModule.element);
+        
+        console.log('✅ Module inséré en dessous avec succès');
+        
+        // Nettoyer les classes de drag
+        this.element.classList.remove('drop-target');
+        draggedModule.element.classList.remove('dragging');
     }
 
     getDropPosition(e) {

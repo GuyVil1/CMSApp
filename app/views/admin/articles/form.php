@@ -1474,10 +1474,18 @@
                         <label for="status">📊 Statut de l'article</label>
                         <select id="status" name="status" required>
                             <option value="draft" <?= (!$article || $article->getStatus() === 'draft') ? 'selected' : '' ?>>📝 Brouillon</option>
-                            <option value="published" <?= ($article && $article->getStatus() === 'published') ? 'selected' : '' ?>>✅ Publié</option>
-                            <option value="archived" <?= ($article && $article->getStatus() === 'archived') ? 'selected' : '' ?>>📦 Archivé</option>
+                            <?php if (isset($user) && $user['role'] === 'admin'): ?>
+                                <option value="published" <?= ($article && $article->getStatus() === 'published') ? 'selected' : '' ?>>✅ Publié</option>
+                                <option value="archived" <?= ($article && $article->getStatus() === 'archived') ? 'selected' : '' ?>>📦 Archivé</option>
+                            <?php endif; ?>
                         </select>
-                        <p class="form-hint">Choisissez le statut de publication de l'article</p>
+                        <p class="form-hint">
+                            <?php if (isset($user) && $user['role'] === 'admin'): ?>
+                                Choisissez le statut de publication de l'article
+                            <?php else: ?>
+                                En tant que rédacteur, vous ne pouvez que sauvegarder en brouillon. Un administrateur devra publier l'article.
+                            <?php endif; ?>
+                        </p>
                     </div>
 
                     <!-- Date de publication (visible seulement si statut = publié) -->

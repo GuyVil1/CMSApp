@@ -106,12 +106,16 @@ class GamesController extends \Controller
         // Récupérer la liste des genres
         $genres = \Genre::findAll();
         
+        // Récupérer la liste des médias disponibles (images uniquement)
+        $mediaList = \Media::findAllImages();
+        
         $this->render('admin/games/create', [
             'error' => '',
             'success' => '',
             'csrf_token' => \Auth::generateCsrfToken(),
             'hardware' => $hardwareList,
-            'genres' => $genres
+            'genres' => $genres,
+            'media' => $mediaList
         ]);
     }
 
@@ -141,6 +145,21 @@ class GamesController extends \Controller
         $genreId = !empty($_POST['genre_id']) ? (int)$_POST['genre_id'] : null;
         $hardwareId = !empty($_POST['hardware_id']) ? (int)$_POST['hardware_id'] : null;
         $releaseDate = trim($_POST['release_date'] ?? '');
+        
+        // Nouveaux champs
+        $score = !empty($_POST['score']) ? (float)$_POST['score'] : null;
+        $isTested = isset($_POST['is_tested']) && $_POST['is_tested'] === '1';
+        $developer = trim($_POST['developer'] ?? '');
+        $publisher = trim($_POST['publisher'] ?? '');
+        $pegiRating = !empty($_POST['pegi_rating']) ? (int)$_POST['pegi_rating'] : null;
+        
+        // Liens d'achat
+        $steamUrl = trim($_POST['steam_url'] ?? '');
+        $eshopUrl = trim($_POST['eshop_url'] ?? '');
+        $xboxUrl = trim($_POST['xbox_url'] ?? '');
+        $psnUrl = trim($_POST['psn_url'] ?? '');
+        $epicUrl = trim($_POST['epic_url'] ?? '');
+        $gogUrl = trim($_POST['gog_url'] ?? '');
 
         // Validation
         if (empty($title)) {
@@ -170,10 +189,10 @@ class GamesController extends \Controller
             return;
         }
 
-        // Validation de l'image de couverture
-        if (!isset($_FILES['cover_image']) || $_FILES['cover_image']['error'] !== UPLOAD_ERR_OK) {
+        // Validation des nouveaux champs
+        if ($isTested && ($score === null || $score < 0 || $score > 10)) {
             $this->render('admin/games/create', [
-                'error' => 'Veuillez sélectionner une image de couverture',
+                'error' => 'Si le jeu est testé, la note doit être comprise entre 0 et 10',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
                 'hardware' => \Hardware::findAllActive(),
@@ -182,31 +201,105 @@ class GamesController extends \Controller
             return;
         }
 
-        $coverFile = $_FILES['cover_image'];
+        if ($pegiRating && !in_array($pegiRating, [3, 7, 12, 16, 18])) {
+            $this->render('admin/games/create', [
+                'error' => 'La classification PEGI doit être 3, 7, 12, 16 ou 18',
+                'success' => '',
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll(),
+                'media' => \Media::findAllImages()
+            ]);
+            return;
+        }
+
+        // Validation des URLs d'achat
+        $purchaseUrls = [
+            'steam' => $steamUrl,
+            'eshop' => $eshopUrl,
+            'xbox' => $xboxUrl,
+            'psn' => $psnUrl,
+            'epic' => $epicUrl,
+            'gog' => $gogUrl
+        ];
+
+        foreach ($purchaseUrls as $platform => $url) {
+            if (!empty($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
+                $this->render('admin/games/create', [
+                    'error' => "L'URL {$platform} n'est pas valide",
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+        }
+
+        // Gestion de l'image de couverture
+        $coverImageId = null;
+        $coverOption = $_POST['cover_option'] ?? 'upload';
         
-        // Vérifier le type de fichier
-        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        if (!in_array($coverFile['type'], $allowedTypes)) {
-            $this->render('admin/games/create', [
-                'error' => 'Format d\'image non supporté. Utilisez JPG, PNG ou GIF',
-                'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
-                'genres' => \Genre::findAll()
-            ]);
-            return;
+        if ($coverOption === 'existing') {
+            // Utiliser une image existante
+            $existingCoverId = !empty($_POST['existing_cover_image']) ? (int)$_POST['existing_cover_image'] : null;
+            if (!$existingCoverId) {
+                $this->render('admin/games/create', [
+                    'error' => 'Veuillez sélectionner une image existante',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+            $coverImageId = $existingCoverId;
+        } else {
+            // Upload d'une nouvelle image
+            if (!isset($_FILES['cover_image']) || $_FILES['cover_image']['error'] !== UPLOAD_ERR_OK) {
+                $this->render('admin/games/create', [
+                    'error' => 'Veuillez sélectionner une image de couverture',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
         }
 
-        // Vérifier la taille (5MB max)
-        if ($coverFile['size'] > 5 * 1024 * 1024) {
-            $this->render('admin/games/create', [
-                'error' => 'L\'image ne doit pas dépasser 5MB',
-                'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
-                'genres' => \Genre::findAll()
-            ]);
-            return;
+        if ($coverOption === 'upload') {
+            $coverFile = $_FILES['cover_image'];
+            
+            // Vérifier le type de fichier
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!in_array($coverFile['type'], $allowedTypes)) {
+                $this->render('admin/games/create', [
+                    'error' => 'Format d\'image non supporté. Utilisez JPG, PNG ou GIF',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+
+            // Vérifier la taille (5MB max)
+            if ($coverFile['size'] > 5 * 1024 * 1024) {
+                $this->render('admin/games/create', [
+                    'error' => 'L\'image ne doit pas dépasser 5MB',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
         }
 
         // Créer le jeu d'abord
@@ -218,7 +311,18 @@ class GamesController extends \Controller
             'genre_id' => $genreId,
             'hardware_id' => $hardwareId,
             'release_date' => $releaseDate ?: null,
-            'cover_image_id' => null // Sera mis à jour après l'upload
+            'cover_image_id' => $coverImageId, // Utiliser l'ID de l'image existante ou null pour upload
+            'score' => $score,
+            'is_tested' => $isTested,
+            'developer' => $developer ?: null,
+            'publisher' => $publisher ?: null,
+            'pegi_rating' => $pegiRating,
+            'steam_url' => $steamUrl ?: null,
+            'eshop_url' => $eshopUrl ?: null,
+            'xbox_url' => $xboxUrl ?: null,
+            'psn_url' => $psnUrl ?: null,
+            'epic_url' => $epicUrl ?: null,
+            'gog_url' => $gogUrl ?: null
         ];
 
         $game = \Game::create($gameData);
@@ -229,64 +333,72 @@ class GamesController extends \Controller
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
                 'hardware' => \Hardware::findAllActive(),
-                'genres' => \Genre::findAll()
+                'genres' => \Genre::findAll(),
+                'media' => \Media::findAllImages()
             ]);
             return;
         }
 
-        // Créer le dossier pour le jeu
-        $gameDir = \Media::createGameDirectory($slug);
-        
-        // Générer le nom de fichier (cover.jpg)
-        $extension = pathinfo($coverFile['name'], PATHINFO_EXTENSION);
-        $filename = 'cover.' . strtolower($extension);
-        $filepath = $gameDir . '/' . $filename;
+        // Traiter l'upload seulement si on a choisi d'uploader une nouvelle image
+        if ($coverOption === 'upload') {
+            // Créer le dossier pour le jeu
+            $gameDir = \Media::createGameDirectory($slug);
+            
+            // Générer le nom de fichier (cover.jpg)
+            $extension = pathinfo($coverFile['name'], PATHINFO_EXTENSION);
+            $filename = 'cover.' . strtolower($extension);
+            $filepath = $gameDir . '/' . $filename;
 
-        // Déplacer le fichier uploadé
-        if (!move_uploaded_file($coverFile['tmp_name'], $filepath)) {
-            // Supprimer le jeu si l'upload échoue
-            $game->delete();
-            $this->render('admin/games/create', [
-                'error' => 'Erreur lors de l\'upload de l\'image',
-                'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
-                'genres' => \Genre::findAll()
-            ]);
-            return;
-        }
-
-        // Créer l'entrée dans la table media
-        $mediaData = [
-            'filename' => 'games/' . $slug . '/' . $filename,
-            'original_name' => $coverFile['name'],
-            'mime_type' => $coverFile['type'],
-            'size' => $coverFile['size'],
-            'uploaded_by' => \Auth::getUser()['id'],
-            'game_id' => $game->getId(),
-            'media_type' => 'cover'
-        ];
-
-        $media = \Media::create($mediaData);
-
-        if ($media) {
-            // Mettre à jour le jeu avec l'ID de la cover
-            $game->update(['cover_image_id' => $media->getId()]);
-            $this->redirectTo('/games.php?success=created');
-        } else {
-            // Supprimer le jeu et le fichier si l'enregistrement échoue
-            $game->delete();
-            if (file_exists($filepath)) {
-                unlink($filepath);
+            // Déplacer le fichier uploadé
+            if (!move_uploaded_file($coverFile['tmp_name'], $filepath)) {
+                // Supprimer le jeu si l'upload échoue
+                $game->delete();
+                $this->render('admin/games/create', [
+                    'error' => 'Erreur lors de l\'upload de l\'image',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
             }
-            $this->render('admin/games/create', [
-                'error' => 'Erreur lors de l\'enregistrement de l\'image',
-                'success' => '',
-                'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
-                'genres' => \Genre::findAll()
-            ]);
+
+            // Créer l'entrée dans la table media
+            $mediaData = [
+                'filename' => 'games/' . $slug . '/' . $filename,
+                'original_name' => $coverFile['name'],
+                'mime_type' => $coverFile['type'],
+                'size' => $coverFile['size'],
+                'uploaded_by' => \Auth::getUser()['id'],
+                'game_id' => $game->getId(),
+                'media_type' => 'cover'
+            ];
+
+            $media = \Media::create($mediaData);
+
+            if ($media) {
+                // Mettre à jour le jeu avec l'ID de la cover
+                $game->update(['cover_image_id' => $media->getId()]);
+            } else {
+                // Supprimer le jeu et le fichier si l'enregistrement échoue
+                $game->delete();
+                if (file_exists($filepath)) {
+                    unlink($filepath);
+                }
+                $this->render('admin/games/create', [
+                    'error' => 'Erreur lors de l\'enregistrement de l\'image',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+            }
         }
+        
+        // Redirection finale (que ce soit upload ou image existante)
+        $this->redirectTo('/games.php?success=created');
     }
 
     public function edit(int $id): void
@@ -302,6 +414,9 @@ class GamesController extends \Controller
         
         // Récupérer la liste des genres
         $genres = \Genre::findAll();
+        
+        // Récupérer la liste des médias disponibles (images uniquement)
+        $mediaList = \Media::findAllImages();
 
         $this->render('admin/games/edit', [
             'game' => $game,
@@ -309,7 +424,8 @@ class GamesController extends \Controller
             'success' => '',
             'csrf_token' => \Auth::generateCsrfToken(),
             'hardware' => $hardwareList,
-            'genres' => $genres
+            'genres' => $genres,
+            'media' => $mediaList
         ]);
     }
 
@@ -347,6 +463,21 @@ class GamesController extends \Controller
         $hardwareId = !empty($_POST['hardware_id']) ? (int)$_POST['hardware_id'] : null;
         $releaseDate = trim($_POST['release_date'] ?? '');
         $coverImageId = !empty($_POST['cover_image_id']) ? (int)$_POST['cover_image_id'] : null;
+        
+        // Nouveaux champs
+        $score = !empty($_POST['score']) ? (float)$_POST['score'] : null;
+        $isTested = isset($_POST['is_tested']) && $_POST['is_tested'] === '1';
+        $developer = trim($_POST['developer'] ?? '');
+        $publisher = trim($_POST['publisher'] ?? '');
+        $pegiRating = !empty($_POST['pegi_rating']) ? (int)$_POST['pegi_rating'] : null;
+        
+        // Liens d'achat
+        $steamUrl = trim($_POST['steam_url'] ?? '');
+        $eshopUrl = trim($_POST['eshop_url'] ?? '');
+        $xboxUrl = trim($_POST['xbox_url'] ?? '');
+        $psnUrl = trim($_POST['psn_url'] ?? '');
+        $epicUrl = trim($_POST['epic_url'] ?? '');
+        $gogUrl = trim($_POST['gog_url'] ?? '');
 
         // Validation
         if (empty($title)) {
@@ -378,6 +509,57 @@ class GamesController extends \Controller
             return;
         }
 
+        // Validation des nouveaux champs
+        if ($isTested && ($score === null || $score < 0 || $score > 10)) {
+            $this->render('admin/games/edit', [
+                'game' => $game,
+                'error' => 'Si le jeu est testé, la note doit être comprise entre 0 et 10',
+                'success' => '',
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll()
+            ]);
+            return;
+        }
+
+        if ($pegiRating && !in_array($pegiRating, [3, 7, 12, 16, 18])) {
+            $this->render('admin/games/edit', [
+                'game' => $game,
+                'error' => 'La classification PEGI doit être 3, 7, 12, 16 ou 18',
+                'success' => '',
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'hardware' => \Hardware::findAllActive(),
+                'genres' => \Genre::findAll(),
+                'media' => \Media::findAllImages()
+            ]);
+            return;
+        }
+
+        // Validation des URLs d'achat
+        $purchaseUrls = [
+            'steam' => $steamUrl,
+            'eshop' => $eshopUrl,
+            'xbox' => $xboxUrl,
+            'psn' => $psnUrl,
+            'epic' => $epicUrl,
+            'gog' => $gogUrl
+        ];
+
+        foreach ($purchaseUrls as $platform => $url) {
+            if (!empty($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
+                $this->render('admin/games/edit', [
+                    'game' => $game,
+                    'error' => "L'URL {$platform} n'est pas valide",
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::findAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+        }
+
         $data = [
             'title' => $title,
             'slug' => $slug,
@@ -386,7 +568,18 @@ class GamesController extends \Controller
             'genre_id' => $genreId,
             'hardware_id' => $hardwareId,
             'release_date' => $releaseDate ?: null,
-            'cover_image_id' => $coverImageId
+            'cover_image_id' => $coverImageId,
+            'score' => $score,
+            'is_tested' => $isTested,
+            'developer' => $developer ?: null,
+            'publisher' => $publisher ?: null,
+            'pegi_rating' => $pegiRating,
+            'steam_url' => $steamUrl ?: null,
+            'eshop_url' => $eshopUrl ?: null,
+            'xbox_url' => $xboxUrl ?: null,
+            'psn_url' => $psnUrl ?: null,
+            'epic_url' => $epicUrl ?: null,
+            'gog_url' => $gogUrl ?: null
         ];
 
         // Mettre à jour le jeu

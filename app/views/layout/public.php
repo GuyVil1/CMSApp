@@ -15,6 +15,9 @@
     <!-- CSS principal avec thème belge -->
     <link rel="stylesheet" href="/style.css">
     
+    <!-- CSS pour les modules de contenu -->
+    <link rel="stylesheet" href="/public/assets/css/components/content-modules.css">
+    
     <!-- CSS additionnel spécifique à la page -->
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
@@ -38,13 +41,13 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="logo">
+                <a href="/" class="logo" title="Retour à l'accueil">
                     <div class="logo-icon">🎮</div>
                     <div class="logo-text">
                         <h1>GameNews</h1>
                         <div class="logo-subtitle">🇧🇪 BELGIQUE</div>
                     </div>
-                </div>
+                </a>
                 
                 <h1 class="header-title">
                     L'actualité jeux vidéo en Belgique

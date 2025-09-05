@@ -179,9 +179,13 @@ abstract class Controller
     /**
      * Valider et nettoyer une chaîne
      */
-    protected function sanitizeString(string $input): string
+    protected function sanitizeString(string $input, int $maxLength = 255): string
     {
-        return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+        $input = trim($input);
+        if (strlen($input) > $maxLength) {
+            $input = substr($input, 0, $maxLength);
+        }
+        return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
     }
     
     /**
@@ -189,7 +193,95 @@ abstract class Controller
      */
     protected function validateEmail(string $email): bool
     {
-        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+        return filter_var($email, FILTER_VALIDATE_EMAIL) !== false && strlen($email) <= 255;
+    }
+    
+    /**
+     * Valider un mot de passe
+     */
+    protected function validatePassword(string $password): array
+    {
+        $errors = [];
+        
+        if (strlen($password) < 8) {
+            $errors[] = 'Le mot de passe doit contenir au moins 8 caractères';
+        }
+        
+        if (strlen($password) > 128) {
+            $errors[] = 'Le mot de passe ne peut pas dépasser 128 caractères';
+        }
+        
+        if (!preg_match('/[A-Z]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins une majuscule';
+        }
+        
+        if (!preg_match('/[a-z]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins une minuscule';
+        }
+        
+        if (!preg_match('/[0-9]/', $password)) {
+            $errors[] = 'Le mot de passe doit contenir au moins un chiffre';
+        }
+        
+        return $errors;
+    }
+    
+    /**
+     * Valider un nom d'utilisateur
+     */
+    protected function validateUsername(string $username): array
+    {
+        $errors = [];
+        
+        if (strlen($username) < 3) {
+            $errors[] = 'Le nom d\'utilisateur doit contenir au moins 3 caractères';
+        }
+        
+        if (strlen($username) > 50) {
+            $errors[] = 'Le nom d\'utilisateur ne peut pas dépasser 50 caractères';
+        }
+        
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $username)) {
+            $errors[] = 'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, tirets et underscores';
+        }
+        
+        return $errors;
+    }
+    
+    /**
+     * Valider un titre d'article
+     */
+    protected function validateArticleTitle(string $title): array
+    {
+        $errors = [];
+        
+        if (strlen($title) < 5) {
+            $errors[] = 'Le titre doit contenir au moins 5 caractères';
+        }
+        
+        if (strlen($title) > 200) {
+            $errors[] = 'Le titre ne peut pas dépasser 200 caractères';
+        }
+        
+        return $errors;
+    }
+    
+    /**
+     * Valider le contenu d'un article
+     */
+    protected function validateArticleContent(string $content): array
+    {
+        $errors = [];
+        
+        if (strlen($content) < 10) {
+            $errors[] = 'Le contenu doit contenir au moins 10 caractères';
+        }
+        
+        if (strlen($content) > 50000) {
+            $errors[] = 'Le contenu ne peut pas dépasser 50 000 caractères';
+        }
+        
+        return $errors;
     }
     
     /**

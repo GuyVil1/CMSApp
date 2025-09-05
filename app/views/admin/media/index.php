@@ -769,6 +769,20 @@
             box-shadow: var(--shadow-strong);
         }
 
+        /* Mode sélection */
+        .media-card.selectable {
+            transition: var(--transition-smooth);
+        }
+
+        .media-card.selectable:hover {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .media-card.selectable:active {
+            transform: scale(0.98);
+        }
+
         .media-preview {
             position: relative;
             height: 200px;
@@ -1128,13 +1142,30 @@
         <!-- Liste des médias moderne -->
         <div class="table-container">
             <h3 style="color: var(--text-secondary); margin-bottom: 25px; font-size: 1.8rem;">
-                <i class="fas fa-list"></i> Bibliothèque des médias
+                <i class="fas fa-list"></i> 
+                <?php if ($selectMode): ?>
+                    Sélectionner une image
+                <?php else: ?>
+                    Bibliothèque des médias
+                <?php endif; ?>
             </h3>
+            
+            <?php if ($selectMode): ?>
+                <div class="select-mode-info" style="background: var(--glass-bg); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--glass-border);">
+                    <i class="fas fa-info-circle" style="color: var(--accent-blue); margin-right: 10px;"></i>
+                    <strong>Mode sélection :</strong> Cliquez sur une image pour la sélectionner comme couverture de jeu.
+                </div>
+            <?php endif; ?>
             <div class="media-grid" id="mediaGrid">
                 <?php foreach ($medias as $media): ?>
-                <div class="media-card" data-id="<?= $media->getId() ?>" 
+                <div class="media-card <?= $selectMode ? 'selectable' : '' ?>" 
+                     data-id="<?= $media->getId() ?>" 
                      data-game="<?= $media->getGameId() ?>" 
-                     data-category="<?= $media->getMediaType() ?>">
+                     data-category="<?= $media->getMediaType() ?>"
+                     <?php if ($selectMode && $media->isImage()): ?>
+                     onclick="selectMedia(<?= $media->getId() ?>, '<?= htmlspecialchars($media->getOriginalName()) ?>')"
+                     style="cursor: pointer;"
+                     <?php endif; ?>>
                     <div class="media-preview">
                         <?php if ($media->isImage()): ?>
                             <img src="<?= $media->getUrl() ?>" 
@@ -1155,6 +1186,7 @@
                             <?php endif; ?>
                             <i class="fas fa-clock"></i> Ajouté le <?= date('d/m/Y H:i', strtotime($media->getCreatedAt())) ?>
                         </div>
+                        <?php if (!$selectMode): ?>
                         <div class="media-actions">
                             <button class="btn btn-sm btn-primary" onclick="copyUrl('<?= $media->getUrl() ?>')">
                                 <i class="fas fa-copy"></i> Copier URL
@@ -1163,6 +1195,17 @@
                                 <i class="fas fa-trash"></i> Supprimer
                             </button>
                         </div>
+                        <?php else: ?>
+                        <div class="media-actions">
+                            <?php if ($media->isImage()): ?>
+                                <button class="btn btn-sm btn-success" onclick="selectMedia(<?= $media->getId() ?>, '<?= htmlspecialchars($media->getOriginalName()) ?>')">
+                                    <i class="fas fa-check"></i> Sélectionner
+                                </button>
+                            <?php else: ?>
+                                <span class="text-muted">Vidéo non sélectionnable</span>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>
@@ -1525,6 +1568,37 @@
                 }, index * 100);
             });
         });
+
+        // Fonction de sélection d'image (mode sélection)
+        function selectMedia(mediaId, mediaName) {
+            // Vérifier si on est en mode sélection
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('select_mode') !== '1') {
+                return;
+            }
+
+            // Envoyer les données à la fenêtre parent
+            const mediaData = {
+                id: mediaId,
+                original_name: mediaName
+            };
+
+            // Envoyer le message à la fenêtre parent
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'mediaSelected',
+                    media: mediaData
+                }, window.location.origin);
+            }
+
+            // Afficher un message de confirmation
+            showToast(`Image "${mediaName}" sélectionnée !`, 'success');
+            
+            // Fermer la fenêtre après un court délai
+            setTimeout(() => {
+                window.close();
+            }, 1000);
+        }
     </script>
 </body>
 </html>

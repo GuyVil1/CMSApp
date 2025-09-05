@@ -183,6 +183,20 @@ class Media
     }
     
     /**
+     * Trouver toutes les images disponibles
+     */
+    public static function findAllImages(): array
+    {
+        $sql = "SELECT * FROM media 
+                WHERE mime_type LIKE 'image/%' 
+                ORDER BY original_name ASC";
+        
+        $results = Database::query($sql);
+        
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
      * Compter le nombre total de médias
      */
     public static function count(): int

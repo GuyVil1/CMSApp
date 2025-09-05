@@ -127,28 +127,47 @@
                                 
                                 <td>
                                     <div class="actions">
-                                        <a href="/admin/articles/edit/<?= $article['id'] ?>" class="btn btn-info btn-sm">✏️</a>
+                                        <?php 
+                                        // Vérifier que la variable $user existe
+                                        if (!isset($user) || !is_array($user)) {
+                                            $user = ['role' => 'guest', 'id' => 0];
+                                        }
                                         
-                                        <?php if ($article['status'] === 'draft'): ?>
-                                            <form method="POST" action="/admin/articles/publish/<?= $article['id'] ?>" style="display: inline;">
-                                                <button type="submit" class="btn btn-success btn-sm" title="Publier">📤</button>
-                                            </form>
-                                        <?php elseif ($article['status'] === 'published'): ?>
-                                            <form method="POST" action="/admin/articles/draft/<?= $article['id'] ?>" style="display: inline;">
-                                                <button type="submit" class="btn btn-warning btn-sm" title="Mettre en brouillon">📝</button>
-                                            </form>
+                                        $canEdit = ($user['role'] === 'admin') || 
+                                                  ($user['role'] === 'editor' && $article['author_id'] == $user['id']);
+                                        $canPublish = ($user['role'] === 'admin');
+                                        $canDelete = ($user['role'] === 'admin') || 
+                                                   ($user['role'] === 'editor' && $article['author_id'] == $user['id']);
+                                        ?>
+                                        
+                                        <?php if ($canEdit): ?>
+                                            <a href="/admin/articles/edit/<?= $article['id'] ?>" class="btn btn-info btn-sm">✏️</a>
                                         <?php endif; ?>
                                         
-                                        <?php if ($article['status'] !== 'archived'): ?>
-                                            <form method="POST" action="/admin/articles/archive/<?= $article['id'] ?>" style="display: inline;">
-                                                <button type="submit" class="btn btn-warning btn-sm" title="Archiver">📁</button>
-                                            </form>
+                                        <?php if ($canPublish): ?>
+                                            <?php if ($article['status'] === 'draft'): ?>
+                                                <form method="POST" action="/admin/articles/publish/<?= $article['id'] ?>" style="display: inline;">
+                                                    <button type="submit" class="btn btn-success btn-sm" title="Publier">📤</button>
+                                                </form>
+                                            <?php elseif ($article['status'] === 'published'): ?>
+                                                <form method="POST" action="/admin/articles/draft/<?= $article['id'] ?>" style="display: inline;">
+                                                    <button type="submit" class="btn btn-warning btn-sm" title="Mettre en brouillon">📝</button>
+                                                </form>
+                                            <?php endif; ?>
+                                            
+                                            <?php if ($article['status'] !== 'archived'): ?>
+                                                <form method="POST" action="/admin/articles/archive/<?= $article['id'] ?>" style="display: inline;">
+                                                    <button type="submit" class="btn btn-warning btn-sm" title="Archiver">📁</button>
+                                                </form>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                         
-                                        <form method="POST" action="/admin/articles/delete/<?= $article['id'] ?>" style="display: inline;" 
-                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
-                                            <button type="submit" class="btn btn-sm" title="Supprimer">🗑️</button>
-                                        </form>
+                                        <?php if ($canDelete): ?>
+                                            <form method="POST" action="/admin/articles/delete/<?= $article['id'] ?>" style="display: inline;" 
+                                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
+                                                <button type="submit" class="btn btn-sm" title="Supprimer">🗑️</button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

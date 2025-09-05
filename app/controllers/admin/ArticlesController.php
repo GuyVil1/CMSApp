@@ -15,10 +15,17 @@ require_once __DIR__ . '/../../models/Media.php'; // Added for cover image valid
 
 class ArticlesController extends \Controller
 {
+    private $userRole;
+    private $userId;
+    
     public function __construct()
     {
         // Vérifier que l'utilisateur est connecté et a les droits admin/editor
         \Auth::requireRole(['admin', 'editor']);
+        
+        // Stocker le rôle de l'utilisateur pour les vérifications de permissions
+        $this->userRole = \Auth::getUserRole();
+        $this->userId = \Auth::getUserId();
     }
     
     /**
@@ -35,6 +42,11 @@ class ArticlesController extends \Controller
         if ($search) $filters['search'] = $search;
         if ($status) $filters['status'] = $status;
         if ($category) $filters['category_id'] = $category;
+        
+        // Les rédacteurs ne voient que leurs propres articles
+        if ($this->userRole === 'editor') {
+            $filters['author_id'] = $this->userId;
+        }
         
         $result = \Article::findAll($page, 20, $filters);
         
@@ -53,7 +65,11 @@ class ArticlesController extends \Controller
                 'status' => $status,
                 'category' => $category
             ],
-            'categories' => $categories
+            'categories' => $categories,
+            'user' => [
+                'role' => $this->userRole,
+                'id' => $this->userId
+            ]
         ]);
     }
     
@@ -72,7 +88,11 @@ class ArticlesController extends \Controller
             'categories' => $categories,
             'games' => $games,
             'tags' => $tags,
-            'featured_positions' => $this->getFeaturedPositions()
+            'featured_positions' => $this->getFeaturedPositions(),
+            'user' => [
+                'role' => $this->userRole,
+                'id' => $this->userId
+            ]
         ]);
     }
     
@@ -95,6 +115,43 @@ class ArticlesController extends \Controller
             $excerpt = trim($_POST['excerpt'] ?? '');
             $content = trim($_POST['content'] ?? '');
             $status = trim($_POST['status'] ?? 'draft');
+            
+            // Validation avancée
+            $errors = [];
+            
+            // Validation du titre
+            $titleErrors = $this->validateArticleTitle($title);
+            if (!empty($titleErrors)) {
+                $errors = array_merge($errors, $titleErrors);
+            }
+            
+            // Validation du contenu
+            $contentErrors = $this->validateArticleContent($content);
+            if (!empty($contentErrors)) {
+                $errors = array_merge($errors, $contentErrors);
+            }
+            
+            // Validation de l'extrait
+            if (strlen($excerpt) > 500) {
+                $errors[] = 'L\'extrait ne peut pas dépasser 500 caractères';
+            }
+            
+            // Validation du statut
+            if (!in_array($status, ['draft', 'published', 'archived'])) {
+                $errors[] = 'Statut invalide';
+            }
+            
+            // Les rédacteurs ne peuvent pas publier directement
+            if ($this->userRole === 'editor' && $status === 'published') {
+                $status = 'draft'; // Forcer en brouillon
+                $_SESSION['warning'] = 'En tant que rédacteur, votre article a été sauvegardé en brouillon. Un administrateur devra le publier.';
+            }
+            
+            if (!empty($errors)) {
+                $_SESSION['error'] = implode('. ', $errors);
+                $this->redirect('/admin/articles/create');
+                return;
+            }
             
             // Debug: Afficher les valeurs après trim
             error_log("🔍 Titre: '$title'");
@@ -227,6 +284,13 @@ class ArticlesController extends \Controller
             return;
         }
         
+        // Vérifier les permissions : les rédacteurs ne peuvent éditer que leurs propres articles
+        if ($this->userRole === 'editor' && $article['author_id'] != $this->userId) {
+            $this->setFlash('error', 'Vous ne pouvez éditer que vos propres articles');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
         // Charger les données nécessaires
         $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
         $games = \Database::query("SELECT id, title FROM games ORDER BY title");
@@ -252,7 +316,11 @@ class ArticlesController extends \Controller
             'tags' => $tags,
             'articleTagIds' => $articleTagIds,
             'featured_positions' => $this->getFeaturedPositions($id),
-            'coverImage' => $coverImage
+            'coverImage' => $coverImage,
+            'user' => [
+                'role' => $this->userRole,
+                'id' => $this->userId
+            ]
         ]);
     }
     
@@ -269,6 +337,13 @@ class ArticlesController extends \Controller
         $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
+        // Vérifier les permissions : les rédacteurs ne peuvent modifier que leurs propres articles
+        if ($this->userRole === 'editor' && $article['author_id'] != $this->userId) {
+            $this->setFlash('error', 'Vous ne pouvez modifier que vos propres articles');
             $this->redirect('/admin/articles');
             return;
         }
@@ -350,12 +425,20 @@ class ArticlesController extends \Controller
             // Générer le slug
             $slug = \Article::generateSlug($title, $id);
             
+            // Gestion du statut avec restrictions pour les rédacteurs
+            $status = trim($_POST['status'] ?? $article['status']);
+            if ($this->userRole === 'editor' && $status === 'published') {
+                $status = 'draft'; // Forcer en brouillon pour les rédacteurs
+                $_SESSION['warning'] = 'En tant que rédacteur, votre article reste en brouillon. Un administrateur devra le publier.';
+            }
+            
             // Mettre à jour l'article
             $articleData = [
                 'title' => $title,
                 'slug' => $slug,
                 'excerpt' => $excerpt ?: null,
                 'content' => $content,
+                'status' => $status,
                 'cover_image_id' => $cover_image_id,
                 'category_id' => $category_id,
                 'game_id' => $game_id,
@@ -393,6 +476,13 @@ class ArticlesController extends \Controller
             return;
         }
         
+        // Vérifier les permissions : les rédacteurs ne peuvent supprimer que leurs propres articles
+        if ($this->userRole === 'editor' && $article['author_id'] != $this->userId) {
+            $this->setFlash('error', 'Vous ne pouvez supprimer que vos propres articles');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
         try {
             // Libérer la position en avant si elle existe
             $featuredPosition = $article->getFeaturedPosition();
@@ -422,6 +512,13 @@ class ArticlesController extends \Controller
      */
     public function publish(int $id): void
     {
+        // Seuls les admins peuvent publier
+        if ($this->userRole !== 'admin') {
+            $this->setFlash('error', 'Seuls les administrateurs peuvent publier des articles');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
         $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
@@ -448,6 +545,13 @@ class ArticlesController extends \Controller
      */
     public function draft(int $id): void
     {
+        // Seuls les admins peuvent mettre en brouillon
+        if ($this->userRole !== 'admin') {
+            $this->setFlash('error', 'Seuls les administrateurs peuvent modifier le statut des articles');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
         $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
@@ -474,6 +578,13 @@ class ArticlesController extends \Controller
      */
     public function archive(int $id): void
     {
+        // Seuls les admins peuvent archiver
+        if ($this->userRole !== 'admin') {
+            $this->setFlash('error', 'Seuls les administrateurs peuvent archiver des articles');
+            $this->redirect('/admin/articles');
+            return;
+        }
+        
         $article = \Article::findById($id);
         if (!$article) {
             $this->setFlash('error', 'Article non trouvé');
