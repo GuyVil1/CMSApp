@@ -15,49 +15,47 @@ class GallerySlider {
             // Observer les changements du DOM pour les nouveaux sliders
             this.observeNewSliders();
             
-            console.log('GallerySlider initialisé avec succès');
+            // GallerySlider initialisé
         } catch (error) {
             console.error('Erreur lors de l\'initialisation de GallerySlider:', error);
         }
     }
 
     initAllSliders() {
-        // Chercher les sliders ET les carousels
+        // Chercher les sliders, carousels ET masonry
         const sliders = document.querySelectorAll('.gallery-slider');
         const carousels = document.querySelectorAll('.gallery-carousel');
+        const masonry = document.querySelectorAll('.gallery-masonry');
         
-        console.log('🔍 Sliders trouvés dans les articles:', sliders.length);
-        console.log('🔍 Carousels trouvés dans les articles:', carousels.length);
+        // Logs supprimés pour la production
         
         // Initialiser les sliders
         sliders.forEach((slider, index) => {
-            console.log(`🔍 Slider ${index + 1}:`, slider);
             if (!slider.dataset.initialized) {
-                console.log(`🚀 Initialisation du slider ${index + 1}`);
                 this.initSlider(slider);
                 slider.dataset.initialized = 'true';
-            } else {
-                console.log(`⏭️ Slider ${index + 1} déjà initialisé`);
             }
         });
         
         // Initialiser les carousels
         carousels.forEach((carousel, index) => {
-            console.log(`🔍 Carousel ${index + 1}:`, carousel);
             if (!carousel.dataset.initialized) {
-                console.log(`🚀 Initialisation du carousel ${index + 1}`);
                 this.initCarousel(carousel);
                 carousel.dataset.initialized = 'true';
-            } else {
-                console.log(`⏭️ Carousel ${index + 1} déjà initialisé`);
+            }
+        });
+        
+        // Initialiser les masonry
+        masonry.forEach((masonryEl, index) => {
+            if (!masonryEl.dataset.initialized) {
+                this.initMasonry(masonryEl);
+                masonryEl.dataset.initialized = 'true';
             }
         });
     }
 
     initSlider(slider) {
         try {
-            console.log('🔧 Initialisation du slider dans l\'article:', slider);
-            
             const track = slider.querySelector('.slider-track');
             const slides = slider.querySelectorAll('.slider-slide');
             const prevBtn = slider.querySelector('.slider-prev');
@@ -65,21 +63,12 @@ class GallerySlider {
             const counter = slider.querySelector('.slider-counter');
             const currentSlideSpan = counter?.querySelector('.current-slide');
 
-            console.log('🔍 Éléments slider trouvés:', {
-                track: !!track,
-                slides: slides.length,
-                prevBtn: !!prevBtn,
-                nextBtn: !!nextBtn,
-                counter: !!counter
-            });
-
             if (!track) {
                 console.error('❌ Track non trouvé dans le slider');
                 return;
             }
             
             if (slides.length <= 1) {
-                console.log('⏭️ Pas assez de slides pour le slider:', slides.length);
                 return;
             }
 
@@ -88,8 +77,6 @@ class GallerySlider {
 
             // Fonction pour afficher une slide
             const showSlide = (index) => {
-                console.log('🎯 showSlide appelée avec index:', index, 'totalSlides:', totalSlides);
-                
                 if (index < 0) index = totalSlides - 1;
                 if (index >= totalSlides) index = 0;
                 
@@ -98,36 +85,26 @@ class GallerySlider {
                 // Mettre à jour la position du track
                 const transform = `translateX(-${index * 100}%)`;
                 track.style.transform = transform;
-                console.log('🎯 Transform appliqué:', transform);
                 
                 // Mettre à jour le compteur
                 if (currentSlideSpan) {
                     currentSlideSpan.textContent = index + 1;
-                    console.log('🎯 Compteur mis à jour:', index + 1);
                 }
             };
 
             // Événements des boutons
             if (prevBtn) {
-                console.log('🔧 Ajout de l\'événement click sur prevBtn');
                 prevBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('👆 Clic sur bouton précédent, index actuel:', currentIndex);
                     showSlide(currentIndex - 1);
                 });
-            } else {
-                console.warn('⚠️ Bouton précédent non trouvé');
             }
 
             if (nextBtn) {
-                console.log('🔧 Ajout de l\'événement click sur nextBtn');
                 nextBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('👆 Clic sur bouton suivant, index actuel:', currentIndex);
                     showSlide(currentIndex + 1);
                 });
-            } else {
-                console.warn('⚠️ Bouton suivant non trouvé');
             }
 
             // Navigation au clavier
@@ -144,8 +121,6 @@ class GallerySlider {
 
             // Initialiser à la première slide
             showSlide(0);
-
-            console.log('Slider initialisé dans l\'article:', slider);
         } catch (error) {
             console.error('Erreur lors de l\'initialisation du slider:', error);
         }
@@ -153,8 +128,6 @@ class GallerySlider {
 
     initCarousel(carousel) {
         try {
-            console.log('🔧 Initialisation du carousel dans l\'article:', carousel);
-            
             const track = carousel.querySelector('.carousel-track');
             const slides = carousel.querySelectorAll('.carousel-slide');
             const prevBtn = carousel.querySelector('.carousel-prev');
@@ -162,21 +135,12 @@ class GallerySlider {
             const counter = carousel.querySelector('.carousel-counter');
             const currentSlideSpan = counter?.querySelector('.current-slide');
 
-            console.log('🔍 Éléments carousel trouvés:', {
-                track: !!track,
-                slides: slides.length,
-                prevBtn: !!prevBtn,
-                nextBtn: !!nextBtn,
-                counter: !!counter
-            });
-
             if (!track) {
                 console.error('❌ Track non trouvé dans le carousel');
                 return;
             }
             
             if (slides.length <= 1) {
-                console.log('⏭️ Pas assez de slides pour le carousel:', slides.length);
                 return;
             }
 
@@ -185,8 +149,6 @@ class GallerySlider {
 
             // Fonction pour afficher une slide
             const showSlide = (index) => {
-                console.log('🎯 showSlide carousel appelée avec index:', index, 'totalSlides:', totalSlides);
-                
                 if (index < 0) index = totalSlides - 1;
                 if (index >= totalSlides) index = 0;
                 
@@ -195,36 +157,26 @@ class GallerySlider {
                 // Mettre à jour la position du track
                 const transform = `translateX(-${index * 100}%)`;
                 track.style.transform = transform;
-                console.log('🎯 Transform carousel appliqué:', transform);
                 
                 // Mettre à jour le compteur
                 if (currentSlideSpan) {
                     currentSlideSpan.textContent = index + 1;
-                    console.log('🎯 Compteur carousel mis à jour:', index + 1);
                 }
             };
 
             // Événements des boutons
             if (prevBtn) {
-                console.log('🔧 Ajout de l\'événement click sur carousel prevBtn');
                 prevBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('👆 Clic sur bouton carousel précédent, index actuel:', currentIndex);
                     showSlide(currentIndex - 1);
                 });
-            } else {
-                console.warn('⚠️ Bouton carousel précédent non trouvé');
             }
 
             if (nextBtn) {
-                console.log('🔧 Ajout de l\'événement click sur carousel nextBtn');
                 nextBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('👆 Clic sur bouton carousel suivant, index actuel:', currentIndex);
                     showSlide(currentIndex + 1);
                 });
-            } else {
-                console.warn('⚠️ Bouton carousel suivant non trouvé');
             }
 
             // Navigation au clavier
@@ -241,10 +193,77 @@ class GallerySlider {
 
             // Initialiser à la première slide
             showSlide(0);
-
-            console.log('✅ Carousel initialisé dans l\'article:', carousel);
         } catch (error) {
             console.error('Erreur lors de l\'initialisation du carousel:', error);
+        }
+    }
+
+    initMasonry(masonry) {
+        try {
+            const items = masonry.querySelectorAll('.gallery-item');
+            if (items.length === 0) {
+                return;
+            }
+
+            // Fonction pour réorganiser les éléments en colonne unique
+            const reorganizeMasonry = () => {
+                const containerWidth = masonry.offsetWidth;
+                const gap = 16; // 1rem en pixels
+                const columnWidth = containerWidth; // Une seule colonne qui prend toute la largeur
+                
+                let currentTop = 0;
+
+                // Placer toutes les images dans une seule colonne
+                items.forEach((item, index) => {
+                    item.style.position = 'absolute';
+                    item.style.left = '0px';
+                    item.style.top = `${currentTop}px`;
+                    item.style.width = `${columnWidth}px`;
+                    
+                    // Calculer la hauteur réelle de l'élément
+                    const img = item.querySelector('img');
+                    let itemHeight;
+                    if (img && img.complete && img.naturalHeight > 0) {
+                        const aspectRatio = img.naturalHeight / img.naturalWidth;
+                        itemHeight = columnWidth * aspectRatio;
+                    } else {
+                        itemHeight = columnWidth * 0.75; // 4:3 par défaut
+                    }
+                    
+                    currentTop += itemHeight + gap;
+                });
+
+                // Ajuster la hauteur du conteneur
+                masonry.style.height = `${currentTop - gap}px`; // Retirer le dernier gap
+            };
+
+            // Réorganiser au chargement et au redimensionnement
+            setTimeout(reorganizeMasonry, 100); // Petit délai pour s'assurer que les images sont chargées
+            
+            // Réorganiser quand les images sont chargées
+            const images = masonry.querySelectorAll('img');
+            let loadedImages = 0;
+            
+            images.forEach(img => {
+                if (img.complete) {
+                    loadedImages++;
+                    if (loadedImages === images.length) {
+                        reorganizeMasonry();
+                    }
+                } else {
+                    img.addEventListener('load', () => {
+                        loadedImages++;
+                        if (loadedImages === images.length) {
+                            reorganizeMasonry();
+                        }
+                    });
+                }
+            });
+
+            // Réorganiser au redimensionnement
+            window.addEventListener('resize', reorganizeMasonry);
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'initialisation du masonry:', error);
         }
     }
 
@@ -253,7 +272,7 @@ class GallerySlider {
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
                     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                        // Vérifier si de nouveaux sliders ou carousels ont été ajoutés
+                        // Vérifier si de nouveaux sliders, carousels ou masonry ont été ajoutés
                         const hasNewSlider = Array.from(mutation.addedNodes).some(node => {
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 return node.querySelector('.gallery-slider') || node.classList.contains('gallery-slider');
@@ -268,8 +287,14 @@ class GallerySlider {
                             return false;
                         });
                         
-                        if (hasNewSlider || hasNewCarousel) {
-                            console.log('Nouveaux sliders/carousels détectés, réinitialisation...');
+                        const hasNewMasonry = Array.from(mutation.addedNodes).some(node => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                return node.querySelector('.gallery-masonry') || node.classList.contains('gallery-masonry');
+                            }
+                            return false;
+                        });
+                        
+                        if (hasNewSlider || hasNewCarousel || hasNewMasonry) {
                             setTimeout(() => this.initAllSliders(), 100);
                         }
                     }
@@ -312,7 +337,7 @@ class GalleryLightbox {
             // Ajouter les événements de fermeture
             this.bindCloseEvents();
             
-            console.log('GalleryLightbox initialisé avec succès');
+            // GalleryLightbox initialisé
         } catch (error) {
             console.error('Erreur lors de l\'initialisation de GalleryLightbox:', error);
         }
@@ -338,7 +363,7 @@ class GalleryLightbox {
             this.modal = modal;
             this.modalImg = modal.querySelector('img');
             
-            console.log('Modal lightbox créé');
+            // Modal lightbox créé
         } catch (error) {
             console.error('Erreur lors de la création du modal:', error);
         }
@@ -355,7 +380,7 @@ class GalleryLightbox {
                 }
             });
             
-            console.log('Événements de galerie liés');
+            // Événements de galerie liés
         } catch (error) {
             console.error('Erreur lors de la liaison des événements de galerie:', error);
         }
@@ -382,7 +407,7 @@ class GalleryLightbox {
                 }
             });
             
-            console.log('Événements de fermeture liés');
+            // Événements de fermeture liés
         } catch (error) {
             console.error('Erreur lors de la liaison des événements de fermeture:', error);
         }
@@ -408,7 +433,7 @@ class GalleryLightbox {
             // Empêcher le défilement de la page
             document.body.style.overflow = 'hidden';
             
-            console.log('Lightbox ouvert pour:', img.src);
+            // Lightbox ouvert
         } catch (error) {
             console.error('Erreur lors de l\'ouverture du lightbox:', error);
         }
@@ -426,7 +451,7 @@ class GalleryLightbox {
             // Restaurer le défilement de la page
             document.body.style.overflow = '';
             
-            console.log('Lightbox fermé');
+            // Lightbox fermé
         } catch (error) {
             console.error('Erreur lors de la fermeture du lightbox:', error);
         }
@@ -439,7 +464,6 @@ function initGalleryLightbox() {
         // Attendre que le DOM soit complètement chargé
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                console.log('DOM chargé, initialisation des galeries...');
                 // Délai pour s'assurer que tous les styles sont chargés
                 setTimeout(() => {
                     new GalleryLightbox();
@@ -447,12 +471,19 @@ function initGalleryLightbox() {
                 }, 100);
             });
         } else {
-            console.log('DOM déjà chargé, initialisation immédiate des galeries...');
             // Délai pour s'assurer que tous les styles sont chargés
             setTimeout(() => {
                 new GalleryLightbox();
                 new GallerySlider();
             }, 100);
+            
+            // Délai supplémentaire pour s'assurer que le contenu de l'article est chargé
+            setTimeout(() => {
+                const masonry = document.querySelectorAll('.gallery-masonry');
+                if (masonry.length > 0) {
+                    new GallerySlider();
+                }
+            }, 500);
         }
     } catch (error) {
         console.error('Erreur lors de l\'initialisation des galeries:', error);
@@ -491,12 +522,10 @@ if (typeof MutationObserver !== 'undefined') {
                 });
                 
                 if (hasNewGallery) {
-                    console.log('Nouveaux éléments de galerie détectés, réinitialisation...');
                     setTimeout(() => new GalleryLightbox(), 100);
                 }
                 
                 if (hasNewSlider || hasNewCarousel) {
-                    console.log('Nouveaux sliders/carousels détectés, réinitialisation...');
                     setTimeout(() => new GallerySlider(), 100);
                 }
             }

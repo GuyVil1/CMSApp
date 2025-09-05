@@ -433,6 +433,10 @@ class GalleryModule extends BaseModule {
 
         content.innerHTML = galleryHTML;
 
+        // Ajouter les données du module à l'élément principal pour la persistance
+        const moduleData = JSON.stringify(this.galleryData);
+        this.element.setAttribute('data-module-data', moduleData);
+
         // Re-binder les événements
         this.bindEvents(); // Re-bind events to restore drag & drop
 
@@ -534,13 +538,20 @@ class GalleryModule extends BaseModule {
         
         return `
             <div class="gallery-masonry ${spacingClass} ${captionsClass}">
-                <div class="masonry-grid">
-                    ${this.galleryData.images.map(image => `
-                        <div class="masonry-item">
-                            ${this.renderGalleryImage(image)}
+                ${this.galleryData.images.map(image => `
+                    <div class="gallery-item">
+                        <div class="gallery-image">
+                            <img src="${image.url}" alt="${image.alt || image.title || ''}" />
+                            ${this.galleryData.lightbox ? '<div class="lightbox-overlay">🔍</div>' : ''}
                         </div>
-                    `).join('')}
-                </div>
+                        ${(this.galleryData.showTitles && image.title) || (this.galleryData.showDescriptions && image.description) ? `
+                            <div class="gallery-caption">
+                                ${this.galleryData.showTitles && image.title ? `<div class="image-title">${image.title}</div>` : ''}
+                                ${this.galleryData.showDescriptions && image.description ? `<div class="image-description">${image.description}</div>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
             </div>
         `;
     }
@@ -639,16 +650,32 @@ class GalleryModule extends BaseModule {
 
     initMasonry() {
         const masonry = this.element.querySelector('.gallery-masonry');
-        if (!masonry) return;
+        if (!masonry) {
+            console.log('❌ Masonry container non trouvé');
+            return;
+        }
 
-        const grid = masonry.querySelector('.masonry-grid');
-        const items = masonry.querySelectorAll('.masonry-item');
+        const items = masonry.querySelectorAll('.gallery-item');
+        if (items.length === 0) {
+            console.log('❌ Aucun élément masonry trouvé');
+            return;
+        }
 
-        // Fonction pour réorganiser les éléments
-        const reorganizeItems = () => {
-            const containerWidth = grid.offsetWidth;
-            const columns = this.galleryData.columns || 3;
-            const columnWidth = containerWidth / columns;
+        console.log('🔧 Initialisation du masonry avec', items.length, 'éléments');
+
+        // Fonction pour réorganiser les éléments en masonry
+        const reorganizeMasonry = () => {
+            const containerWidth = masonry.offsetWidth;
+            const columns = 3; // Nombre de colonnes fixe
+            const gap = 16; // 1rem en pixels
+            const columnWidth = (containerWidth - (gap * (columns - 1))) / columns;
+            
+            console.log('📐 Réorganisation masonry:', {
+                containerWidth,
+                columns,
+                columnWidth,
+                gap
+            });
             
             // Créer des colonnes
             const columnHeights = new Array(columns).fill(0);
@@ -659,12 +686,19 @@ class GalleryModule extends BaseModule {
                 const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
                 columnElements[shortestColumn].push(item);
                 
-                // Calculer la hauteur approximative (basée sur l'image)
+                // Calculer la hauteur réelle de l'élément
                 const img = item.querySelector('img');
                 if (img) {
-                    const aspectRatio = img.naturalHeight / img.naturalWidth;
-                    const itemHeight = columnWidth * aspectRatio;
-                    columnHeights[shortestColumn] += itemHeight;
+                    // Attendre que l'image soit chargée pour avoir ses dimensions réelles
+                    if (img.complete && img.naturalHeight > 0) {
+                        const aspectRatio = img.naturalHeight / img.naturalWidth;
+                        const itemHeight = columnWidth * aspectRatio;
+                        columnHeights[shortestColumn] += itemHeight + gap;
+                    } else {
+                        // Estimation basée sur l'aspect ratio par défaut
+                        const itemHeight = columnWidth * 0.75; // 4:3 par défaut
+                        columnHeights[shortestColumn] += itemHeight + gap;
+                    }
                 }
             });
 
@@ -673,37 +707,55 @@ class GalleryModule extends BaseModule {
                 let currentTop = 0;
                 columnItems.forEach(item => {
                     item.style.position = 'absolute';
-                    item.style.left = `${columnIndex * columnWidth}px`;
+                    item.style.left = `${columnIndex * (columnWidth + gap)}px`;
                     item.style.top = `${currentTop}px`;
                     item.style.width = `${columnWidth}px`;
                     
                     const img = item.querySelector('img');
-                    if (img) {
+                    if (img && img.complete && img.naturalHeight > 0) {
                         const aspectRatio = img.naturalHeight / img.naturalWidth;
                         const itemHeight = columnWidth * aspectRatio;
-                        currentTop += itemHeight;
+                        currentTop += itemHeight + gap;
+                    } else {
+                        currentTop += columnWidth * 0.75 + gap;
                     }
                 });
             });
 
             // Ajuster la hauteur du conteneur
             const maxHeight = Math.max(...columnHeights);
-            grid.style.height = `${maxHeight}px`;
+            masonry.style.height = `${maxHeight}px`;
+            
+            console.log('✅ Masonry réorganisé, hauteur totale:', maxHeight);
         };
 
         // Réorganiser au chargement et au redimensionnement
-        reorganizeItems();
-        window.addEventListener('resize', reorganizeItems);
-
+        setTimeout(reorganizeMasonry, 100); // Petit délai pour s'assurer que les images sont chargées
+        
         // Réorganiser quand les images sont chargées
         const images = masonry.querySelectorAll('img');
+        let loadedImages = 0;
+        
         images.forEach(img => {
             if (img.complete) {
-                reorganizeItems();
+                loadedImages++;
+                if (loadedImages === images.length) {
+                    reorganizeMasonry();
+                }
             } else {
-                img.addEventListener('load', reorganizeItems);
+                img.addEventListener('load', () => {
+                    loadedImages++;
+                    if (loadedImages === images.length) {
+                        reorganizeMasonry();
+                    }
+                });
             }
         });
+
+        // Réorganiser au redimensionnement
+        window.addEventListener('resize', reorganizeMasonry);
+        
+        console.log('✅ Masonry initialisé');
     }
 
     initSlider() {
@@ -810,13 +862,17 @@ class GalleryModule extends BaseModule {
         if (this.galleryData.images.length === 0) return '';
         
         // Générer le contenu selon le type de galerie
+        let galleryHTML = '';
         switch (this.galleryData.layout) {
             case 'carousel':
-                return this.renderCarousel();
+                galleryHTML = this.renderCarousel();
+                break;
             case 'masonry':
-                return this.renderMasonry();
+                galleryHTML = this.renderMasonry();
+                break;
             case 'slider':
-                return this.renderSlider();
+                galleryHTML = this.renderSlider();
+                break;
             case 'grid':
             default:
                 const layoutClass = this.getLayoutClass();
@@ -824,12 +880,17 @@ class GalleryModule extends BaseModule {
                 const spacingClass = this.getSpacingClass();
                 const captionsClass = this.getCaptionsClass();
 
-                return `
+                galleryHTML = `
                     <div class="gallery-container ${layoutClass} ${columnsClass} ${spacingClass} ${captionsClass}">
                         ${this.galleryData.images.map(image => this.renderGalleryImage(image)).join('')}
                     </div>
                 `;
+                break;
         }
+        
+        // Retourner directement le contenu sans conteneur supplémentaire
+        // Les données sont déjà sauvegardées dans l'élément principal du module
+        return galleryHTML;
     }
 
     getOptionsHTML() {
@@ -1114,11 +1175,26 @@ class GalleryModule extends BaseModule {
     loadData(data) {
         console.log('📂 Chargement des données galerie:', data);
         
+        // Si data est null/undefined, essayer de charger depuis l'élément HTML
+        if (!data && this.element) {
+            const moduleDataAttr = this.element.getAttribute('data-module-data');
+            if (moduleDataAttr) {
+                try {
+                    data = JSON.parse(moduleDataAttr);
+                    console.log('📂 Données chargées depuis l\'attribut HTML:', data);
+                } catch (error) {
+                    console.error('❌ Erreur lors du parsing des données:', error);
+                }
+            }
+        }
+        
         // Appliquer les données au module
-        this.galleryData = {
-            ...this.galleryData,
-            ...data
-        };
+        if (data) {
+            this.galleryData = {
+                ...this.galleryData,
+                ...data
+            };
+        }
         
         // Mettre à jour l'affichage si l'élément existe
         if (this.element) {

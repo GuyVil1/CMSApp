@@ -3009,8 +3009,13 @@ class FullscreenEditor {
             console.log('🖼️ Recréation du module galerie depuis content-module-gallery');
             
             // Extraire la configuration depuis les classes CSS
-            const galleryContainer = moduleElement.querySelector('.gallery-container');
-            const containerClasses = galleryContainer ? galleryContainer.className : '';
+            // Chercher d'abord dans l'élément principal, puis dans les conteneurs spécifiques
+            let containerClasses = moduleElement.className;
+            let galleryContainer = moduleElement.querySelector('.gallery-container, .gallery-masonry, .gallery-slider, .gallery-carousel');
+            
+            if (galleryContainer) {
+                containerClasses = galleryContainer.className;
+            }
             
             console.log('🎨 Classes CSS de la galerie:', containerClasses);
             
@@ -3125,6 +3130,11 @@ class FullscreenEditor {
 
     // Méthodes d'extraction des propriétés de galerie
     extractGalleryLayout(containerClasses) {
+        // Détecter le layout depuis les classes CSS réelles
+        if (containerClasses.includes('gallery-masonry')) return 'masonry';
+        if (containerClasses.includes('gallery-carousel')) return 'carousel';
+        if (containerClasses.includes('gallery-slider')) return 'slider';
+        if (containerClasses.includes('gallery-container')) return 'grid';
         if (containerClasses.includes('layout-masonry')) return 'masonry';
         if (containerClasses.includes('layout-carousel')) return 'carousel';
         if (containerClasses.includes('layout-slider')) return 'slider';
