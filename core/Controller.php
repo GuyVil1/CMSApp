@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../app/helpers/security_helper.php';
 
 abstract class Controller
 {
@@ -30,6 +31,12 @@ abstract class Controller
     {
         // Fusionner les données
         $viewData = array_merge($this->data, $data);
+        
+        // Ajouter les fonctions de sécurité aux données
+        $viewData['escape'] = [SecurityHelper::class, 'escape'];
+        $viewData['escapeAttr'] = [SecurityHelper::class, 'escapeAttr'];
+        $viewData['sanitize'] = [SecurityHelper::class, 'sanitize'];
+        $viewData['cleanForDisplay'] = [SecurityHelper::class, 'cleanForDisplay'];
         
         // Extraire les variables pour la vue
         extract($viewData);
@@ -429,5 +436,81 @@ abstract class Controller
     protected function markFlashAsDisplayed(): void
     {
         unset($_SESSION['flash']);
+    }
+    
+    /**
+     * Valider les données POST avec protection CSRF
+     */
+    protected function validatePostData(array $requiredFields = []): array
+    {
+        if (!$this->isPost()) {
+            throw new Exception('Méthode non autorisée');
+        }
+        
+        // Vérifier le token CSRF
+        $csrfToken = $this->getPostParam('csrf_token', '');
+        if (!Auth::verifyCsrfToken($csrfToken)) {
+            throw new Exception('Token de sécurité invalide');
+        }
+        
+        // Valider les champs requis
+        $data = [];
+        foreach ($requiredFields as $field) {
+            $value = $this->getPostParam($field, '');
+            if (empty($value)) {
+                throw new Exception("Le champ '{$field}' est requis");
+            }
+            $data[$field] = $value;
+        }
+        
+        return $data;
+    }
+    
+    /**
+     * Nettoyer et valider une chaîne
+     */
+    protected function cleanString(string $value, int $maxLength = 255): string
+    {
+        $value = trim($value);
+        if (strlen($value) > $maxLength) {
+            $value = substr($value, 0, $maxLength);
+        }
+        return SecurityHelper::cleanForDisplay($value);
+    }
+    
+    /**
+     * Valider et nettoyer un email
+     */
+    protected function validateAndCleanEmail(string $email): string
+    {
+        $email = trim($email);
+        if (!SecurityHelper::validateEmail($email)) {
+            throw new Exception('Adresse email invalide');
+        }
+        return $email;
+    }
+    
+    /**
+     * Valider et nettoyer une URL
+     */
+    protected function validateAndCleanUrl(string $url): string
+    {
+        $url = trim($url);
+        if (!empty($url) && !SecurityHelper::validateUrl($url)) {
+            throw new Exception('URL invalide');
+        }
+        return $url;
+    }
+    
+    /**
+     * Valider et nettoyer un slug
+     */
+    protected function validateAndCleanSlug(string $slug): string
+    {
+        $slug = trim($slug);
+        if (!SecurityHelper::validateSlug($slug)) {
+            throw new Exception('Slug invalide (utilisez uniquement des lettres, chiffres et tirets)');
+        }
+        return $slug;
     }
 }

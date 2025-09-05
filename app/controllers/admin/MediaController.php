@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../../app/models/Media.php';
 require_once __DIR__ . '/../../../app/models/Game.php';
 require_once __DIR__ . '/../../../app/models/Hardware.php';
 require_once __DIR__ . '/../../../app/utils/ImageOptimizer.php';
+require_once __DIR__ . '/../../../app/helpers/security_helper.php';
 
 class MediaController extends \Controller
 {
@@ -293,19 +294,21 @@ class MediaController extends \Controller
             throw new \Exception('Fichier temporaire introuvable', 400);
         }
         
-        // Vérifier le type MIME
-        $mimeType = $this->getFileMimeType($file['tmp_name']);
-        if (!array_key_exists($mimeType, self::ALLOWED_MIME_TYPES)) {
+        // Vérifier le type MIME avec validation renforcée
+        $mimeType = \SecurityHelper::getRealMimeType($file['tmp_name']);
+        if (!\SecurityHelper::validateImageMimeType($mimeType)) {
             throw new \Exception('Type de fichier non autorisé. Formats acceptés : JPG, PNG, WebP, GIF', 400);
         }
         
-        // Vérifier la taille
-        if ($file['size'] > self::MAX_FILE_SIZE) {
+        // Vérifier la taille avec validation renforcée
+        if (!\SecurityHelper::validateFileSize($file['size'], self::MAX_FILE_SIZE)) {
             throw new \Exception('Fichier trop volumineux (max 4MB)', 400);
         }
         
         // Vérifier les dimensions si c'est une image
-        $this->validateImageDimensions($file['tmp_name'], $mimeType);
+        if (!\SecurityHelper::validateImageDimensions($file['tmp_name'], self::MAX_DIMENSIONS, self::MAX_DIMENSIONS)) {
+            throw new \Exception('Dimensions d\'image trop grandes (max 4096x4096 pixels)', 400);
+        }
         
         error_log("✅ Fichier validé: " . $file['name'] . " (" . $file['size'] . " bytes, " . $mimeType . ")");
         
@@ -440,11 +443,7 @@ class MediaController extends \Controller
      */
     private function generateSecureFilename(string $originalName): string
     {
-        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-        $timestamp = time();
-        $randomString = bin2hex(random_bytes(8));
-        
-        return "{$timestamp}_{$randomString}.{$extension}";
+        return \SecurityHelper::generateSecureFilename($originalName);
     }
     
     /**

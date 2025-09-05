@@ -126,6 +126,7 @@ class VideoModule extends BaseModule {
         this.detectVideoAspectRatio(videoUrl);
         
         this.displayVideo();
+        this.saveData(); // Sauvegarder les données après upload
         this.select();
         console.log('🎯 Module vidéo sélectionné après upload:', this.moduleId);
     }
@@ -151,6 +152,7 @@ class VideoModule extends BaseModule {
         }
         
         this.displayVideo();
+        this.saveData(); // Sauvegarder les données après configuration de l'URL
         this.select();
         console.log('🎯 Module vidéo sélectionné après URL:', this.moduleId);
     }
@@ -224,12 +226,22 @@ class VideoModule extends BaseModule {
     }
 
     getAlignmentClass() {
+        console.log('🎯 getAlignmentClass appelé avec alignment:', this.videoData.alignment);
+        let alignmentClass;
         switch (this.videoData.alignment) {
-            case 'left': return 'align-left';
-            case 'right': return 'align-right';
+            case 'left': 
+                alignmentClass = 'align-left';
+                break;
+            case 'right': 
+                alignmentClass = 'align-right';
+                break;
             case 'center':
-            default: return 'align-center';
+            default: 
+                alignmentClass = 'align-center';
+                break;
         }
+        console.log('🎯 Classe d\'alignement retournée:', alignmentClass);
+        return alignmentClass;
     }
 
     displayVideo() {
@@ -393,7 +405,9 @@ class VideoModule extends BaseModule {
             `;
         }
         
-        return videoHtml;
+        // Inclure l'attribut data-module-data pour la persistance
+        const moduleData = JSON.stringify(this.videoData);
+        return `<div data-module-data='${moduleData}'>${videoHtml}</div>`;
     }
 
     getOptionsHTML() {
@@ -541,6 +555,7 @@ class VideoModule extends BaseModule {
                     }
                 }
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoWidth.addEventListener('change', this.widthChangeHandler);
         }
@@ -557,6 +572,7 @@ class VideoModule extends BaseModule {
                     }
                 }
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoHeight.addEventListener('change', this.heightChangeHandler);
         }
@@ -565,6 +581,7 @@ class VideoModule extends BaseModule {
             this.titleInputHandler = (e) => {
                 this.videoData.title = e.target.value;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoTitle.addEventListener('input', this.titleInputHandler);
         }
@@ -573,6 +590,7 @@ class VideoModule extends BaseModule {
             this.descriptionInputHandler = (e) => {
                 this.videoData.description = e.target.value;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoDescription.addEventListener('input', this.descriptionInputHandler);
         }
@@ -581,6 +599,7 @@ class VideoModule extends BaseModule {
             this.autoplayChangeHandler = (e) => {
                 this.videoData.autoplay = e.target.checked;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoAutoplay.addEventListener('change', this.autoplayChangeHandler);
         }
@@ -589,6 +608,7 @@ class VideoModule extends BaseModule {
             this.controlsChangeHandler = (e) => {
                 this.videoData.controls = e.target.checked;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoControls.addEventListener('change', this.controlsChangeHandler);
         }
@@ -597,6 +617,7 @@ class VideoModule extends BaseModule {
             this.loopChangeHandler = (e) => {
                 this.videoData.loop = e.target.checked;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoLoop.addEventListener('change', this.loopChangeHandler);
         }
@@ -605,6 +626,7 @@ class VideoModule extends BaseModule {
             this.mutedChangeHandler = (e) => {
                 this.videoData.muted = e.target.checked;
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données
             };
             videoMuted.addEventListener('change', this.mutedChangeHandler);
         }
@@ -621,6 +643,7 @@ class VideoModule extends BaseModule {
                 e.target.closest('.align-btn').classList.add('active');
                 
                 this.displayVideo();
+                this.saveData(); // Sauvegarder les données après changement d'alignement
             });
         });
     }
@@ -678,6 +701,7 @@ class VideoModule extends BaseModule {
 
     loadData(data) {
         console.log('📂 Chargement des données vidéo:', data);
+        console.log('📂 Alignement reçu:', data.alignment);
         
         // Appliquer les données au module
         this.videoData = {
@@ -685,10 +709,38 @@ class VideoModule extends BaseModule {
             ...data
         };
         
+        console.log('📂 Données vidéo après fusion:', this.videoData);
+        console.log('📂 Alignement final:', this.videoData.alignment);
+        
         // Afficher la vidéo avec les données chargées
         this.displayVideo();
         
         console.log('✅ Données vidéo chargées avec succès');
+    }
+    
+    /**
+     * Sauvegarder les données du module
+     */
+    saveData() {
+        console.log('💾 Sauvegarde des données vidéo:', this.videoData);
+        console.log('💾 Alignement à sauvegarder:', this.videoData.alignment);
+        this.element.setAttribute('data-module-data', JSON.stringify(this.videoData));
+        console.log('💾 Attribut data-module-data défini:', this.element.getAttribute('data-module-data'));
+    }
+    
+    /**
+     * Charger les données du module depuis l'attribut data-module-data
+     */
+    loadDataFromElement() {
+        const dataAttr = this.element.getAttribute('data-module-data');
+        if (dataAttr) {
+            try {
+                const data = JSON.parse(dataAttr);
+                this.loadData(data);
+            } catch (e) {
+                console.error('❌ Erreur lors du chargement des données vidéo:', e);
+            }
+        }
     }
 
     handleOptionAction(action) {

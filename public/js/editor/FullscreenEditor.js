@@ -2762,15 +2762,41 @@ class FullscreenEditor {
             
             if (iframe) {
                 const src = iframe.src;
-                const videoData = {
-                    type: src.includes('youtube.com') ? 'youtube' : 'vimeo',
-                    url: src,
-                    title: '',
-                    description: '',
-                    alignment: this.getAlignmentFromClass(moduleElement.className)
-                };
                 
-                console.log('🎬 Données vidéo extraites:', videoData);
+                // Essayer de charger les données depuis data-module-data d'abord
+                let videoData = null;
+                let moduleData = moduleElement.getAttribute('data-module-data');
+                
+                // Si pas trouvé sur l'élément principal, chercher sur l'élément parent
+                if (!moduleData) {
+                    const parentElement = moduleElement.parentElement;
+                    if (parentElement) {
+                        moduleData = parentElement.getAttribute('data-module-data');
+                    }
+                }
+                
+                if (moduleData) {
+                    try {
+                        // Décoder l'attribut HTML encodé
+                        const decodedData = moduleData.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                        videoData = JSON.parse(decodedData);
+                        console.log('🎬 Données vidéo chargées depuis data-module-data:', videoData);
+                    } catch (e) {
+                        console.warn('⚠️ Erreur parsing data-module-data:', e);
+                    }
+                }
+                
+                // Si pas de données sauvegardées, extraire depuis le HTML
+                if (!videoData) {
+                    videoData = {
+                        type: src.includes('youtube.com') ? 'youtube' : 'vimeo',
+                        url: src,
+                        title: '',
+                        description: '',
+                        alignment: this.getAlignmentFromClass(moduleElement.className)
+                    };
+                    console.log('🎬 Données vidéo extraites depuis HTML:', videoData);
+                }
                 
                 const module = this.moduleFactory.createModule('video', videoData);
                 if (module) {
@@ -2780,19 +2806,45 @@ class FullscreenEditor {
                 }
             } else if (video) {
                 const src = video.querySelector('source')?.src || '';
-                const videoData = {
-                    type: 'file',
-                    url: src,
-                    title: '',
-                    description: '',
-                    controls: video.hasAttribute('controls'),
-                    autoplay: video.hasAttribute('autoplay'),
-                    loop: video.hasAttribute('loop'),
-                    muted: video.hasAttribute('muted'),
-                    alignment: this.getAlignmentFromClass(moduleElement.className)
-                };
                 
-                console.log('🎬 Données vidéo extraites:', videoData);
+                // Essayer de charger les données depuis data-module-data d'abord
+                let videoData = null;
+                let moduleData = moduleElement.getAttribute('data-module-data');
+                
+                // Si pas trouvé sur l'élément principal, chercher sur l'élément parent
+                if (!moduleData) {
+                    const parentElement = moduleElement.parentElement;
+                    if (parentElement) {
+                        moduleData = parentElement.getAttribute('data-module-data');
+                    }
+                }
+                
+                if (moduleData) {
+                    try {
+                        // Décoder l'attribut HTML encodé
+                        const decodedData = moduleData.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+                        videoData = JSON.parse(decodedData);
+                        console.log('🎬 Données vidéo chargées depuis data-module-data:', videoData);
+                    } catch (e) {
+                        console.warn('⚠️ Erreur parsing data-module-data:', e);
+                    }
+                }
+                
+                // Si pas de données sauvegardées, extraire depuis le HTML
+                if (!videoData) {
+                    videoData = {
+                        type: 'file',
+                        url: src,
+                        title: '',
+                        description: '',
+                        controls: video.hasAttribute('controls'),
+                        autoplay: video.hasAttribute('autoplay'),
+                        loop: video.hasAttribute('loop'),
+                        muted: video.hasAttribute('muted'),
+                        alignment: this.getAlignmentFromClass(moduleElement.className)
+                    };
+                    console.log('🎬 Données vidéo extraites depuis HTML:', videoData);
+                }
                 
                 const module = this.moduleFactory.createModule('video', videoData);
                 if (module) {
@@ -3181,7 +3233,7 @@ class FullscreenEditor {
             className.includes('align-center')) {
             return 'center';
         }
-        return 'left'; // Par défaut
+        return 'center'; // Par défaut centré pour les vidéos
     }
 }
 

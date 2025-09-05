@@ -193,6 +193,7 @@ p[style*="var(--text)"] {
 
 .video-container {
     margin: 0;
+    text-align: center;
 }
 
 .video-content {
