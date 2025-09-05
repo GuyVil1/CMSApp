@@ -90,6 +90,23 @@ function route($uri) {
         ];
     }
     
+    // Routes SEO
+    if ($parts[0] === 'sitemap.xml') {
+        return [
+            'controller' => 'SeoController',
+            'action' => 'sitemap',
+            'params' => []
+        ];
+    }
+    
+    if ($parts[0] === 'robots.txt') {
+        return [
+            'controller' => 'SeoController',
+            'action' => 'robots',
+            'params' => []
+        ];
+    }
+    
     // Route spéciale pour article
     if ($parts[0] === 'article') {
         error_log("🔍 Route article détectée");
@@ -134,6 +151,27 @@ function route($uri) {
     
     // Gérer les routes admin
     if (strpos($uri, 'admin') === 0) {
+        // Route spéciale pour SEO
+        if ($parts[1] === 'seo') {
+            $controller = 'Admin\\SeoController';
+            $action = $parts[2] ?? 'test';
+            $params = array_slice($parts, 3);
+            
+            // Charger le contrôleur SEO
+            $controllerFile = __DIR__ . "/../app/controllers/SeoController.php";
+            if (file_exists($controllerFile)) {
+                require_once $controllerFile;
+            } else {
+                return ['error' => '404'];
+            }
+            
+            return [
+                'controller' => $controller,
+                'action' => $action,
+                'params' => $params
+            ];
+        }
+        
         $controllerName = ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
         $controllerFile = __DIR__ . "/../app/controllers/admin/" . $controllerName . ".php";
         

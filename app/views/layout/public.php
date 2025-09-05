@@ -3,9 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $pageTitle ?? 'GameNews - L\'actualité jeux vidéo en Belgique' ?></title>
-    <meta name="description" content="<?= $pageDescription ?? 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.' ?>">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <?php if (isset($seoMetaTags)): ?>
+        <?= $seoMetaTags ?>
+    <?php else: ?>
+        <title><?= $pageTitle ?? 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique' ?></title>
+        <meta name="description" content="<?= $pageDescription ?? 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.' ?>">
+    <?php endif; ?>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=<?= time() ?>">
     
     <!-- Google Fonts - Poppins pour les titres -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

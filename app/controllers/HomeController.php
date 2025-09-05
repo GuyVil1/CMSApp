@@ -40,8 +40,8 @@ class HomeController extends Controller
             $trailers = $this->getTrailers();
             
             $this->render('layout/public', [
-                'pageTitle' => 'GameNews - L\'actualité jeux vidéo en Belgique',
-                'pageDescription' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.',
+                'pageTitle' => 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique',
+                'pageDescription' => 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.',
                 'currentTheme' => $currentTheme,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
@@ -65,8 +65,8 @@ class HomeController extends Controller
         } catch (Exception $e) {
             // En cas d'erreur, afficher une page d'accueil avec des données par défaut
             $this->render('layout/public', [
-                'pageTitle' => 'GameNews - L\'actualité jeux vidéo en Belgique',
-                'pageDescription' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.',
+                'pageTitle' => 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique',
+                'pageDescription' => 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.',
                 'featuredArticles' => [],
                 'latestArticles' => [],
                 'popularCategories' => [],

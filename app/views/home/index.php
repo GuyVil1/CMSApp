@@ -5,8 +5,8 @@
  */
 
 // Définir les métadonnées de la page
-$pageTitle = 'GameNews - L\'actualité jeux vidéo en Belgique';
-$pageDescription = 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.';
+$pageTitle = 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique';
+$pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.';
 ?>
 
 <!-- Section Articles en avant -->

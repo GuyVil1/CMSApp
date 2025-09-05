@@ -4,15 +4,19 @@
  * Le header, bannières thématiques et footer sont gérés par le template
  */
 
-// Charger le helper d'images
+// Charger les helpers
 require_once __DIR__ . '/../../helpers/image_helper.php';
+require_once __DIR__ . '/../../helpers/seo_helper.php';
 
 // Nettoyer le contenu HTML
 $cleanedContent = ImageHelper::cleanArticleContent($article->getContent());
 
-// Définir les métadonnées de la page
-$pageTitle = htmlspecialchars($article->getTitle()) . ' - GameNews Belgium';
-$pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet article sur GameNews, votre source gaming belge.');
+// Générer les meta tags SEO
+$seoMetaTags = SeoHelper::generateArticleMetaTags($article);
+
+// Définir les métadonnées de la page (pour compatibilité)
+$pageTitle = htmlspecialchars($article->getTitle()) . ' - Belgium Video Gaming';
+$pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet article sur Belgium Video Gaming, votre source gaming belge.');
 ?>
 
 <!-- Métadonnées de l'article (au-dessus de l'image) -->
