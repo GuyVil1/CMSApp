@@ -84,10 +84,12 @@ $pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet ar
 </div>
 
 <!-- Contenu de l'article -->
-<div class="article-content">
+<div class="article-content responsive-content">
     <?php if ($cleanedContent): ?>
         <!-- Contenu modulaire de l'éditeur nettoyé -->
-        <?= $cleanedContent ?>
+        <div class="responsive-container">
+            <?= $cleanedContent ?>
+        </div>
     <?php else: ?>
         <!-- Article sans contenu -->
         <div class="no-content">

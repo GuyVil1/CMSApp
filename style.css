@@ -721,7 +721,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .footer-column:nth-child(3) {
-    border-left-color: white;
+    border-left-color: black;
 }
 
 .footer-title {

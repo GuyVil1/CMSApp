@@ -1,0 +1,220 @@
+/* ========================================
+   RESPONSIVE DESIGN POUR ARTICLES
+   ======================================== */
+
+/* Règles globales pour le contenu des articles */
+.article-content {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+}
+
+/* Images responsives */
+.article-content img,
+.article-content .image-container img,
+.article-content .content-module img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 1rem auto;
+}
+
+/* Conteneurs d'images */
+.article-content .image-container,
+.article-content .content-module {
+    max-width: 100% !important;
+    overflow: hidden;
+}
+
+/* Vidéos responsives */
+.article-content video,
+.article-content iframe {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Tableaux responsives */
+.article-content table {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+}
+
+.article-content table td,
+.article-content table th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Listes responsives */
+.article-content ul,
+.article-content ol {
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+.article-content li {
+    margin: 0.5rem 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Citations et blockquotes */
+.article-content blockquote {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-left: 4px solid #E6B800;
+    background: #f8f9fa;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Code et pre */
+.article-content code,
+.article-content pre {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.article-content pre {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .main-content {
+        width: 100vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        width: 100vw;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        min-height: calc(100vh - 150px);
+    }
+    
+    .article-content {
+        padding: 0 1rem;
+        margin: 1rem 0;
+        font-size: 16px !important;
+    }
+    
+    .article-content h1,
+    .article-content h2,
+    .article-content h3,
+    .article-content h4,
+    .article-content h5,
+    .article-content h6 {
+        font-size: 1.5rem !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        margin: 1rem 0 0.5rem 0 !important;
+    }
+    
+    .article-content p,
+    .article-content div,
+    .article-content span,
+    .article-content li {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+        margin: 0.5rem 0;
+    }
+    
+    /* Images sur mobile */
+    .article-content img {
+        max-width: 100% !important;
+        height: auto !important;
+        margin: 1rem 0;
+    }
+    
+    /* Tableaux sur mobile */
+    .article-content table {
+        font-size: 14px;
+    }
+    
+    /* Listes sur mobile */
+    .article-content ul,
+    .article-content ol {
+        padding-left: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        width: 100vw;
+        padding: 0;
+    }
+    
+    .article-content {
+        padding: 0 0.75rem;
+        font-size: 15px !important;
+    }
+    
+    .article-content h1,
+    .article-content h2,
+    .article-content h3,
+    .article-content h4,
+    .article-content h5,
+    .article-content h6 {
+        font-size: 1.3rem !important;
+        line-height: 1.2 !important;
+    }
+    
+    .article-content p {
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* Images sur très petit écran */
+    .article-content img {
+        margin: 0.75rem 0;
+    }
+    
+    /* Tableaux sur très petit écran */
+    .article-content table {
+        font-size: 12px;
+    }
+    
+    /* Listes sur très petit écran */
+    .article-content ul,
+    .article-content ol {
+        padding-left: 0.75rem;
+    }
+}
+
+/* ========================================
+   UTILITAIRES RESPONSIVE
+   ======================================== */
+
+/* Classe pour forcer le responsive */
+.responsive-content {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Classe pour les images responsives */
+.responsive-image {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+}
+
+/* Classe pour les conteneurs responsives */
+.responsive-container {
+    max-width: 100%;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}

@@ -48,6 +48,9 @@
     <!-- CSS pour la navbar -->
     <link rel="stylesheet" href="/public/assets/css/components/navbar.css">
     
+    <!-- CSS responsive pour les articles -->
+    <link rel="stylesheet" href="/public/assets/css/components/article-responsive.css">
+    
     <!-- CSS additionnel spécifique à la page -->
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
@@ -135,7 +138,7 @@
                         ?>
                         <img src="/assets/images/logos/<?= htmlspecialchars($headerLogo) ?>" 
                              alt="Belgium Video Gaming" 
-                             style="width: 80px; height: 80px; object-fit: contain;">
+                             style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
                     <div class="logo-text">
                         <h1>Belgium<br>Video Gaming</h1>
@@ -146,19 +149,18 @@
                     L'actualité jeux vidéo en Belgique
                 </h1>
                 
-                <?php if ($isLoggedIn): ?>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <!-- Boutons d'authentification -->
+                <div class="header-auth">
+                    <?php if ($isLoggedIn): ?>
                         <a href="/admin/dashboard" class="login-btn">Dashboard</a>
                         <a href="/auth/logout" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Se déconnecter</a>
-                    </div>
-                <?php else: ?>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <?php else: ?>
                         <a href="/auth/login" class="login-btn">Se connecter</a>
                         <?php if ($allowRegistration ?? true): ?>
                             <a href="/auth/register" class="register-btn">S'inscrire</a>
                         <?php endif; ?>
-                    </div>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </header>
