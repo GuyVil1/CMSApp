@@ -90,10 +90,10 @@
                             <option value="">Sélectionner un type</option>
                             <?php 
                             $currentType = $_POST['type'] ?? $hardware->getType();
-                            foreach ($types as $typeKey => $typeName): 
+                            foreach ($types as $type): 
                             ?>
-                                <option value="<?= $typeKey ?>" <?= $currentType === $typeKey ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($typeName) ?>
+                                <option value="<?= $type ?>" <?= $currentType === $type ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars(ucfirst($type)) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

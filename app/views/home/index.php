@@ -28,10 +28,10 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                     <div class="featured-overlay"></div>
                                                     <div class="featured-content">
                                     <span class="featured-badge">À la une</span>
-                                    <h3 class="featured-title"><?php echo htmlspecialchars($featuredArticles[0]['title']); ?></h3>
                                     <?php if (!empty($featuredArticles[0]['category_name'])): ?>
                                         <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[0]['category_name']); ?></span>
                                     <?php endif; ?>
+                                    <h3 class="featured-title"><?php echo htmlspecialchars($featuredArticles[0]['title']); ?></h3>
                                 </div>
                 </div>
                 
@@ -43,10 +43,10 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                                  alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                             <div class="featured-overlay"></div>
                             <div class="featured-content">
-                                <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
                                 <?php if (!empty($featuredArticles[$i]['category_name'])): ?>
                                     <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[$i]['category_name']); ?></span>
                                 <?php endif; ?>
+                                <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
                             </div>
                         </div>
                     <?php endfor; ?>
@@ -99,10 +99,10 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                          alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
                 <div class="featured-overlay"></div>
                 <div class="featured-content">
-                    <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
                     <?php if (!empty($featuredArticles[$i]['category_name'])): ?>
                         <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[$i]['category_name']); ?></span>
                     <?php endif; ?>
+                    <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
                 </div>
             </div>
             <?php endfor; ?>

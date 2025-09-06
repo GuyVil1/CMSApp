@@ -59,9 +59,9 @@
                         <label for="type" class="form-label required">Type *</label>
                         <select id="type" name="type" required class="form-select">
                             <option value="">Sélectionner un type</option>
-                            <?php foreach ($types as $typeKey => $typeName): ?>
-                                <option value="<?= $typeKey ?>" <?= ($_POST['type'] ?? '') === $typeKey ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($typeName) ?>
+                            <?php foreach ($types as $type): ?>
+                                <option value="<?= $type ?>" <?= ($_POST['type'] ?? '') === $type ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars(ucfirst($type)) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

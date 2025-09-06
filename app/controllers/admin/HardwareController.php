@@ -122,7 +122,7 @@ class HardwareController extends \Controller
             return;
         }
 
-        if (empty($type) || !array_key_exists($type, \Hardware::getTypes())) {
+        if (empty($type) || !in_array($type, \Hardware::getTypes())) {
             $this->render('admin/hardware/create', [
                 'error' => 'Le type de hardware est obligatoire',
                 'success' => '',
@@ -238,7 +238,7 @@ class HardwareController extends \Controller
             return;
         }
 
-        if (empty($type) || !array_key_exists($type, \Hardware::getTypes())) {
+        if (empty($type) || !in_array($type, \Hardware::getTypes())) {
             $this->render('admin/hardware/edit', [
                 'hardware' => $hardware,
                 'error' => 'Le type de hardware est obligatoire',

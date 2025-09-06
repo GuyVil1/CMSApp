@@ -62,7 +62,7 @@ class DashboardController extends \Controller
                 'allow_registration' => \Setting::isEnabled('allow_registration'),
                 'dark_mode' => \Setting::isEnabled('dark_mode'),
                 'maintenance_mode' => \Setting::isEnabled('maintenance_mode'),
-                'default_theme' => \Setting::get('default_theme', 'defaut')
+                'default_theme' => $this->getCurrentThemeName()
             ];
         } catch (\Exception $e) {
             return [
@@ -72,5 +72,22 @@ class DashboardController extends \Controller
                 'default_theme' => 'defaut'
             ];
         }
+    }
+    
+    /**
+     * Obtenir le nom du thème actuel depuis le fichier de configuration
+     */
+    private function getCurrentThemeName(): string
+    {
+        $configFile = __DIR__ . '/../../../config/theme.json';
+        
+        if (file_exists($configFile)) {
+            $config = json_decode(file_get_contents($configFile), true);
+            if ($config && isset($config['current_theme'])) {
+                return $config['current_theme'];
+            }
+        }
+        
+        return 'defaut';
     }
 }

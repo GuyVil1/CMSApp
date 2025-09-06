@@ -98,7 +98,7 @@ class Tag
         $query = "UPDATE tags SET name = ?, slug = ? WHERE id = ?";
         $params = [$data['name'], $data['slug'], $id];
 
-        return self::$db->execute($query, $params);
+        return self::$db->execute($query, $params) > 0;
     }
 
     /**

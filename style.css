@@ -510,6 +510,36 @@ body {
     border: 1px solid #ddd6fe;
 }
 
+.badge-trailers {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.badge-dossiers {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.badge-sponso {
+    background: #fce7f3;
+    color: #be185d;
+    border: 1px solid #f9a8d4;
+}
+
+.badge-actu {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-actualités {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
 .article-date {
     font-size: 0.75rem;
     color: #666;
@@ -829,4 +859,75 @@ body {
     .news-layout {
         grid-template-columns: 1fr;
     }
+}
+
+/* ========================================
+   MODE SOMBRE
+   ======================================== */
+.dark-mode .article-title {
+    color: white !important;
+}
+
+/* ========================================
+   BADGES DE CATÉGORIE FEATURED
+   ======================================== */
+.featured-category {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Mode sombre pour les badges featured */
+.dark-mode .featured-category {
+    background: var(--belgium-yellow);
+    color: var(--belgium-black);
+}
+
+/* Mode sombre pour les badges d'articles */
+.dark-mode .badge-test {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.dark-mode .badge-news {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.dark-mode .badge-guide {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+.dark-mode .badge-trailers {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.dark-mode .badge-dossiers {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.dark-mode .badge-sponso {
+    background: #fce7f3;
+    color: #be185d;
+}
+
+.dark-mode .badge-actu {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.dark-mode .badge-actualités {
+    background: #dbeafe;
+    color: #1e40af;
 }

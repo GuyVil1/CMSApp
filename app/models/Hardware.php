@@ -284,5 +284,103 @@ class Hardware
             return [];
         }
     }
+
+    /**
+     * Vérifier si un slug existe déjà
+     */
+    public static function slugExists(string $slug, int $excludeId = 0): bool
+    {
+        try {
+            $db = Database::getInstance();
+            $sql = "SELECT COUNT(*) as total FROM hardware WHERE slug = ? AND id != ?";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$slug, $excludeId]);
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int)($result['total'] ?? 0) > 0;
+        } catch (Exception $e) {
+            error_log("Erreur lors de la vérification du slug: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Créer un nouveau hardware
+     */
+    public static function create(array $data): ?self
+    {
+        try {
+            $db = Database::getInstance();
+            $sql = "INSERT INTO hardware (name, slug, type, manufacturer, release_year, description, is_active, sort_order, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+            
+            $stmt = $db->prepare($sql);
+            $success = $stmt->execute([
+                $data['name'],
+                $data['slug'],
+                $data['type'],
+                $data['manufacturer'],
+                $data['release_year'],
+                $data['description'],
+                $data['is_active'] ? 1 : 0,
+                $data['sort_order']
+            ]);
+            
+            if ($success) {
+                $id = $db->lastInsertId();
+                return self::find($id);
+            }
+            
+            return null;
+        } catch (Exception $e) {
+            error_log("Erreur lors de la création du hardware: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Mettre à jour le hardware
+     */
+    public function update(array $data): bool
+    {
+        try {
+            $db = Database::getInstance();
+            $sql = "UPDATE hardware SET 
+                    name = ?, slug = ?, type = ?, manufacturer = ?, release_year = ?, 
+                    description = ?, is_active = ?, sort_order = ?, updated_at = NOW() 
+                    WHERE id = ?";
+            
+            $stmt = $db->prepare($sql);
+            $success = $stmt->execute([
+                $data['name'],
+                $data['slug'],
+                $data['type'],
+                $data['manufacturer'],
+                $data['release_year'],
+                $data['description'],
+                $data['is_active'] ? 1 : 0,
+                $data['sort_order'],
+                $this->id
+            ]);
+            
+            if ($success) {
+                // Mettre à jour les propriétés de l'objet
+                $this->name = $data['name'];
+                $this->slug = $data['slug'];
+                $this->type = $data['type'];
+                $this->manufacturer = $data['manufacturer'];
+                $this->releaseYear = $data['release_year'];
+                $this->description = $data['description'];
+                $this->isActive = $data['is_active'];
+                $this->sortOrder = $data['sort_order'];
+                $this->updatedAt = date('Y-m-d H:i:s');
+            }
+            
+            return $success;
+        } catch (Exception $e) {
+            error_log("Erreur lors de la mise à jour du hardware: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>

@@ -16,24 +16,8 @@ class SettingsController extends \Controller
 {
     public function __construct()
     {
-        parent::__construct();
-        
-        // Vérifier l'authentification
-        if (!\Auth::isLoggedIn()) {
-            header('Location: /login');
-            exit;
-        }
-        
-        // Vérifier les permissions admin
-        $user = \Auth::getUser();
-        if (!$user || $user['role_name'] !== 'admin') {
-            http_response_code(403);
-            $this->render('layout/403', [
-                'pageTitle' => 'Accès refusé - Belgium Video Gaming',
-                'pageDescription' => 'Vous n\'avez pas les permissions nécessaires.'
-            ]);
-            exit;
-        }
+        // Vérifier que l'utilisateur est connecté et a les droits admin
+        \Auth::requireRole('admin');
     }
     
     /**
@@ -73,7 +57,7 @@ class SettingsController extends \Controller
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                http_response_code(405);
+                $this->redirect('/admin/settings');
                 return;
             }
             
@@ -91,23 +75,23 @@ class SettingsController extends \Controller
                 }
             }
             
-            if ($success) {
-                $_SESSION['flash_message'] = 'Paramètres sauvegardés avec succès !';
-                $_SESSION['flash_type'] = 'success';
-            } else {
-                $_SESSION['flash_message'] = 'Erreur lors de la sauvegarde des paramètres.';
-                $_SESSION['flash_type'] = 'error';
+            // Mettre à jour le thème actuel si le thème par défaut a changé
+            if ($success && isset($settings['default_theme'])) {
+                $this->updateCurrentTheme($settings['default_theme']);
             }
             
-            header('Location: /admin/dashboard');
-            exit;
+            if ($success) {
+                $this->setFlash('success', 'Paramètres sauvegardés avec succès !');
+            } else {
+                $this->setFlash('error', 'Erreur lors de la sauvegarde des paramètres.');
+            }
             
-        } catch (Exception $e) {
+            $this->redirect('/admin/settings');
+            
+        } catch (\Exception $e) {
             error_log("Erreur SettingsController::save(): " . $e->getMessage());
-            $_SESSION['flash_message'] = 'Erreur serveur lors de la sauvegarde.';
-            $_SESSION['flash_type'] = 'error';
-            header('Location: /admin/dashboard');
-            exit;
+            $this->setFlash('error', 'Erreur serveur lors de la sauvegarde.');
+            $this->redirect('/admin/settings');
         }
     }
     
@@ -132,5 +116,35 @@ class SettingsController extends \Controller
         }
         
         return $themes;
+    }
+    
+    /**
+     * Mettre à jour le thème actuel dans le fichier de configuration
+     */
+    private function updateCurrentTheme(string $themeName): void
+    {
+        $configFile = __DIR__ . '/../../../config/theme.json';
+        $configDir = dirname($configFile);
+        
+        // Créer le dossier config s'il n'existe pas
+        if (!is_dir($configDir)) {
+            mkdir($configDir, 0755, true);
+        }
+        
+        // Lire la configuration existante ou créer une nouvelle
+        $config = [];
+        if (file_exists($configFile)) {
+            $config = json_decode(file_get_contents($configFile), true) ?? [];
+        }
+        
+        // Mettre à jour la configuration
+        $config['current_theme'] = $themeName;
+        $config['default_theme'] = $themeName;
+        $config['is_permanent'] = true;
+        $config['expires_at'] = null;
+        $config['applied_at'] = date('Y-m-d H:i:s');
+        
+        // Sauvegarder la configuration
+        file_put_contents($configFile, json_encode($config, JSON_PRETTY_PRINT));
     }
 }

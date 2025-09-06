@@ -64,9 +64,60 @@
         .theme-banner-right {
             background: url('/theme-image.php?theme=<?php echo htmlspecialchars($currentTheme['name'] ?? 'defaut'); ?>&side=right') no-repeat center center !important;
         }
+        
+        /* Mode sombre */
+        <?php if (isset($darkMode) && $darkMode): ?>
+        body {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+        
+        .main-layout {
+            background-color: #1a1a1a !important;
+        }
+        
+        .main-content {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+        
+        .section {
+            background-color: #2d2d2d !important;
+            color: #ffffff !important;
+        }
+        
+        .section-title {
+            color: #ffffff !important;
+        }
+        
+        .featured-title, .trailer-title {
+            color: #ffffff !important;
+        }
+        
+        .footer {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+        }
+        
+        .footer-text {
+            color: #cccccc !important;
+        }
+        
+        .header {
+            background-color: #2d2d2d !important;
+        }
+        
+        .header-title {
+            color: #ffffff !important;
+        }
+        
+        .logo-text h1 {
+            color: #ffffff !important;
+        }
+        <?php endif; ?>
     </style>
 </head>
-<body>
+<body<?php if (isset($darkMode) && $darkMode): ?> class="dark-mode"<?php endif; ?>>
     <!-- Header avec thème belge -->
     <header class="header">
         <div class="container">

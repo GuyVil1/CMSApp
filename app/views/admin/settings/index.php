@@ -19,6 +19,10 @@
             </div>
             <?php unset($_SESSION['flash_message'], $_SESSION['flash_type']); ?>
         <?php endif; ?>
+        
+        <div class="actions" style="margin-bottom: var(--admin-spacing-lg);">
+            <a href="/admin/dashboard" class="btn">← Retour au dashboard</a>
+        </div>
 
         <form method="POST" action="/admin/settings/save" class="settings-form">
             <div class="settings-section">

@@ -25,6 +25,9 @@ class HomeController extends Controller
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
             
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
+            
             // Récupérer les articles en vedette (featured_position = 1)
             $featuredArticles = $this->getFeaturedArticles();
             
@@ -49,6 +52,7 @@ class HomeController extends Controller
                 'pageDescription' => 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.',
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
                 'popularCategories' => $popularCategories,
@@ -73,6 +77,7 @@ class HomeController extends Controller
             $this->render('layout/public', [
                 'pageTitle' => 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique',
                 'pageDescription' => 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.',
+                'darkMode' => $this->isDarkModeEnabled(),
                 'featuredArticles' => [],
                 'latestArticles' => [],
                 'popularCategories' => [],
@@ -189,7 +194,7 @@ class HomeController extends Controller
     }
     
     /**
-     * Récupérer les trailers (articles avec vidéos)
+     * Récupérer les trailers (articles de la catégorie Trailers)
      */
     private function getTrailers(): array
     {
@@ -204,9 +209,9 @@ class HomeController extends Controller
             LEFT JOIN users u ON a.author_id = u.id
             LEFT JOIN media m ON a.cover_image_id = m.id
             WHERE a.status = 'published'
-            AND a.content LIKE '%video%'
+            AND c.name = 'Trailers'
             ORDER BY a.published_at DESC
-            LIMIT 5
+            LIMIT 10
         ";
         
         return Database::query($sql);
@@ -260,6 +265,19 @@ class HomeController extends Controller
     }
     
     /**
+     * Vérifier si le mode sombre est activé
+     */
+    private function isDarkModeEnabled(): bool
+    {
+        try {
+            require_once __DIR__ . '/../models/Setting.php';
+            return \Setting::isEnabled('dark_mode');
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
      * Afficher un article individuel
      */
     public function show(string $slug): void
@@ -301,6 +319,9 @@ class HomeController extends Controller
             
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
+            
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
             
             // Récupérer les articles liés (même catégorie ou jeu)
             $relatedArticles = $this->getRelatedArticles($article);
@@ -344,6 +365,7 @@ class HomeController extends Controller
                 'pageDescription' => $article->getExcerpt() ?? 'Découvrez cet article sur Belgium Video Gaming, votre source gaming belge.',
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'article' => $article,
                 'relatedArticles' => $relatedArticles,
                 'popularArticles' => $popularArticles,
@@ -596,6 +618,9 @@ class HomeController extends Controller
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
             
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
+            
             error_log("🎨 Rendu du chapitre: " . $chapter['title']);
             
             // Utiliser le template unifié public
@@ -603,6 +628,7 @@ class HomeController extends Controller
                 'pageTitle' => $chapter['title'] . ' - ' . $dossier->getTitle() . ' - GameNews Belgium',
                 'pageDescription' => 'Chapitre du dossier ' . $dossier->getTitle() . ' sur GameNews, votre source gaming belge.',
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'dossier' => $dossier,
                 'chapter' => $chapter,
                 'allChapters' => $allChapters,
@@ -697,6 +723,9 @@ class HomeController extends Controller
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
             
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
+            
             // Générer les meta tags SEO
             $seoMetaTags = SeoHelper::generateMetaTags([
                 'title' => $hardware->getFullName() . ' - Belgium Video Gaming',
@@ -710,6 +739,7 @@ class HomeController extends Controller
             $this->render('layout/public', [
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'hardware' => $hardware,
                 'articles' => $articles,
                 'games' => $games,
@@ -810,6 +840,9 @@ class HomeController extends Controller
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
             
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
+            
             // Générer les meta tags SEO
             $seoMetaTags = SeoHelper::generateMetaTags([
                 'title' => $category->getName() . ' - Belgium Video Gaming',
@@ -823,6 +856,7 @@ class HomeController extends Controller
             $this->render('layout/public', [
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'category' => $category,
                 'articles' => $articles,
                 'isLoggedIn' => Auth::isLoggedIn(),
@@ -882,6 +916,9 @@ class HomeController extends Controller
             // Récupérer le thème actuel
             $currentTheme = $this->getCurrentTheme();
             
+            // Récupérer l'état du mode sombre
+            $darkMode = $this->isDarkModeEnabled();
+            
             // Générer les meta tags SEO
             $seoMetaTags = SeoHelper::generateMetaTags([
                 'title' => 'Hardware - Belgium Video Gaming',
@@ -895,6 +932,7 @@ class HomeController extends Controller
             $this->render('layout/public', [
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
+                'darkMode' => $darkMode,
                 'hardwares' => $hardwares,
                 'isLoggedIn' => Auth::isLoggedIn(),
                 'user' => Auth::getUser(),
