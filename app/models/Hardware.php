@@ -180,7 +180,8 @@ class Hardware
      */
     public function getUrl(): string
     {
-        return '/hardware/' . $this->slug;
+        // Correction: utiliser /hardwares/ au lieu de /hardware/ pour cohérence
+        return '/hardwares/' . $this->slug;
     }
 
     /**
