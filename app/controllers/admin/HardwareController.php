@@ -51,33 +51,18 @@ class HardwareController extends \Controller
 
         $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
-        // Compter le total
-        $countQuery = "SELECT COUNT(*) as total FROM hardware h {$whereClause}";
-        $totalHardware = \Hardware::count(); // This should be countWithConditions if using filters
+        // Compter le total avec conditions
+        $totalHardware = \Hardware::countWithConditions($conditions, $params);
         $totalPages = ceil($totalHardware / $limit);
 
         // Récupérer les hardware avec pagination
-        $query = "SELECT h.*, COUNT(g.id) as games_count
-                  FROM hardware h
-                  LEFT JOIN games g ON h.id = g.hardware_id
-                  {$whereClause}
-                  GROUP BY h.id
-                  ORDER BY h.sort_order ASC, h.name ASC
-                  LIMIT {$limit} OFFSET {$offset}";
-
-        // The findAll method in Hardware model does not support conditions directly,
-        // so we need to adapt or use a custom query. For now, using findAll and filtering later if needed,
-        // or assuming findAll is sufficient for basic listing.
-        // For filtered count and list, a custom method in Hardware model would be better.
-        // For simplicity, let's assume findAll is used for the main list, and totalHardware is overall count.
-        // A more robust solution would involve a findWithConditions method in the model.
-        $hardwareList = \Hardware::findAll($limit, $offset);
+        $hardwares = \Hardware::findAllWithPagination($limit, $offset, $conditions, $params);
 
         // Récupérer les types pour les filtres
         $types = \Hardware::getTypes();
 
         $this->render('admin/hardware/index', [
-            'hardware' => $hardwareList,
+            'hardware' => $hardwares,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalHardware' => $totalHardware,

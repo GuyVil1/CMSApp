@@ -149,6 +149,107 @@ function route($uri) {
         ];
     }
     
+    // Route spéciale pour hardware (pages publiques)
+    if ($parts[0] === 'hardware') {
+        error_log("🔍 Route hardware détectée");
+        $controller = 'HomeController';
+        
+        // Charger le HomeController
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            error_log("❌ HomeController non trouvé");
+            return ['error' => '404'];
+        }
+        
+        // Si pas de slug, rediriger vers la page publique des hardwares
+        if (!isset($parts[1]) || empty($parts[1])) {
+            error_log("🔍 Route hardware: redirection vers page publique");
+            return [
+                'controller' => $controller,
+                'action' => 'hardwareList',
+                'params' => []
+            ];
+        } else {
+            // Sinon, afficher le hardware spécifique
+            error_log("🔍 Route hardware: hardware spécifique - " . $parts[1]);
+            return [
+                'controller' => $controller,
+                'action' => 'hardware',
+                'params' => [$parts[1]] // Le slug du hardware
+            ];
+        }
+    }
+    
+    // Route spéciale pour hardwares (page publique de listing)
+    if ($parts[0] === 'hardwares') {
+        error_log("🔍 Route hardwares détectée");
+        $controller = 'HomeController';
+        
+        // Charger le HomeController
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            error_log("❌ HomeController non trouvé");
+            return ['error' => '404'];
+        }
+        
+        // Si pas de slug, afficher la liste des hardwares
+        if (!isset($parts[1]) || empty($parts[1])) {
+            error_log("🔍 Route hardwares: liste des hardwares");
+            return [
+                'controller' => $controller,
+                'action' => 'hardwareList',
+                'params' => []
+            ];
+        } else {
+            // Sinon, afficher le hardware spécifique
+            error_log("🔍 Route hardwares: hardware spécifique - " . $parts[1]);
+            return [
+                'controller' => $controller,
+                'action' => 'hardware',
+                'params' => [$parts[1]] // Le slug du hardware
+            ];
+        }
+    }
+    
+    // Route spéciale pour category
+    if ($parts[0] === 'category') {
+        error_log("🔍 Route category détectée");
+        $controller = 'HomeController';
+        $action = 'category';
+        
+        // Extraire le slug de la catégorie (2ème partie après 'category')
+        if (isset($parts[1])) {
+            $params = [$parts[1]]; // Le slug de la catégorie
+        } else {
+            // Pas de slug, rediriger vers 404
+            error_log("❌ Pas de slug de catégorie spécifié");
+            return ['error' => '404'];
+        }
+        
+        error_log("🔍 Controller: " . $controller);
+        error_log("🔍 Action: " . $action);
+        error_log("🔍 Params (slug): " . print_r($params, true));
+        
+        // Charger le HomeController
+        $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+        if (file_exists($controllerFile)) {
+            require_once $controllerFile;
+        } else {
+            error_log("❌ HomeController non trouvé");
+            return ['error' => '404'];
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
+    }
+    
     // Gérer les routes admin
     if (strpos($uri, 'admin') === 0) {
         // Route spéciale pour SEO

@@ -664,4 +664,252 @@ class HomeController extends Controller
             return null;
         }
     }
+    
+    /**
+     * Afficher la page d'un hardware spécifique
+     */
+    public function hardware(string $slug): void
+    {
+        try {
+            error_log("🔍 HomeController::hardware() appelé avec slug: " . $slug);
+            
+            // Récupérer le hardware
+            $hardware = Hardware::findBySlug($slug);
+            
+            if (!$hardware) {
+                error_log("❌ Hardware non trouvé: " . $slug);
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'pageTitle' => 'Hardware non trouvé - Belgium Video Gaming',
+                    'pageDescription' => 'Le hardware demandé n\'existe pas ou n\'est plus disponible.'
+                ]);
+                return;
+            }
+            
+            error_log("✅ Hardware trouvé: " . $hardware->getName());
+            
+            // Récupérer les articles liés à ce hardware
+            $articles = $this->getArticlesByHardware($hardware->getId());
+            
+            // Récupérer les jeux liés à ce hardware
+            $games = $this->getGamesByHardware($hardware->getId());
+            
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
+            // Générer les meta tags SEO
+            $seoMetaTags = SeoHelper::generateMetaTags([
+                'title' => $hardware->getFullName() . ' - Belgium Video Gaming',
+                'description' => 'Découvrez tous les articles et jeux pour ' . $hardware->getFullName() . ' sur Belgium Video Gaming.',
+                'keywords' => strtolower($hardware->getName()) . ', ' . strtolower($hardware->getType()) . ', gaming, jeux vidéo, belgique',
+                'url' => 'https://belgium-video-gaming.be/hardware/' . $hardware->getSlug(),
+                'type' => 'website'
+            ]);
+            
+            // Utiliser le template unifié public
+            $this->render('layout/public', [
+                'seoMetaTags' => $seoMetaTags,
+                'currentTheme' => $currentTheme,
+                'hardware' => $hardware,
+                'articles' => $articles,
+                'games' => $games,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser(),
+                'content' => $this->renderPartial('hardware/show', [
+                    'hardware' => $hardware,
+                    'articles' => $articles,
+                    'games' => $games
+                ])
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("❌ Erreur dans HomeController::hardware(): " . $e->getMessage());
+            http_response_code(500);
+            $this->render('layout/500', [
+                'pageTitle' => 'Erreur serveur - Belgium Video Gaming',
+                'pageDescription' => 'Une erreur est survenue lors du chargement de la page.'
+            ]);
+        }
+    }
+    
+    /**
+     * Récupérer les articles liés à un hardware (via les jeux)
+     */
+    private function getArticlesByHardware(int $hardwareId): array
+    {
+        try {
+            $sql = "
+                SELECT a.*, c.name as category_name, c.slug as category_slug,
+                       u.login as author_name, m.filename as cover_image,
+                       g.title as game_title, g.slug as game_slug
+                FROM articles a
+                LEFT JOIN categories c ON a.category_id = c.id
+                LEFT JOIN users u ON a.author_id = u.id
+                LEFT JOIN media m ON a.cover_image_id = m.id
+                LEFT JOIN games g ON a.game_id = g.id
+                WHERE g.hardware_id = ? AND a.status = 'published'
+                ORDER BY a.published_at DESC
+                LIMIT 20
+            ";
+            
+            return Database::query($sql, [$hardwareId]);
+        } catch (Exception $e) {
+            error_log("❌ Erreur lors de la récupération des articles par hardware: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Récupérer les jeux liés à un hardware
+     */
+    private function getGamesByHardware(int $hardwareId): array
+    {
+        try {
+            $sql = "
+                SELECT g.*, m.filename as cover_image
+                FROM games g
+                LEFT JOIN media m ON g.cover_image_id = m.id
+                WHERE g.hardware_id = ? AND g.status = 'published'
+                ORDER BY g.release_date DESC
+                LIMIT 12
+            ";
+            
+            return Database::query($sql, [$hardwareId]);
+        } catch (Exception $e) {
+            error_log("❌ Erreur lors de la récupération des jeux par hardware: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Afficher la page d'une catégorie spécifique
+     */
+    public function category(string $slug): void
+    {
+        try {
+            error_log("🔍 HomeController::category() appelé avec slug: " . $slug);
+            
+            // Récupérer la catégorie
+            $category = Category::findBySlug($slug);
+            
+            if (!$category) {
+                error_log("❌ Catégorie non trouvée: " . $slug);
+                http_response_code(404);
+                $this->render('layout/404', [
+                    'pageTitle' => 'Catégorie non trouvée - Belgium Video Gaming',
+                    'pageDescription' => 'La catégorie demandée n\'existe pas ou n\'est plus disponible.'
+                ]);
+                return;
+            }
+            
+            error_log("✅ Catégorie trouvée: " . $category->getName());
+            
+            // Récupérer les articles de cette catégorie
+            $articles = $this->getArticlesByCategory($category->getId());
+            
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
+            // Générer les meta tags SEO
+            $seoMetaTags = SeoHelper::generateMetaTags([
+                'title' => $category->getName() . ' - Belgium Video Gaming',
+                'description' => 'Découvrez tous les articles de la catégorie ' . $category->getName() . ' sur Belgium Video Gaming.',
+                'keywords' => strtolower($category->getName()) . ', gaming, jeux vidéo, belgique, actualité',
+                'url' => 'https://belgium-video-gaming.be/category/' . $category->getSlug(),
+                'type' => 'website'
+            ]);
+            
+            // Utiliser le template unifié public
+            $this->render('layout/public', [
+                'seoMetaTags' => $seoMetaTags,
+                'currentTheme' => $currentTheme,
+                'category' => $category,
+                'articles' => $articles,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser(),
+                'content' => $this->renderPartial('categories/show', [
+                    'category' => $category,
+                    'articles' => $articles
+                ])
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("❌ Erreur dans HomeController::category(): " . $e->getMessage());
+            http_response_code(500);
+            $this->render('layout/500', [
+                'pageTitle' => 'Erreur serveur - Belgium Video Gaming',
+                'pageDescription' => 'Une erreur est survenue lors du chargement de la page.'
+            ]);
+        }
+    }
+    
+    /**
+     * Récupérer les articles d'une catégorie
+     */
+    private function getArticlesByCategory(int $categoryId): array
+    {
+        try {
+            $sql = "
+                SELECT a.*, c.name as category_name, c.slug as category_slug,
+                       u.login as author_name, m.filename as cover_image
+                FROM articles a
+                LEFT JOIN categories c ON a.category_id = c.id
+                LEFT JOIN users u ON a.author_id = u.id
+                LEFT JOIN media m ON a.cover_image_id = m.id
+                WHERE a.category_id = ? AND a.status = 'published'
+                ORDER BY a.published_at DESC
+                LIMIT 50
+            ";
+            
+            return Database::query($sql, [$categoryId]);
+        } catch (Exception $e) {
+            error_log("❌ Erreur lors de la récupération des articles par catégorie: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Afficher la page de listing de tous les hardwares
+     */
+    public function hardwareList(): void
+    {
+        try {
+            error_log("🔍 HomeController::hardwareList() appelé");
+            
+            // Récupérer tous les hardwares actifs
+            $hardwares = Hardware::getAllActive();
+            
+            // Récupérer le thème actuel
+            $currentTheme = $this->getCurrentTheme();
+            
+            // Générer les meta tags SEO
+            $seoMetaTags = SeoHelper::generateMetaTags([
+                'title' => 'Hardware - Belgium Video Gaming',
+                'description' => 'Découvrez tous les matériels de gaming : consoles, PC, accessoires sur Belgium Video Gaming.',
+                'keywords' => 'hardware, gaming, consoles, pc, jeux vidéo, belgique, matériel',
+                'url' => 'https://belgium-video-gaming.be/hardware',
+                'type' => 'website'
+            ]);
+            
+            // Utiliser le template unifié public
+            $this->render('layout/public', [
+                'seoMetaTags' => $seoMetaTags,
+                'currentTheme' => $currentTheme,
+                'hardwares' => $hardwares,
+                'isLoggedIn' => Auth::isLoggedIn(),
+                'user' => Auth::getUser(),
+                'content' => $this->renderPartial('hardware/index', [
+                    'hardwares' => $hardwares
+                ])
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("❌ Erreur dans HomeController::hardwareList(): " . $e->getMessage());
+            http_response_code(500);
+            $this->render('layout/500', [
+                'pageTitle' => 'Erreur serveur - Belgium Video Gaming',
+                'pageDescription' => 'Une erreur est survenue lors du chargement de la page.'
+            ]);
+        }
+    }
 }

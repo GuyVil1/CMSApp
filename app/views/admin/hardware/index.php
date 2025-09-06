@@ -46,11 +46,11 @@
                 <div class="stat-label">Total Hardware</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><?= count(array_filter($hardware, fn($h) => $h->isActive())) ?></div>
+                <div class="stat-number"><?= $hardware ? count(array_filter($hardware, fn($h) => $h->isActive())) : 0 ?></div>
                 <div class="stat-label">Hardware Actifs</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number"><?= count(array_filter($hardware, fn($h) => $h->getGamesCount() > 0)) ?></div>
+                <div class="stat-number"><?= $hardware ? count(array_filter($hardware, fn($h) => $h->getGamesCount() > 0)) : 0 ?></div>
                 <div class="stat-label">Avec Jeux</div>
             </div>
         </div>

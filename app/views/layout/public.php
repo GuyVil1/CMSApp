@@ -45,6 +45,9 @@
     <!-- CSS pour les modules de contenu -->
     <link rel="stylesheet" href="/public/assets/css/components/content-modules.css">
     
+    <!-- CSS pour la navbar -->
+    <link rel="stylesheet" href="/public/assets/css/components/navbar.css">
+    
     <!-- CSS additionnel spécifique à la page -->
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
@@ -94,6 +97,13 @@
             </div>
         </div>
     </header>
+
+    <!-- Navbar de navigation -->
+    <?php 
+    // Inclure le modèle Hardware pour la navbar
+    require_once __DIR__ . '/../../models/Hardware.php';
+    include __DIR__ . '/../components/navbar.php'; 
+    ?>
 
     <!-- Bannières thématiques de fond -->
     <div class="theme-banner-left"></div>
@@ -172,6 +182,9 @@
         </div>
     </footer>
 
+    <!-- JavaScript pour la navbar -->
+    <script src="/public/assets/js/navbar.js"></script>
+    
     <!-- JavaScript additionnel spécifique à la page -->
     <?php if (isset($additionalJS)): ?>
         <?php foreach ($additionalJS as $js): ?>
