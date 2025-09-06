@@ -9,6 +9,27 @@
     <?php else: ?>
         <title><?= $pageTitle ?? 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique' ?></title>
         <meta name="description" content="<?= $pageDescription ?? 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.' ?>">
+        <meta name="keywords" content="gaming, jeux vidéo, belgique, actualité, tests, dossiers, passionnés">
+        <meta name="author" content="Belgium Video Gaming">
+        <meta name="robots" content="index, follow">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="https://belgium-video-gaming.be">
+        <meta property="og:title" content="<?= $pageTitle ?? 'Belgium Video Gaming' ?>">
+        <meta property="og:description" content="<?= $pageDescription ?? 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.' ?>">
+        <meta property="og:image" content="https://belgium-video-gaming.be/public/assets/images/default-featured.jpg">
+        <meta property="og:site_name" content="Belgium Video Gaming">
+        
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="https://belgium-video-gaming.be">
+        <meta property="twitter:title" content="<?= $pageTitle ?? 'Belgium Video Gaming' ?>">
+        <meta property="twitter:description" content="<?= $pageDescription ?? 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.' ?>">
+        <meta property="twitter:image" content="https://belgium-video-gaming.be/public/assets/images/default-featured.jpg">
+        
+        <!-- Canonical URL -->
+        <link rel="canonical" href="https://belgium-video-gaming.be">
     <?php endif; ?>
     
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=<?= time() ?>">

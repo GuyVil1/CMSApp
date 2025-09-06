@@ -59,19 +59,26 @@ class SeoHelper
     public static function generateArticleMetaTags($article, $baseUrl = 'https://belgium-video-gaming.be'): string
     {
         $title = htmlspecialchars($article->getTitle());
+        
+        // Utiliser l'excerpt s'il existe, sinon générer depuis le contenu
         $description = $article->getExcerpt() ? 
             htmlspecialchars($article->getExcerpt()) : 
             self::generateExcerptFromContent($article->getContent());
         
+        // S'assurer que la description se termine bien
+        if (!empty($description) && !str_ends_with($description, '.')) {
+            $description .= '.';
+        }
+        
         $url = $baseUrl . '/article/' . $article->getSlug();
-        $image = $article->getCoverImageId() ? 
-            $baseUrl . '/public/uploads.php?file=article/' . $article->getCoverImageId() : 
+        $image = $article->getCoverImageUrl() ?: 
             $baseUrl . '/public/assets/images/default-featured.jpg';
         
         // Ajouter des mots-clés basés sur la catégorie et le contenu
         $keywords = self::generateKeywords($article);
         
-        return self::generateMetaTags([
+        // Ajouter des meta tags spécifiques aux articles
+        $metaTags = self::generateMetaTags([
             'title' => $title . ' - Belgium Video Gaming',
             'description' => $description,
             'keywords' => $keywords,
@@ -79,6 +86,21 @@ class SeoHelper
             'image' => $image,
             'type' => 'article'
         ]);
+        
+        // Ajouter des meta tags spécifiques aux articles
+        $articleMeta = "
+        <!-- Meta tags spécifiques aux articles -->
+        <meta property=\"article:published_time\" content=\"" . date('c', strtotime($article->getPublishedAt() ?? $article->getCreatedAt())) . "\">
+        <meta property=\"article:modified_time\" content=\"" . date('c', strtotime($article->getUpdatedAt() ?? $article->getCreatedAt())) . "\">
+        <meta property=\"article:author\" content=\"" . htmlspecialchars($article->getAuthorName() ?? 'Belgium Video Gaming') . "\">
+        <meta property=\"article:section\" content=\"" . htmlspecialchars($article->getCategoryName() ?? 'Gaming') . "\">
+        ";
+        
+        if ($article->getGameId()) {
+            $articleMeta .= "<meta property=\"article:tag\" content=\"" . htmlspecialchars($article->getGameName() ?? '') . "\">\n";
+        }
+        
+        return $metaTags . $articleMeta;
     }
     
     /**
@@ -121,23 +143,58 @@ class SeoHelper
      */
     public static function generateKeywords($article): string
     {
-        $keywords = ['gaming', 'jeux vidéo', 'belgique'];
+        $keywords = ['gaming', 'jeux vidéo', 'belgique', 'actualité gaming'];
         
         // Ajouter des mots-clés basés sur la catégorie
-        if ($article->getCategoryId()) {
-            // TODO: Récupérer le nom de la catégorie
-            $keywords[] = 'actualité gaming';
+        if ($article->getCategoryId() && $article->getCategoryName()) {
+            $categoryName = strtolower($article->getCategoryName());
+            $keywords[] = $categoryName;
+            
+            // Ajouter des mots-clés spécifiques selon la catégorie
+            switch ($categoryName) {
+                case 'tests':
+                    $keywords[] = 'test jeu';
+                    $keywords[] = 'review';
+                    $keywords[] = 'critique';
+                    break;
+                case 'actualités':
+                    $keywords[] = 'news';
+                    $keywords[] = 'nouvelle';
+                    break;
+                case 'guides':
+                    $keywords[] = 'guide';
+                    $keywords[] = 'tutoriel';
+                    $keywords[] = 'aide';
+                    break;
+                case 'esports':
+                    $keywords[] = 'esport';
+                    $keywords[] = 'compétition';
+                    $keywords[] = 'tournoi';
+                    break;
+            }
         }
         
-        // Ajouter des mots-clés basés sur le titre
+        // Ajouter des mots-clés basés sur le jeu associé
+        if ($article->getGameId() && $article->getGameName()) {
+            $keywords[] = strtolower($article->getGameName());
+        }
+        
+        // Ajouter des mots-clés basés sur le titre (mots significatifs)
         $titleWords = explode(' ', strtolower($article->getTitle()));
+        $stopWords = ['le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'et', 'ou', 'à', 'sur', 'dans', 'pour', 'avec', 'par', 'en', 'au', 'aux', 'ce', 'cette', 'ces', 'son', 'sa', 'ses', 'notre', 'nos', 'votre', 'vos', 'leur', 'leurs'];
+        
         foreach ($titleWords as $word) {
-            if (strlen($word) > 3 && !in_array($word, ['le', 'la', 'les', 'un', 'une', 'des', 'du', 'de', 'et', 'ou', 'à', 'sur', 'dans', 'pour', 'avec'])) {
+            $word = preg_replace('/[^a-z0-9]/', '', $word); // Nettoyer le mot
+            if (strlen($word) > 3 && !in_array($word, $stopWords)) {
                 $keywords[] = $word;
             }
         }
         
-        return implode(', ', array_unique($keywords));
+        // Limiter à 10 mots-clés maximum
+        $keywords = array_unique($keywords);
+        $keywords = array_slice($keywords, 0, 10);
+        
+        return implode(', ', $keywords);
     }
     
     /**
@@ -164,7 +221,7 @@ class SeoHelper
         $games = self::getPublishedGames();
         foreach ($games as $game) {
             $url = $baseUrl . '/game/' . $game['slug'];
-            $lastmod = date('Y-m-d', strtotime($game['updated_at']));
+            $lastmod = date('Y-m-d', strtotime($game['created_at']));
             $sitemap .= self::generateSitemapUrl($url, '0.7', 'monthly', $lastmod);
         }
         
@@ -223,7 +280,7 @@ class SeoHelper
     {
         try {
             $db = Database::getInstance();
-            $sql = "SELECT slug, updated_at FROM games WHERE status = 'published' ORDER BY created_at DESC";
+            $sql = "SELECT slug, created_at FROM games ORDER BY created_at DESC";
             $stmt = $db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -240,7 +297,7 @@ class SeoHelper
     {
         try {
             $db = Database::getInstance();
-            $sql = "SELECT slug FROM categories WHERE status = 'active' ORDER BY name ASC";
+            $sql = "SELECT slug FROM categories ORDER BY name ASC";
             $stmt = $db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);

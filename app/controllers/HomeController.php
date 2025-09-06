@@ -8,6 +8,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../core/Controller.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../helpers/seo_helper.php';
 require_once __DIR__ . '/../models/Article.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/Game.php';
@@ -39,9 +40,14 @@ class HomeController extends Controller
             // Récupérer les trailers (articles avec vidéos)
             $trailers = $this->getTrailers();
             
+            // Générer les meta tags SEO pour la page d'accueil
+            $seoController = new \SeoController();
+            $seoMetaTags = $seoController->homeMetaTags();
+            
             $this->render('layout/public', [
                 'pageTitle' => 'Belgium Video Gaming - L\'actualité jeux vidéo en Belgique',
                 'pageDescription' => 'On joue, on observe, on t\'éclaire. Pas de pub, pas de langue de bois — juste notre regard de passionnés, pour affiner le tien.',
+                'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
@@ -329,10 +335,14 @@ class HomeController extends Controller
             
             error_log("🎨 Rendu de l'article: " . $article->getTitle());
             
+            // Générer les meta tags SEO pour l'article
+            $seoMetaTags = SeoHelper::generateArticleMetaTags($article);
+            
             // Utiliser le template unifié public
             $this->render('layout/public', [
-                'pageTitle' => $article->getTitle() . ' - GameNews Belgium',
-                'pageDescription' => $article->getExcerpt() ?? 'Découvrez cet article sur GameNews, votre source gaming belge.',
+                'pageTitle' => $article->getTitle() . ' - Belgium Video Gaming',
+                'pageDescription' => $article->getExcerpt() ?? 'Découvrez cet article sur Belgium Video Gaming, votre source gaming belge.',
+                'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
                 'article' => $article,
                 'relatedArticles' => $relatedArticles,

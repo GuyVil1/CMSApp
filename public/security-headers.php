@@ -24,7 +24,8 @@ $csp = "default-src 'self'; " .
 header("Content-Security-Policy: $csp");
 
 // Headers de cache pour les fichiers statiques
-if (preg_match('/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/', $_SERVER['REQUEST_URI'])) {
+$requestUri = $_SERVER['REQUEST_URI'] ?? '';
+if (preg_match('/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/', $requestUri)) {
     header('Cache-Control: public, max-age=31536000'); // 1 an
     header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
 } else {

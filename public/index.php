@@ -424,7 +424,8 @@ function route($uri) {
 
 // Traiter la requête
 try {
-    $route = route($_SERVER['REQUEST_URI']);
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $route = route($requestUri);
     
     if (isset($route['error'])) {
         // Page d'erreur
