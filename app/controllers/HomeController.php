@@ -28,6 +28,9 @@ class HomeController extends Controller
             // Récupérer l'état du mode sombre
             $darkMode = $this->isDarkModeEnabled();
             
+            // Récupérer l'état des inscriptions
+            $allowRegistration = $this->isRegistrationEnabled();
+            
             // Récupérer les articles en vedette (featured_position = 1)
             $featuredArticles = $this->getFeaturedArticles();
             
@@ -53,6 +56,7 @@ class HomeController extends Controller
                 'seoMetaTags' => $seoMetaTags,
                 'currentTheme' => $currentTheme,
                 'darkMode' => $darkMode,
+                'allowRegistration' => $allowRegistration,
                 'featuredArticles' => $featuredArticles,
                 'latestArticles' => $latestArticles,
                 'popularCategories' => $popularCategories,
@@ -274,6 +278,19 @@ class HomeController extends Controller
             return \Setting::isEnabled('dark_mode');
         } catch (\Exception $e) {
             return false;
+        }
+    }
+    
+    /**
+     * Vérifier si les inscriptions sont autorisées
+     */
+    private function isRegistrationEnabled(): bool
+    {
+        try {
+            require_once __DIR__ . '/../models/Setting.php';
+            return \Setting::isEnabled('allow_registration');
+        } catch (\Exception $e) {
+            return true; // Par défaut, on autorise les inscriptions
         }
     }
     

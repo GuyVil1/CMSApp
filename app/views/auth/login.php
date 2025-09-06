@@ -256,8 +256,20 @@
         </div>
         
         <div class="links">
-            <a href="/register">Créer un compte</a>
-            <br><br>
+            <?php 
+            // Vérifier si les inscriptions sont autorisées
+            $allowRegistration = true; // Valeur par défaut
+            try {
+                require_once __DIR__ . '/../../../app/models/Setting.php';
+                $allowRegistration = \Setting::isEnabled('allow_registration');
+            } catch (Exception $e) {
+                // En cas d'erreur, on garde la valeur par défaut
+            }
+            ?>
+            <?php if ($allowRegistration): ?>
+                <a href="/register">Créer un compte</a>
+                <br><br>
+            <?php endif; ?>
             <a href="/">← Retour à l'accueil</a>
         </div>
     </div>

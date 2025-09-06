@@ -69,6 +69,21 @@ class AuthController extends Controller
             $this->redirectTo('/');
         }
         
+        // Vérifier si les inscriptions sont autorisées
+        try {
+            require_once __DIR__ . '/../models/Setting.php';
+            if (!\Setting::isEnabled('allow_registration')) {
+                $this->render('layout/403', [
+                    'pageTitle' => 'Inscriptions fermées - Belgium Video Gaming',
+                    'pageDescription' => 'Les inscriptions sont temporairement fermées.'
+                ]);
+                return;
+            }
+        } catch (Exception $e) {
+            // En cas d'erreur, on autorise par défaut
+            error_log("Erreur lors de la vérification des inscriptions: " . $e->getMessage());
+        }
+        
         $error = '';
         $success = '';
         

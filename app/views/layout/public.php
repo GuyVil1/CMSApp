@@ -142,7 +142,9 @@
                 <?php else: ?>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <a href="/auth/login" class="login-btn">Se connecter</a>
-                        <a href="/auth/register" class="register-btn">S'inscrire</a>
+                        <?php if ($allowRegistration ?? true): ?>
+                            <a href="/auth/register" class="register-btn">S'inscrire</a>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
