@@ -85,9 +85,24 @@ class LegalController extends Controller
      */
     private function getLegalContent($template, $title, $subtitle)
     {
-        ob_start();
-        include __DIR__ . '/../views/legal/' . $template . '.php';
-        $content = ob_get_clean();
+        // Récupérer le contenu depuis la base de données
+        // Correction : mapper les templates vers les bonnes clés
+        $keyMapping = [
+            'mentions-legales' => 'legal_mentions_content',
+            'politique-confidentialite' => 'legal_privacy_content',
+            'cgu' => 'legal_cgu_content',
+            'cookies' => 'legal_cookies_content'
+        ];
+        
+        $settingKey = $keyMapping[$template] ?? 'legal_' . str_replace('-', '_', $template) . '_content';
+        $content = \Setting::get($settingKey, '');
+        
+        // Si le contenu est vide ou null, utiliser le contenu par défaut des fichiers
+        if (empty(trim($content))) {
+            ob_start();
+            include __DIR__ . '/../views/legal/' . $template . '.php';
+            $content = ob_get_clean();
+        }
         
         // Retourner le contenu formaté comme un article
         return $this->formatLegalAsArticle($content, $title, $subtitle);
@@ -98,6 +113,11 @@ class LegalController extends Controller
      */
     private function formatLegalAsArticle($content, $title, $subtitle)
     {
+        // Si le contenu est vide, utiliser le contenu par défaut
+        if (empty(trim($content))) {
+            $content = '<p><em>Contenu en cours de rédaction...</em></p>';
+        }
+        
         return '
         <!-- Métadonnées de la page légale -->
         <div class="article-meta-section">

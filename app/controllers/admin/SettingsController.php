@@ -65,18 +65,22 @@ class SettingsController extends \Controller
                 return;
             }
             
-            $settings = [
-                'allow_registration' => $_POST['allow_registration'] ?? '0',
-                'dark_mode' => $_POST['dark_mode'] ?? '0',
-                'maintenance_mode' => $_POST['maintenance_mode'] ?? '0',
-                'default_theme' => $_POST['default_theme'] ?? 'defaut',
-                'footer_tagline' => $_POST['footer_tagline'] ?? '',
-                'social_twitter' => $_POST['social_twitter'] ?? '',
-                'social_facebook' => $_POST['social_facebook'] ?? '',
-                'social_youtube' => $_POST['social_youtube'] ?? '',
-                'header_logo' => $_POST['header_logo'] ?? 'Logo.svg',
-                'footer_logo' => $_POST['footer_logo'] ?? 'Logo_neutre_500px.png'
-            ];
+        $settings = [
+            'allow_registration' => $_POST['allow_registration'] ?? '0',
+            'dark_mode' => $_POST['dark_mode'] ?? '0',
+            'maintenance_mode' => $_POST['maintenance_mode'] ?? '0',
+            'default_theme' => $_POST['default_theme'] ?? 'defaut',
+            'footer_tagline' => $_POST['footer_tagline'] ?? '',
+            'social_twitter' => $_POST['social_twitter'] ?? '',
+            'social_facebook' => $_POST['social_facebook'] ?? '',
+            'social_youtube' => $_POST['social_youtube'] ?? '',
+            'header_logo' => $_POST['header_logo'] ?? 'Logo.svg',
+            'footer_logo' => $_POST['footer_logo'] ?? 'Logo_neutre_500px.png',
+            'legal_mentions_content' => $_POST['legal_mentions_content'] ?? '',
+            'legal_privacy_content' => $_POST['legal_privacy_content'] ?? '',
+            'legal_cgu_content' => $_POST['legal_cgu_content'] ?? '',
+            'legal_cookies_content' => $_POST['legal_cookies_content'] ?? ''
+        ];
             
             $success = true;
             foreach ($settings as $key => $value) {

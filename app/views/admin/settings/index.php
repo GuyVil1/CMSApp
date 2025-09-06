@@ -194,6 +194,63 @@
                 </div>
             </div>
 
+            <!-- Section Pages Légales -->
+            <div class="settings-section">
+                <h3>📋 Pages Légales</h3>
+                <p class="section-description">Éditez le contenu des pages légales du site</p>
+                
+                <div class="legal-editor">
+                    <div class="legal-tabs">
+                        <button type="button" class="legal-tab active" data-tab="mentions">Mentions Légales</button>
+                        <button type="button" class="legal-tab" data-tab="privacy">Politique de Confidentialité</button>
+                        <button type="button" class="legal-tab" data-tab="cgu">CGU</button>
+                        <button type="button" class="legal-tab" data-tab="cookies">Cookies</button>
+                    </div>
+                    
+                    <div class="legal-content">
+                        <div class="legal-panel active" id="mentions">
+                            <h4>Mentions Légales</h4>
+                            <p class="legal-help">💡 Vous pouvez utiliser du HTML : <code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, etc.</p>
+                            <textarea name="legal_mentions_content" class="legal-textarea" placeholder="<h2>Éditeur du site</h2>
+<p><strong>Belgium Video Gaming</strong></p>
+<p>Site web dédié à l'actualité jeux vidéo en Belgique</p>
+<p>📧 Contact : <a href='mailto:contact@belgium-video-gaming.be'>contact@belgium-video-gaming.be</a></p>"><?= htmlspecialchars($settings['legal_mentions_content'] ?? '') ?></textarea>
+                        </div>
+                        
+                        <div class="legal-panel" id="privacy">
+                            <h4>Politique de Confidentialité</h4>
+                            <p class="legal-help">💡 Vous pouvez utiliser du HTML : <code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, etc.</p>
+                            <textarea name="legal_privacy_content" class="legal-textarea" placeholder="<h2>Collecte des données</h2>
+<p>Belgium Video Gaming collecte uniquement les données personnelles nécessaires au fonctionnement du site :</p>
+<ul>
+    <li><strong>Inscription :</strong> nom d'utilisateur, adresse e-mail, mot de passe (chiffré)</li>
+    <li><strong>Navigation :</strong> cookies techniques pour le bon fonctionnement du site</li>
+</ul>"><?= htmlspecialchars($settings['legal_privacy_content'] ?? '') ?></textarea>
+                        </div>
+                        
+                        <div class="legal-panel" id="cgu">
+                            <h4>Conditions Générales d'Utilisation</h4>
+                            <p class="legal-help">💡 Vous pouvez utiliser du HTML : <code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, etc.</p>
+                            <textarea name="legal_cgu_content" class="legal-textarea" placeholder="<h2>Acceptation des conditions</h2>
+<p>L'utilisation du site Belgium Video Gaming implique l'acceptation pleine et entière des présentes conditions générales d'utilisation.</p>
+
+<h2>Description du service</h2>
+<p>Belgium Video Gaming est un site d'information dédié à l'actualité des jeux vidéo en Belgique.</p>"><?= htmlspecialchars($settings['legal_cgu_content'] ?? '') ?></textarea>
+                        </div>
+                        
+                        <div class="legal-panel" id="cookies">
+                            <h4>Politique des Cookies</h4>
+                            <p class="legal-help">💡 Vous pouvez utiliser du HTML : <code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, etc.</p>
+                            <textarea name="legal_cookies_content" class="legal-textarea" placeholder="<h2>Qu'est-ce qu'un cookie ?</h2>
+<p>Un cookie est un petit fichier texte stocké sur votre ordinateur ou appareil mobile lorsque vous visitez un site web.</p>
+
+<h2>Cookies utilisés sur ce site</h2>
+<p>Belgium Video Gaming utilise uniquement des cookies techniques nécessaires au bon fonctionnement du site :</p>"><?= htmlspecialchars($settings['legal_cookies_content'] ?? '') ?></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="save-btn">
                     💾 Sauvegarder les paramètres
@@ -397,6 +454,108 @@
             border: 1px solid #f5c6cb;
         }
 
+        /* ========================================
+           ÉDITEUR DE PAGES LÉGALES
+           ======================================== */
+        .legal-editor {
+            background: var(--admin-card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--admin-border);
+        }
+
+        .legal-tabs {
+            display: flex;
+            background: var(--admin-bg-secondary);
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .legal-tab {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--admin-text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .legal-tab:hover {
+            background: var(--admin-bg-hover);
+            color: var(--admin-text);
+        }
+
+        .legal-tab.active {
+            background: var(--admin-primary);
+            color: white;
+        }
+
+        .legal-content {
+            padding: 0;
+        }
+
+        .legal-panel {
+            display: none;
+            padding: 1.5rem;
+        }
+
+        .legal-panel.active {
+            display: block;
+        }
+
+        .legal-panel h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--admin-text);
+            font-size: 1.1rem;
+        }
+
+        .legal-help {
+            margin: 0 0 1rem 0;
+            padding: 0.75rem;
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 6px;
+            color: var(--admin-text);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .legal-help code {
+            background: rgba(255, 193, 7, 0.2);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--admin-primary);
+        }
+
+        .legal-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 1rem;
+            border: 1px solid var(--admin-border);
+            border-radius: 6px;
+            background: var(--admin-input-bg);
+            color: var(--admin-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .legal-textarea:focus {
+            outline: none;
+            border-color: var(--admin-primary);
+            box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+        }
+
+        .legal-textarea::placeholder {
+            color: var(--admin-text-secondary);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .setting-item {
@@ -408,7 +567,37 @@
                 flex-direction: column;
                 align-items: center;
             }
+
+            .legal-tabs {
+                flex-direction: column;
+            }
+
+            .legal-tab {
+                text-align: center;
+            }
         }
     </style>
+
+    <script>
+        // Gestion des onglets pour l'éditeur de pages légales
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.legal-tab');
+            const panels = document.querySelectorAll('.legal-panel');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Retirer la classe active de tous les onglets et panneaux
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.classList.remove('active'));
+                    
+                    // Ajouter la classe active à l'onglet cliqué et au panneau correspondant
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        });
+    </script>
 </body>
 </html>

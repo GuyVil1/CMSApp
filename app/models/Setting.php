@@ -121,7 +121,11 @@ class Setting
             'social_facebook' => ['value' => '', 'description' => 'URL du compte Facebook'],
             'social_youtube' => ['value' => '', 'description' => 'URL du compte YouTube'],
             'header_logo' => ['value' => 'Logo.svg', 'description' => 'Logo affiché dans le header'],
-            'footer_logo' => ['value' => 'Logo_neutre_500px.png', 'description' => 'Logo affiché dans le footer']
+            'footer_logo' => ['value' => 'Logo_neutre_500px.png', 'description' => 'Logo affiché dans le footer'],
+            'legal_mentions_content' => ['value' => '', 'description' => 'Contenu des mentions légales'],
+            'legal_privacy_content' => ['value' => '', 'description' => 'Contenu de la politique de confidentialité'],
+            'legal_cgu_content' => ['value' => '', 'description' => 'Contenu des conditions générales d\'utilisation'],
+            'legal_cookies_content' => ['value' => '', 'description' => 'Contenu de la politique des cookies']
         ];
         
         foreach ($defaults as $key => $data) {
