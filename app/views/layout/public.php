@@ -113,6 +113,8 @@
         
         .logo-text h1 {
             color: #ffffff !important;
+            text-shadow: 2px 2px 0px #000000, -2px -2px 0px #000000, 2px -2px 0px #000000, -2px 2px 0px #000000;
+            -webkit-text-stroke: 1px #000000;
         }
         <?php endif; ?>
     </style>
@@ -123,10 +125,20 @@
         <div class="container">
             <div class="header-content">
                 <a href="/" class="logo" title="Retour à l'accueil">
-                    <div class="logo-icon">🎮</div>
+                    <div class="logo-icon">
+                        <?php 
+                        // Charger le logo configuré
+                        if (!class_exists('Setting')) {
+                            require_once __DIR__ . '/../../app/models/Setting.php';
+                        }
+                        $headerLogo = \Setting::get('header_logo', 'Logo.svg');
+                        ?>
+                        <img src="/assets/images/logos/<?= htmlspecialchars($headerLogo) ?>" 
+                             alt="Belgium Video Gaming" 
+                             style="width: 80px; height: 80px; object-fit: contain;">
+                    </div>
                     <div class="logo-text">
-                        <h1>GameNews</h1>
-                        <div class="logo-subtitle">🇧🇪 BELGIQUE</div>
+                        <h1>Belgium<br>Video Gaming</h1>
                     </div>
                 </a>
                 
@@ -242,16 +254,20 @@
                         </ul>
                     </div>
                     
-                    <!-- Colonne 3 - Newsletter & Contact -->
+                    <!-- Colonne 3 - Contact -->
                     <div class="footer-column">
-                        <h3 class="footer-title">Restez connecté 🇧🇪</h3>
-                        <p class="footer-text">
-                            Recevez les dernières news gaming directement dans votre boîte mail !
-                        </p>
-                        <div class="footer-newsletter">
-                            <input type="email" placeholder="Votre email...">
-                            <button>S'abonner</button>
+                        <!-- Logo du footer -->
+                        <div class="footer-logo" style="text-align: center; margin-bottom: 1.5rem;">
+                            <?php 
+                            $footerLogo = \Setting::get('footer_logo', 'Logo_neutre_500px.png');
+                            ?>
+                            <img src="/assets/images/logos/<?= htmlspecialchars($footerLogo) ?>" 
+                                 alt="Belgium Video Gaming" 
+                                 style="width: 250px; height: 250px; object-fit: contain; opacity: 0.8;">
                         </div>
+                        
+                        <h3 class="footer-title">RESTEZ CONNECTÉ</h3>
+                        
                         <div class="footer-contact">
                             <p>📧 contact@belgium-video-gaming.be</p>
                             <p>📍 Bruxelles, Belgique</p>

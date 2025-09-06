@@ -35,9 +35,13 @@ class SettingsController extends \Controller
             // Récupérer les thèmes disponibles
             $themes = $this->getAvailableThemes();
             
+            // Récupérer les logos disponibles
+            $logos = $this->getAvailableLogos();
+            
             $this->render('admin/settings/index', [
                 'settings' => $settings,
-                'themes' => $themes
+                'themes' => $themes,
+                'logos' => $logos
             ]);
             
         } catch (Exception $e) {
@@ -69,7 +73,9 @@ class SettingsController extends \Controller
                 'footer_tagline' => $_POST['footer_tagline'] ?? '',
                 'social_twitter' => $_POST['social_twitter'] ?? '',
                 'social_facebook' => $_POST['social_facebook'] ?? '',
-                'social_youtube' => $_POST['social_youtube'] ?? ''
+                'social_youtube' => $_POST['social_youtube'] ?? '',
+                'header_logo' => $_POST['header_logo'] ?? 'Logo.svg',
+                'footer_logo' => $_POST['footer_logo'] ?? 'Logo_neutre_500px.png'
             ];
             
             $success = true;
@@ -120,6 +126,33 @@ class SettingsController extends \Controller
         }
         
         return $themes;
+    }
+    
+    /**
+     * Récupérer la liste des logos disponibles
+     */
+    private function getAvailableLogos(): array
+    {
+        $logosDir = __DIR__ . '/../../../public/assets/images/logos/';
+        $logos = [];
+        
+        if (is_dir($logosDir)) {
+            $files = scandir($logosDir);
+            foreach ($files as $file) {
+                if ($file !== '.' && $file !== '..' && $file !== 'favicons' && !is_dir($logosDir . $file)) {
+                    $extension = pathinfo($file, PATHINFO_EXTENSION);
+                    if (in_array(strtolower($extension), ['png', 'jpg', 'jpeg', 'svg', 'gif'])) {
+                        $logos[] = [
+                            'filename' => $file,
+                            'display_name' => pathinfo($file, PATHINFO_FILENAME),
+                            'extension' => $extension
+                        ];
+                    }
+                }
+            }
+        }
+        
+        return $logos;
     }
     
     /**

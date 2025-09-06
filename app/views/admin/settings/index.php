@@ -147,6 +147,53 @@
                 </div>
             </div>
 
+            <!-- Section Logos et Branding -->
+            <div class="settings-section">
+                <h3>🎨 Logos et Branding</h3>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <select name="header_logo" class="setting-select">
+                            <?php foreach ($logos as $logo): ?>
+                                <option value="<?= htmlspecialchars($logo['filename']) ?>" 
+                                        <?= ($settings['header_logo'] ?? 'Logo.svg') === $logo['filename'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($logo['display_name']) ?> (<?= strtoupper($logo['extension']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <div class="setting-info">
+                        <h4>Logo du header</h4>
+                        <p>Logo affiché dans l'en-tête du site</p>
+                        <div class="logo-preview">
+                            <img src="/assets/images/logos/<?= htmlspecialchars($settings['header_logo'] ?? 'Logo.svg') ?>" 
+                                 alt="Prévisualisation" style="max-width: 100px; max-height: 50px; margin-top: 0.5rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <select name="footer_logo" class="setting-select">
+                            <?php foreach ($logos as $logo): ?>
+                                <option value="<?= htmlspecialchars($logo['filename']) ?>" 
+                                        <?= ($settings['footer_logo'] ?? 'Logo_neutre_500px.png') === $logo['filename'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($logo['display_name']) ?> (<?= strtoupper($logo['extension']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <div class="setting-info">
+                        <h4>Logo du footer</h4>
+                        <p>Logo affiché dans le pied de page</p>
+                        <div class="logo-preview">
+                            <img src="/assets/images/logos/<?= htmlspecialchars($settings['footer_logo'] ?? 'Logo_neutre_500px.png') ?>" 
+                                 alt="Prévisualisation" style="max-width: 100px; max-height: 50px; margin-top: 0.5rem;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="save-btn">
                     💾 Sauvegarder les paramètres

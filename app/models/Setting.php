@@ -119,7 +119,9 @@ class Setting
             'footer_tagline' => ['value' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.', 'description' => 'Phrase d\'accroche du footer'],
             'social_twitter' => ['value' => '', 'description' => 'URL du compte Twitter'],
             'social_facebook' => ['value' => '', 'description' => 'URL du compte Facebook'],
-            'social_youtube' => ['value' => '', 'description' => 'URL du compte YouTube']
+            'social_youtube' => ['value' => '', 'description' => 'URL du compte YouTube'],
+            'header_logo' => ['value' => 'Logo.svg', 'description' => 'Logo affiché dans le header'],
+            'footer_logo' => ['value' => 'Logo_neutre_500px.png', 'description' => 'Logo affiché dans le footer']
         ];
         
         foreach ($defaults as $key => $data) {

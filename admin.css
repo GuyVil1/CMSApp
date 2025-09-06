@@ -1733,3 +1733,36 @@ body {
         font-size: 1.1rem;
     }
 }
+
+/* ========================================
+   STYLES POUR LES SELECTS DE LOGOS
+   ======================================== */
+.setting-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--admin-border);
+    border-radius: 6px;
+    background: var(--admin-input-bg);
+    color: var(--admin-text);
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+}
+
+.setting-select:focus {
+    outline: none;
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+}
+
+.logo-preview {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid var(--admin-border);
+}
+
+.logo-preview img {
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
