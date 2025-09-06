@@ -28,6 +28,34 @@ require_once __DIR__ . '/../core/Auth.php';
 // Initialiser l'authentification
 Auth::init();
 
+// Vérifier le mode maintenance
+require_once __DIR__ . '/../app/models/Setting.php';
+$isMaintenanceMode = \Setting::isEnabled('maintenance_mode');
+$isAdmin = Auth::isLoggedIn() && Auth::hasRole('admin');
+
+// Si le mode maintenance est activé et que l'utilisateur n'est pas admin
+if ($isMaintenanceMode && !$isAdmin) {
+    // Exclure certaines routes même en maintenance
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $excludedRoutes = ['/admin', '/auth/login', '/auth/register'];
+    
+    $isExcludedRoute = false;
+    foreach ($excludedRoutes as $route) {
+        if (strpos($requestUri, $route) === 0) {
+            $isExcludedRoute = true;
+            break;
+        }
+    }
+    
+    // Si ce n'est pas une route exclue, afficher la page de maintenance
+    if (!$isExcludedRoute) {
+        http_response_code(503); // Service Temporarily Unavailable
+        $isAdmin = Auth::isLoggedIn() && Auth::hasRole('admin');
+        include __DIR__ . '/../app/views/layout/maintenance.php';
+        exit;
+    }
+}
+
 // Fonction d'autoload simple
 spl_autoload_register(function ($class) {
     // Chercher dans les dossiers app/

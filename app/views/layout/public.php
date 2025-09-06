@@ -34,10 +34,10 @@
     
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=<?= time() ?>">
     
-    <!-- Google Fonts - Poppins pour les titres -->
+    <!-- Google Fonts - Luckiest Guy pour les titres -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
     
     <!-- CSS principal avec thème belge -->
     <link rel="stylesheet" href="/style.css">
@@ -186,14 +186,42 @@
                 <div class="footer-grid">
                     <!-- Colonne 1 - À propos -->
                     <div class="footer-column">
-                        <h3 class="footer-title yellow">À propos de GameNews</h3>
+                        <h3 class="footer-title yellow">Belgium Video Gaming</h3>
                         <p class="footer-text">
-                            Votre source #1 pour l'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l'univers gaming depuis 2020.
+                            <?php 
+                            // Charger les paramètres footer
+                            if (!class_exists('Setting')) {
+                                require_once __DIR__ . '/../../app/models/Setting.php';
+                            }
+                            $footerTagline = \Setting::get('footer_tagline', 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.');
+                            echo htmlspecialchars($footerTagline);
+                            ?>
                         </p>
                         <div class="footer-buttons">
-                            <button class="footer-btn">Twitter</button>
-                            <button class="footer-btn">YouTube</button>
-                            <button class="footer-btn">Discord</button>
+                            <?php 
+                            // Récupérer les URLs des réseaux sociaux
+                            $socialTwitter = \Setting::get('social_twitter', '');
+                            $socialFacebook = \Setting::get('social_facebook', '');
+                            $socialYoutube = \Setting::get('social_youtube', '');
+                            ?>
+                            
+                            <?php if (!empty($socialTwitter)): ?>
+                                <a href="<?= htmlspecialchars($socialTwitter) ?>" target="_blank" rel="noopener noreferrer" class="footer-btn">Twitter</a>
+                            <?php else: ?>
+                                <span class="footer-btn disabled">Twitter</span>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($socialFacebook)): ?>
+                                <a href="<?= htmlspecialchars($socialFacebook) ?>" target="_blank" rel="noopener noreferrer" class="footer-btn">Facebook</a>
+                            <?php else: ?>
+                                <span class="footer-btn disabled">Facebook</span>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($socialYoutube)): ?>
+                                <a href="<?= htmlspecialchars($socialYoutube) ?>" target="_blank" rel="noopener noreferrer" class="footer-btn">YouTube</a>
+                            <?php else: ?>
+                                <span class="footer-btn disabled">YouTube</span>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -201,12 +229,16 @@
                     <div class="footer-column">
                         <h3 class="footer-title red">Navigation</h3>
                         <ul class="footer-links">
-                            <li><a href="/">Accueil</a></li>
-                            <li><a href="/category/tests">Tests & Reviews</a></li>
-                            <li><a href="/category/news">Actualités</a></li>
-                            <li><a href="/category/guides">Guides</a></li>
-                            <li><a href="/category/esports">eSports</a></li>
-                            <li><a href="/category/materiel">Matériel</a></li>
+                            <?php 
+                            // Charger le helper de navigation (une seule fois)
+                            if (!class_exists('NavigationHelper')) {
+                                require_once __DIR__ . '/../../helpers/navigation_helper.php';
+                            }
+                            $footerMenus = NavigationHelper::getFooterMenus();
+                            
+                            foreach ($footerMenus as $menu): ?>
+                                <li><a href="<?= htmlspecialchars($menu['url']) ?>"><?= htmlspecialchars($menu['name']) ?></a></li>
+                            <?php endforeach; ?>
                         </ul>
                     </div>
                     
@@ -221,7 +253,7 @@
                             <button>S'abonner</button>
                         </div>
                         <div class="footer-contact">
-                            <p>📧 contact@gamenews.be</p>
+                            <p>📧 contact@belgium-video-gaming.be</p>
                             <p>📍 Bruxelles, Belgique</p>
                         </div>
                     </div>

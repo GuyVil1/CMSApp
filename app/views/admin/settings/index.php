@@ -85,6 +85,68 @@
                 </div>
             </div>
 
+            <!-- Section Footer -->
+            <div class="settings-section">
+                <h3>📄 Configuration du Footer</h3>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="text" name="footer_tagline" 
+                               value="<?= htmlspecialchars($settings['footer_tagline'] ?? '') ?>"
+                               placeholder="Votre phrase d'accroche..."
+                               class="setting-input">
+                    </label>
+                    <div class="setting-info">
+                        <h4>Phrase d'accroche</h4>
+                        <p>Texte affiché dans la section "À propos de GameNews" du footer</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Réseaux Sociaux -->
+            <div class="settings-section">
+                <h3>🌐 Réseaux Sociaux</h3>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="url" name="social_twitter" 
+                               value="<?= htmlspecialchars($settings['social_twitter'] ?? '') ?>"
+                               placeholder="https://twitter.com/votrecompte"
+                               class="setting-input">
+                    </label>
+                    <div class="setting-info">
+                        <h4>Twitter</h4>
+                        <p>URL de votre compte Twitter (laisser vide pour désactiver le bouton)</p>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="url" name="social_facebook" 
+                               value="<?= htmlspecialchars($settings['social_facebook'] ?? '') ?>"
+                               placeholder="https://facebook.com/votrecompte"
+                               class="setting-input">
+                    </label>
+                    <div class="setting-info">
+                        <h4>Facebook</h4>
+                        <p>URL de votre compte Facebook (laisser vide pour désactiver le bouton)</p>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="url" name="social_youtube" 
+                               value="<?= htmlspecialchars($settings['social_youtube'] ?? '') ?>"
+                               placeholder="https://youtube.com/@votrecompte"
+                               class="setting-input">
+                    </label>
+                    <div class="setting-info">
+                        <h4>YouTube</h4>
+                        <p>URL de votre chaîne YouTube (laisser vide pour désactiver le bouton)</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="save-btn">
                     💾 Sauvegarder les paramètres

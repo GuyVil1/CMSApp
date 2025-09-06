@@ -58,6 +58,20 @@ body {
 }
 
 /* ========================================
+   TITRES - Luckiest Guy
+   ======================================== */
+h1, h2, h3, h4, h5, h6,
+.section-title,
+.article-title,
+.featured-title,
+.footer-title,
+.page-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+}
+
+/* ========================================
    CONTAINER
    ======================================== */
 .container {
@@ -728,6 +742,7 @@ body {
     font-size: 0.875rem;
     opacity: 0.9;
     margin-bottom: 1rem;
+    color: white!important;
 }
 
 .footer-links {

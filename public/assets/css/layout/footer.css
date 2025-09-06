@@ -66,6 +66,7 @@
 
 .footer-text {
     font-size: 0.875rem;
+    color: white;
     opacity: 0.9;
     margin-bottom: 1rem;
     line-height: 1.6;
@@ -125,6 +126,20 @@
     background: var(--belgium-yellow);
     color: var(--belgium-black);
     border-color: var(--belgium-yellow);
+}
+
+/* Boutons désactivés */
+.footer-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.footer-btn.disabled:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border-color: rgba(255,255,255,0.1);
 }
 
 /* ========================================

@@ -65,7 +65,11 @@ class SettingsController extends \Controller
                 'allow_registration' => $_POST['allow_registration'] ?? '0',
                 'dark_mode' => $_POST['dark_mode'] ?? '0',
                 'maintenance_mode' => $_POST['maintenance_mode'] ?? '0',
-                'default_theme' => $_POST['default_theme'] ?? 'defaut'
+                'default_theme' => $_POST['default_theme'] ?? 'defaut',
+                'footer_tagline' => $_POST['footer_tagline'] ?? '',
+                'social_twitter' => $_POST['social_twitter'] ?? '',
+                'social_facebook' => $_POST['social_facebook'] ?? '',
+                'social_youtube' => $_POST['social_youtube'] ?? ''
             ];
             
             $success = true;

@@ -115,7 +115,11 @@ class Setting
             'allow_registration' => ['value' => '1', 'description' => 'Autoriser les nouvelles inscriptions'],
             'dark_mode' => ['value' => '0', 'description' => 'Activer le mode sombre par défaut'],
             'maintenance_mode' => ['value' => '0', 'description' => 'Activer le mode maintenance'],
-            'default_theme' => ['value' => 'defaut', 'description' => 'Thème par défaut du site']
+            'default_theme' => ['value' => 'defaut', 'description' => 'Thème par défaut du site'],
+            'footer_tagline' => ['value' => 'Votre source #1 pour l\'actualité jeux vidéo en Belgique. Reviews, tests, guides et tout l\'univers gaming depuis 2020.', 'description' => 'Phrase d\'accroche du footer'],
+            'social_twitter' => ['value' => '', 'description' => 'URL du compte Twitter'],
+            'social_facebook' => ['value' => '', 'description' => 'URL du compte Facebook'],
+            'social_youtube' => ['value' => '', 'description' => 'URL du compte YouTube']
         ];
         
         foreach ($defaults as $key => $data) {

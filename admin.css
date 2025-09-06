@@ -1649,3 +1649,87 @@ body {
         font-size: 0.75em;
     }
 }
+
+/* ========================================
+   ALERTE MAINTENANCE
+   ======================================== */
+.maintenance-alert {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border: 2px solid #d35400;
+    border-radius: 12px;
+    padding: var(--admin-spacing-md);
+    margin-bottom: var(--admin-spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-md);
+    box-shadow: var(--admin-shadow-lg);
+    animation: maintenancePulse 2s ease-in-out infinite;
+}
+
+@keyframes maintenancePulse {
+    0%, 100% { 
+        box-shadow: var(--admin-shadow-lg);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 8px 32px rgba(243, 156, 18, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+.alert-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-content h3 {
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.alert-content p {
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: var(--admin-spacing-sm);
+    line-height: 1.5;
+}
+
+.alert-btn {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.alert-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive pour l'alerte maintenance */
+@media (max-width: 768px) {
+    .maintenance-alert {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--admin-spacing-sm);
+    }
+    
+    .alert-icon {
+        font-size: 1.5rem;
+    }
+    
+    .alert-content h3 {
+        font-size: 1.1rem;
+    }
+}

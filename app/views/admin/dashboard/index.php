@@ -13,6 +13,17 @@
             <p>Bienvenue dans l'administration de Belgium Vidéo Gaming</p>
         </div>
 
+        <?php if ($options['maintenance_mode']): ?>
+        <div class="maintenance-alert">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <h3>Mode maintenance activé</h3>
+                <p>Le site est actuellement en maintenance. Seuls les administrateurs peuvent y accéder.</p>
+                <a href="/admin/settings" class="alert-btn">Gérer les paramètres</a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="user-info">
             <h3>👤 Informations utilisateur</h3>
             <div class="user-details">
