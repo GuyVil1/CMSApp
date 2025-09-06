@@ -135,6 +135,39 @@ function route($uri) {
         ];
     }
     
+    // Routes légales
+    if ($parts[0] === 'mentions-legales') {
+        return [
+            'controller' => 'LegalController',
+            'action' => 'mentionsLegales',
+            'params' => []
+        ];
+    }
+    
+    if ($parts[0] === 'politique-confidentialite') {
+        return [
+            'controller' => 'LegalController',
+            'action' => 'politiqueConfidentialite',
+            'params' => []
+        ];
+    }
+    
+    if ($parts[0] === 'cgu') {
+        return [
+            'controller' => 'LegalController',
+            'action' => 'cgu',
+            'params' => []
+        ];
+    }
+    
+    if ($parts[0] === 'cookies') {
+        return [
+            'controller' => 'LegalController',
+            'action' => 'cookies',
+            'params' => []
+        ];
+    }
+    
     // Route spéciale pour article
     if ($parts[0] === 'article') {
         error_log("🔍 Route article détectée");

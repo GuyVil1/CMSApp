@@ -51,6 +51,9 @@
     <!-- CSS responsive pour les articles -->
     <link rel="stylesheet" href="/public/assets/css/components/article-responsive.css">
     
+    <!-- CSS pour les pages légales -->
+    <link rel="stylesheet" href="/public/assets/css/pages/legal.css">
+    
     <!-- CSS additionnel spécifique à la page -->
     <?php if (isset($additionalCSS)): ?>
         <?php foreach ($additionalCSS as $css): ?>
@@ -278,7 +281,7 @@
                 </div>
                 
                 <div class="footer-bottom">
-                    <p>&copy; 2025 GameNews Belgium. Tous droits réservés. | Mentions légales | Politique de confidentialité</p>
+                    <p>&copy; 2025 Belgium Video Gaming. Tous droits réservés. | <a href="/mentions-legales">Mentions légales</a> | <a href="/politique-confidentialite">Politique de confidentialité</a> | <a href="/cgu">CGU</a> | <a href="/cookies">Cookies</a></p>
                     <p>🇧🇪 Fièrement belge - Made in Belgium</p>
                 </div>
             </div>
