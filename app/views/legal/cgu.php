@@ -1,10 +1,4 @@
-<div class="legal-page">
-    <div class="legal-header">
-        <h1>Conditions générales d'utilisation</h1>
-        <p class="legal-subtitle">Règles d'utilisation du site Belgium Video Gaming</p>
-    </div>
-
-    <div class="legal-content">
+<!-- Contenu des CGU -->
         <section class="legal-section">
             <h2>Acceptation des conditions</h2>
             <p>L'utilisation du site Belgium Video Gaming implique l'acceptation pleine et entière des présentes conditions générales d'utilisation.</p>
@@ -79,5 +73,3 @@
         <div class="legal-footer">
             <p><em>Dernière mise à jour : <?= date('d/m/Y') ?></em></p>
         </div>
-    </div>
-</div>

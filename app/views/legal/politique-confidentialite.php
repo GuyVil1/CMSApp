@@ -1,10 +1,4 @@
-<div class="legal-page">
-    <div class="legal-header">
-        <h1>Politique de confidentialité</h1>
-        <p class="legal-subtitle">Protection de vos données personnelles</p>
-    </div>
-
-    <div class="legal-content">
+<!-- Contenu de la politique de confidentialité -->
         <section class="legal-section">
             <h2>Collecte des données</h2>
             <p>Belgium Video Gaming collecte uniquement les données personnelles nécessaires au fonctionnement du site :</p>
@@ -58,5 +52,3 @@
         <div class="legal-footer">
             <p><em>Dernière mise à jour : <?= date('d/m/Y') ?></em></p>
         </div>
-    </div>
-</div>

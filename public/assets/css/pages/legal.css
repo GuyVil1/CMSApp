@@ -1,44 +1,13 @@
 /* ========================================
    PAGES LÉGALES - Belgium Video Gaming
+   Intégration dans le style des articles
    ======================================== */
 
-.legal-page {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
+/* Les pages légales utilisent maintenant le layout des articles */
 
-.legal-header {
-    text-align: center;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-    border-bottom: 3px solid var(--belgium-yellow);
-}
-
-.legal-header h1 {
-    font-family: 'Luckiest Guy', cursive;
-    font-size: 2.5rem;
-    color: var(--belgium-black);
-    margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.legal-subtitle {
-    font-size: 1.1rem;
-    color: var(--belgium-red);
-    font-weight: 500;
-    margin: 0;
-}
-
-.legal-content {
-    line-height: 1.7;
-}
-
+/* Sections légales intégrées dans le contenu des articles */
 .legal-section {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
     padding: 1.5rem;
     background: #f8f9fa;
     border-radius: 8px;
@@ -47,16 +16,16 @@
 
 .legal-section h2 {
     font-family: 'Luckiest Guy', cursive;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: var(--belgium-black);
     margin-bottom: 1rem;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .legal-section h3 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: var(--belgium-red);
-    margin: 1.5rem 0 0.5rem 0;
+    margin: 1.2rem 0 0.5rem 0;
     font-weight: 600;
 }
 
@@ -64,6 +33,7 @@
     margin-bottom: 1rem;
     color: #333;
     font-size: 1rem;
+    line-height: 1.6;
 }
 
 .legal-section ul {
@@ -74,6 +44,7 @@
 .legal-section li {
     margin-bottom: 0.5rem;
     color: #333;
+    line-height: 1.5;
 }
 
 .legal-section a {
@@ -89,8 +60,8 @@
 }
 
 .legal-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
     border-top: 1px solid #ddd;
     text-align: center;
 }
@@ -99,48 +70,35 @@
     color: #666;
     font-style: italic;
     margin: 0;
+    font-size: 0.9rem;
 }
 
 /* ========================================
-   RESPONSIVE
+   RESPONSIVE - Utilise le responsive des articles
    ======================================== */
 
 @media (max-width: 768px) {
-    .legal-page {
-        margin: 1rem;
-        padding: 1.5rem 1rem;
-    }
-    
-    .legal-header h1 {
-        font-size: 2rem;
-    }
-    
     .legal-section {
         padding: 1rem;
         margin-bottom: 1.5rem;
     }
     
     .legal-section h2 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
+    }
+    
+    .legal-section h3 {
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .legal-page {
-        margin: 0.5rem;
-        padding: 1rem 0.75rem;
-    }
-    
-    .legal-header h1 {
-        font-size: 1.8rem;
-    }
-    
     .legal-section {
         padding: 0.75rem;
     }
     
     .legal-section h2 {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     
     .legal-section p,

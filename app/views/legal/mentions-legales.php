@@ -1,10 +1,4 @@
-<div class="legal-page">
-    <div class="legal-header">
-        <h1>Mentions légales</h1>
-        <p class="legal-subtitle">Informations légales concernant Belgium Video Gaming</p>
-    </div>
-
-    <div class="legal-content">
+<!-- Contenu des mentions légales -->
         <section class="legal-section">
             <h2>Éditeur du site</h2>
             <p><strong>Belgium Video Gaming</strong></p>
@@ -43,5 +37,3 @@
         <div class="legal-footer">
             <p><em>Dernière mise à jour : <?= date('d/m/Y') ?></em></p>
         </div>
-    </div>
-</div>

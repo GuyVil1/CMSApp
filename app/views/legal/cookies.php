@@ -1,10 +1,4 @@
-<div class="legal-page">
-    <div class="legal-header">
-        <h1>Politique des cookies</h1>
-        <p class="legal-subtitle">Utilisation des cookies sur Belgium Video Gaming</p>
-    </div>
-
-    <div class="legal-content">
+<!-- Contenu de la politique des cookies -->
         <section class="legal-section">
             <h2>Qu'est-ce qu'un cookie ?</h2>
             <p>Un cookie est un petit fichier texte stocké sur votre ordinateur ou appareil mobile lorsque vous visitez un site web. Les cookies permettent au site de mémoriser vos actions et préférences.</p>
@@ -82,5 +76,3 @@
         <div class="legal-footer">
             <p><em>Dernière mise à jour : <?= date('d/m/Y') ?></em></p>
         </div>
-    </div>
-</div>
