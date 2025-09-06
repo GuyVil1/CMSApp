@@ -152,7 +152,7 @@ class Game
                 LIMIT ?";
         
         $searchTerm = "%{$query}%";
-        $results = Database::query($sql, [$searchTerm, $limit]);
+        $results = \Database::query($sql, [$searchTerm, $limit]);
         
         return array_map(fn($data) => new self($data), $results);
     }

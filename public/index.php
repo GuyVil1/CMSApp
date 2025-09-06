@@ -454,13 +454,30 @@ function route($uri) {
             'params' => $params
         ];
     } elseif ($parts[0] === 'admin') {
-        // Route spéciale pour le tableau de bord admin
-        $controller = 'Admin\\DashboardController';
-        $action = $parts[1] ?? 'index';
-        $params = array_slice($parts, 2);
+        // Routes admin
+        $adminController = $parts[1] ?? 'dashboard';
+        $action = $parts[2] ?? 'index';
+        $params = array_slice($parts, 3);
         
-        // Charger le contrôleur du tableau de bord
-        $controllerFile = __DIR__ . "/../app/controllers/admin/DashboardController.php";
+        // Déterminer le contrôleur admin
+        switch ($adminController) {
+            case 'dashboard':
+                $controller = 'Admin\\DashboardController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/DashboardController.php";
+                break;
+            case 'settings':
+                $controller = 'Admin\\SettingsController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/SettingsController.php";
+                break;
+            case 'media':
+                $controller = 'Admin\\MediaController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/MediaController.php";
+                break;
+            default:
+                return ['error' => '404'];
+        }
+        
+        // Charger le contrôleur admin
         if (file_exists($controllerFile)) {
             require_once $controllerFile;
         } else {

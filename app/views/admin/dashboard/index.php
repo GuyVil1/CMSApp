@@ -51,6 +51,58 @@
             </div>
         </div>
 
+        <!-- Section Options -->
+        <div class="options-section">
+            <h3 style="color: var(--admin-primary); margin-bottom: var(--admin-spacing-lg); text-align: center; font-size: 1.5em;">⚙️ Options du site</h3>
+            <div class="options-grid">
+                <div class="option-card">
+                    <div class="option-header">
+                        <span class="option-icon">👥</span>
+                        <h4>Inscriptions</h4>
+                    </div>
+                    <div class="option-status <?= $options['allow_registration'] ? 'enabled' : 'disabled' ?>">
+                        <?= $options['allow_registration'] ? 'Activées' : 'Désactivées' ?>
+                    </div>
+                </div>
+                
+                <div class="option-card">
+                    <div class="option-header">
+                        <span class="option-icon">🌙</span>
+                        <h4>Mode sombre</h4>
+                    </div>
+                    <div class="option-status <?= $options['dark_mode'] ? 'enabled' : 'disabled' ?>">
+                        <?= $options['dark_mode'] ? 'Activé' : 'Désactivé' ?>
+                    </div>
+                </div>
+                
+                <div class="option-card">
+                    <div class="option-header">
+                        <span class="option-icon">🔧</span>
+                        <h4>Maintenance</h4>
+                    </div>
+                    <div class="option-status <?= $options['maintenance_mode'] ? 'enabled' : 'disabled' ?>">
+                        <?= $options['maintenance_mode'] ? 'Activé' : 'Désactivé' ?>
+                    </div>
+                </div>
+                
+                <div class="option-card">
+                    <div class="option-header">
+                        <span class="option-icon">🎨</span>
+                        <h4>Thème</h4>
+                    </div>
+                    <div class="option-theme">
+                        <?= ucfirst($options['default_theme']) ?>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="options-actions">
+                <a href="/admin/settings" class="settings-btn">
+                    ⚙️ Gérer les options
+                </a>
+            </div>
+        </div>
+
         <div class="actions-section">
             <h3 style="color: var(--admin-primary); margin-bottom: var(--admin-spacing-lg); text-align: center; font-size: 1.5em;">🚀 Actions rapides</h3>
             
@@ -188,16 +240,124 @@
             border-color: #c0392b;
         }
         
+        /* Section Options */
+        .options-section {
+            background: var(--admin-card-bg);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            padding: var(--admin-spacing-lg);
+            margin-bottom: var(--admin-spacing-lg);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--admin-spacing-md);
+            margin-bottom: var(--admin-spacing-lg);
+        }
+
+        .option-card {
+            background: var(--admin-dark);
+            border: 1px solid var(--admin-border);
+            border-radius: 8px;
+            padding: var(--admin-spacing-md);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: var(--admin-primary);
+        }
+
+        .option-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--admin-spacing-xs);
+            margin-bottom: var(--admin-spacing-sm);
+        }
+
+        .option-icon {
+            font-size: 1.5em;
+        }
+
+        .option-header h4 {
+            color: var(--admin-text);
+            font-size: 0.9em;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .option-status {
+            padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .option-status.enabled {
+            background: var(--admin-success);
+            color: white;
+        }
+
+        .option-status.disabled {
+            background: var(--admin-secondary);
+            color: white;
+        }
+
+        .option-theme {
+            color: var(--admin-primary);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .options-actions {
+            text-align: center;
+        }
+
+        .settings-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--admin-spacing-sm);
+            padding: var(--admin-spacing-md) var(--admin-spacing-xl);
+            background: var(--admin-primary);
+            color: var(--admin-dark);
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--admin-primary);
+        }
+
+        .settings-btn:hover {
+            background: transparent;
+            color: var(--admin-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
         /* Responsive design pour les grilles */
         @media (max-width: 1200px) {
             .actions-grid {
                 grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .options-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 768px) {
             .actions-grid {
                 grid-template-columns: 1fr !important;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
             }
             
             .action-btn {

@@ -6,6 +6,9 @@
 
 session_start();
 
+// Inclure les headers de sécurité
+require_once __DIR__ . '/public/security-headers.php';
+
 // Inclure les fichiers nécessaires
 require_once __DIR__ . '/core/Auth.php';
 require_once __DIR__ . '/app/controllers/admin/MediaController.php';

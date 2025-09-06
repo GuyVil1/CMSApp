@@ -14,8 +14,8 @@ header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
 // Content Security Policy (CSP) avec support YouTube
 $csp = "default-src 'self'; " .
        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.youtube.com https://s.ytimg.com; " .
-       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " .
-       "font-src 'self' https://fonts.gstatic.com; " .
+       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " .
+       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
        "img-src 'self' data: blob: https://i.ytimg.com https://s.ytimg.com; " .
        "connect-src 'self'; " .
        "frame-src 'self' https://www.youtube.com https://youtube.com; " . // Autorise YouTube

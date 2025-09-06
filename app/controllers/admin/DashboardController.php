@@ -10,6 +10,7 @@ namespace Admin;
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../core/Database.php';
+require_once __DIR__ . '/../../models/Setting.php';
 
 class DashboardController extends \Controller
 {
@@ -24,9 +25,13 @@ class DashboardController extends \Controller
      */
     public function index(): void
     {
+        // Initialiser les options par défaut si nécessaire
+        \Setting::initDefaults();
+        
         $this->render('admin/dashboard/index', [
             'user' => \Auth::getUser(),
-            'stats' => $this->getStats()
+            'stats' => $this->getStats(),
+            'options' => $this->getOptions()
         ]);
     }
     
@@ -44,6 +49,28 @@ class DashboardController extends \Controller
             ];
         } catch (\Exception $e) {
             return ['articles' => 0, 'users' => 0, 'games' => 0, 'categories' => 0];
+        }
+    }
+    
+    /**
+     * Obtenir les options du site
+     */
+    private function getOptions(): array
+    {
+        try {
+            return [
+                'allow_registration' => \Setting::isEnabled('allow_registration'),
+                'dark_mode' => \Setting::isEnabled('dark_mode'),
+                'maintenance_mode' => \Setting::isEnabled('maintenance_mode'),
+                'default_theme' => \Setting::get('default_theme', 'defaut')
+            ];
+        } catch (\Exception $e) {
+            return [
+                'allow_registration' => true,
+                'dark_mode' => false,
+                'maintenance_mode' => false,
+                'default_theme' => 'defaut'
+            ];
         }
     }
 }

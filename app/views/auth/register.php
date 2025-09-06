@@ -3,232 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - GameNews Belgium</title>
-    <meta name="description" content="Créez votre compte sur GameNews Belgium pour accéder à l'actualité gaming exclusive">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <!-- Header avec thème belge -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">🎮</div>
-                    <div class="logo-text">
-                        <h1>GameNews</h1>
-                        <div class="logo-subtitle">🇧🇪 BELGIQUE</div>
-                    </div>
-                </div>
-                
-                <h1 class="header-title">
-                    Rejoignez la communauté gaming belge
-                </h1>
-                
-                <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <a href="/" class="home-btn">🏠 Accueil</a>
-                    <a href="/auth/login" class="login-btn">Se connecter</a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Bannières thématiques de fond -->
-    <div class="theme-banner-left"></div>
-    <div class="theme-banner-right"></div>
-
-    <!-- Layout principal -->
-    <div class="main-layout">
-        <main class="main-content">
-            <div class="auth-container">
-                <div class="auth-card">
-                    <div class="auth-header">
-                        <div class="auth-icon">👤</div>
-                        <h2>Créer un compte</h2>
-                        <p>Rejoignez la communauté GameNews Belgium</p>
-                    </div>
-
-                    <?php if (!empty($error)): ?>
-                        <div class="auth-message error">
-                            <span class="message-icon">⚠️</span>
-                            <?= htmlspecialchars($error) ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($success)): ?>
-                        <div class="auth-message success">
-                            <span class="message-icon">✅</span>
-                            <?= htmlspecialchars($success) ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <form class="auth-form" method="POST" action="/auth/register">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
-                        
-                        <div class="form-group">
-                            <label for="login">Nom d'utilisateur</label>
-                            <input type="text" id="login" name="login" required 
-                                   placeholder="Votre nom d'utilisateur"
-                                   value="<?= htmlspecialchars($_POST['login'] ?? '') ?>">
-                            <small>3-20 caractères, lettres et chiffres uniquement</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Adresse email</label>
-                            <input type="email" id="email" name="email" required 
-                                   placeholder="votre@email.be"
-                                   value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
-                            <small>Nous ne partagerons jamais votre email</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password">Mot de passe</label>
-                            <input type="password" id="password" name="password" required 
-                                   placeholder="Votre mot de passe">
-                            <small>Minimum 8 caractères</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password_confirm">Confirmer le mot de passe</label>
-                            <input type="password" id="password_confirm" name="password_confirm" required 
-                                   placeholder="Confirmez votre mot de passe">
-                        </div>
-
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="terms" required>
-                                <span class="checkmark"></span>
-                                J'accepte les <a href="/terms" target="_blank">conditions d'utilisation</a> et la <a href="/privacy" target="_blank">politique de confidentialité</a>
-                            </label>
-                        </div>
-
-                        <button type="submit" class="auth-submit">
-                            <span class="submit-icon">🚀</span>
-                            Créer mon compte
-                        </button>
-                    </form>
-
-                    <div class="auth-footer">
-                        <p>Déjà un compte ? <a href="/auth/login">Connectez-vous ici</a></p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
+    <title>Inscription - <?= htmlspecialchars($site_name) ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .auth-container {
+        :root {
+            --belgium-red: #FF0000;
+            --belgium-yellow: #FFD700;
+            --belgium-black: #000000;
+            --primary: #1a1a1a;
+            --secondary: #2d2d2d;
+            --accent: #FFD700;
+            --text: #ffffff;
+            --text-muted: #a0a0a0;
+            --border: #404040;
+            --error: #ff4444;
+            --success: #44ff44;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 60vh;
-            padding: 2rem 0;
+            justify-content: center;
+            color: var(--text);
         }
-
-        .auth-card {
-            background: rgba(255, 255, 255, 0.95);
+        
+        .register-container {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 2.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            max-width: 500px;
+            padding: 3rem;
             width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
-
-        .auth-header {
+        
+        .logo {
             text-align: center;
             margin-bottom: 2rem;
         }
-
-        .auth-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .auth-header h2 {
-            color: var(--belgium-black);
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
-
-        .auth-header p {
-            color: var(--belgium-red);
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
-        .auth-message {
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
+        
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--belgium-yellow);
+            border: 3px solid var(--belgium-black);
+            border-radius: 15px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
         }
-
-        .auth-message.error {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            color: #c0392b;
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
-
-        .auth-message.success {
-            background: rgba(39, 174, 96, 0.1);
-            border: 1px solid rgba(39, 174, 96, 0.3);
-            color: #27ae60;
+        
+        .logo .tagline {
+            color: var(--belgium-yellow);
+            font-size: 0.875rem;
+            font-weight: 600;
         }
-
-        .message-icon {
-            font-size: 1.2rem;
-        }
-
-        .auth-form {
-            margin-bottom: 1.5rem;
-        }
-
+        
         .form-group {
             margin-bottom: 1.5rem;
         }
-
+        
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: var(--belgium-black);
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text);
         }
-
-        .form-group input[type="text"],
-        .form-group input[type="email"],
-        .form-group input[type="password"] {
+        
+        .form-group input {
             width: 100%;
-            padding: 0.875rem 1rem;
-            border: 2px solid #e1e8ed;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 10px;
+            color: var(--text);
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: white;
         }
-
+        
         .form-group input:focus {
             outline: none;
             border-color: var(--belgium-yellow);
-            box-shadow: 0 0 0 3px rgba(230, 184, 0, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
         }
-
+        
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+        
         .form-group small {
             display: block;
             margin-top: 0.5rem;
-            color: #666;
-            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
         }
-
+        
         .checkbox-group {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
-
+        
         .checkbox-label {
             display: flex;
             align-items: flex-start;
@@ -236,119 +128,194 @@
             cursor: pointer;
             font-size: 0.9rem;
             line-height: 1.4;
+            color: var(--text);
         }
-
+        
         .checkbox-label input[type="checkbox"] {
             margin: 0;
             width: 18px;
             height: 18px;
             accent-color: var(--belgium-yellow);
         }
-
+        
         .checkbox-label a {
-            color: var(--belgium-red);
+            color: var(--belgium-yellow);
             text-decoration: none;
             font-weight: 600;
         }
-
+        
         .checkbox-label a:hover {
+            color: #ffed4e;
             text-decoration: underline;
         }
-
-        .auth-submit {
+        
+        .btn {
             width: 100%;
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, var(--belgium-yellow) 0%, #ffd700 100%);
-            color: var(--belgium-black);
+            padding: 0.875rem 1.5rem;
+            background: var(--belgium-red);
+            color: white;
             border: none;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            font-weight: 700;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
-
-        .auth-submit:hover {
+        
+        .btn:hover {
+            background: #cc0000;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(230, 184, 0, 0.4);
+            box-shadow: 0 10px 20px rgba(255, 0, 0, 0.3);
         }
-
-        .submit-icon {
-            font-size: 1.2rem;
+        
+        .btn:active {
+            transform: translateY(0);
         }
-
-        .auth-footer {
+        
+        .error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .success {
+            background: rgba(68, 255, 68, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .links {
             text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e1e8ed;
+            margin-top: 1.5rem;
         }
-
-        .auth-footer p {
-            margin: 0;
-            color: #666;
-        }
-
-        .auth-footer a {
-            color: var(--belgium-red);
+        
+        .links a {
+            color: var(--belgium-yellow);
             text-decoration: none;
-            font-weight: 600;
+            font-size: 0.875rem;
+            transition: color 0.3s ease;
         }
-
-        .auth-footer a:hover {
+        
+        .links a:hover {
+            color: #ffed4e;
             text-decoration: underline;
         }
-
-        .home-btn {
-            background: var(--belgium-red);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
+        
+        .belgium-flag {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 2px;
         }
-
-        .home-btn:hover {
-            background: #c0392b;
-            transform: translateY(-1px);
+        
+        .flag-stripe {
+            width: 20px;
+            height: 40px;
         }
-
-        .register-btn {
-            background: var(--belgium-yellow);
-            color: var(--belgium-black);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .register-btn:hover {
-            background: #d4a700;
-            transform: translateY(-1px);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .auth-card {
+        
+        .flag-black { background: var(--belgium-black); }
+        .flag-yellow { background: var(--belgium-yellow); }
+        .flag-red { background: var(--belgium-red); }
+        
+        @media (max-width: 480px) {
+            .register-container {
                 margin: 1rem;
                 padding: 2rem;
             }
-
-            .auth-header h2 {
-                font-size: 1.75rem;
-            }
-
-            .form-group input[type="text"],
-            .form-group input[type="email"],
-            .form-group input[type="password"] {
-                padding: 0.75rem;
+            
+            .belgium-flag {
+                top: 1rem;
+                right: 1rem;
             }
         }
     </style>
+</head>
+<body>
+    <div class="belgium-flag">
+        <div class="flag-stripe flag-black"></div>
+        <div class="flag-stripe flag-yellow"></div>
+        <div class="flag-stripe flag-red"></div>
+    </div>
+    
+    <div class="register-container">
+        <div class="logo">
+            <div class="logo-icon">🎮</div>
+            <h1><?= htmlspecialchars($site_name) ?></h1>
+            <div class="tagline">🇧🇪 BELGIQUE</div>
+        </div>
+        
+        <?php if (!empty($error)): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($success)): ?>
+            <div class="success"><?= htmlspecialchars($success) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" action="/auth/register">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+            
+            <div class="form-group">
+                <label for="login">Nom d'utilisateur</label>
+                <input type="text" id="login" name="login" required 
+                       placeholder="Votre nom d'utilisateur"
+                       value="<?= htmlspecialchars($_POST['login'] ?? '') ?>">
+                <small>3-20 caractères, lettres et chiffres uniquement</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Adresse email</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="votre@email.be"
+                       value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+                <small>Nous ne partagerons jamais votre email</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Votre mot de passe">
+                <small>Minimum 8 caractères</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password_confirm">Confirmer le mot de passe</label>
+                <input type="password" id="password_confirm" name="password_confirm" required 
+                       placeholder="Confirmez votre mot de passe">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="terms" required>
+                    J'accepte les <a href="/terms" target="_blank">conditions d'utilisation</a> et la <a href="/privacy" target="_blank">politique de confidentialité</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn">
+                <span>🚀</span>
+                Créer mon compte
+            </button>
+        </form>
+
+        <div class="links">
+            <a href="/auth/login">Déjà un compte ? Connectez-vous ici</a>
+            <br><br>
+            <a href="/">← Retour à l'accueil</a>
+        </div>
+    </div>
 </body>
 </html>

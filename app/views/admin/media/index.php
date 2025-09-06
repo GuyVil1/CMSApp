@@ -13,49 +13,47 @@
     <link rel="stylesheet" href="/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Variables CSS modernes - NOUVELLE PALETTE PROFESSIONNELLE */
+        /* Variables CSS - COULEURS DU SITE BELGIUM VIDEO GAMING */
         :root {
-            /* Couleurs principales - Palette professionnelle */
-            --primary-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            --secondary-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            --success-gradient: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
-            --warning-gradient: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            --danger-gradient: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            /* Couleurs principales - Palette Belgique */
+            --belgium-red: #FF0000;
+            --belgium-yellow: #FFD700;
+            --belgium-black: #000000;
             
-            /* Couleurs d'accent - Plus subtiles */
-            --accent-blue: #3498db;
-            --accent-green: #27ae60;
-            --accent-orange: #f39c12;
-            --accent-red: #e74c3c;
-            --accent-purple: #9b59b6;
+            /* Couleurs d'accent */
+            --accent-red: #FF0000;
+            --accent-yellow: #FFD700;
+            --accent-black: #000000;
+            --accent-dark: #1a1a1a;
+            --accent-gray: #2d2d2d;
             
-            /* Couleurs de fond - Plus professionnelles */
-            --bg-primary: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
-            --bg-secondary: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-            --bg-dark: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            /* Couleurs de fond */
+            --bg-primary: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            --bg-secondary: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+            --bg-dark: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
             
-            /* Glassmorphism raffiné */
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-bg-light: rgba(255, 255, 255, 0.25);
-            --glass-bg-dark: rgba(44, 62, 80, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.25);
-            --glass-border-dark: rgba(44, 62, 80, 0.3);
+            /* Glassmorphism avec couleurs du site */
+            --glass-bg: rgba(0, 0, 0, 0.8);
+            --glass-bg-light: rgba(45, 45, 45, 0.9);
+            --glass-bg-dark: rgba(0, 0, 0, 0.9);
+            --glass-border: rgba(255, 215, 0, 0.3);
+            --glass-border-dark: rgba(255, 0, 0, 0.3);
             
             /* Ombres et profondeur */
-            --shadow-soft: 0 8px 32px rgba(44, 62, 80, 0.1);
-            --shadow-medium: 0 12px 40px rgba(44, 62, 80, 0.15);
-            --shadow-strong: 0 20px 60px rgba(44, 62, 80, 0.2);
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.4);
+            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.5);
             
             /* Transitions */
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-fast: all 0.2s ease;
             
             /* Couleurs de texte */
-            --text-primary: #2c3e50;
-            --text-secondary: #34495e;
-            --text-light: #7f8c8d;
+            --text-primary: #ffffff;
+            --text-secondary: #FFD700;
+            --text-light: #cccccc;
             --text-white: #ffffff;
-            --text-muted: #95a5a6;
+            --text-muted: #999999;
         }
 
         /* Reset et base */
@@ -99,7 +97,7 @@
         }
 
         .header-actions .btn {
-            background: var(--accent-blue);
+            background: var(--belgium-red);
             color: var(--text-white);
             border: none;
             padding: 15px 30px;
@@ -112,6 +110,7 @@
         }
 
         .header-actions .btn:hover {
+            background: #cc0000;
             transform: translateY(-2px);
             box-shadow: var(--shadow-strong);
         }
@@ -136,7 +135,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--accent-blue);
+            background: var(--belgium-red);
         }
 
         .upload-form h3 {
@@ -158,6 +157,14 @@
         .game-selector {
             position: relative;
         }
+        
+        .game-search-container {
+            position: relative;
+        }
+        
+        #filterGameDropdown {
+            z-index: 1000;
+        }
 
         .game-search {
             width: 100%;
@@ -173,8 +180,8 @@
 
         .game-search:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
             transform: translateY(-1px);
         }
 
@@ -200,15 +207,16 @@
             cursor: pointer;
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             transition: var(--transition-smooth);
+            background: white;
         }
 
         .game-option:hover {
-            background: rgba(52, 152, 219, 0.1);
+            background: rgba(255, 215, 0, 0.1);
             transform: translateX(5px);
         }
 
         .game-option.selected {
-            background: var(--accent-blue);
+            background: var(--belgium-red);
             color: white;
         }
 
@@ -220,13 +228,25 @@
 
         .game-title {
             font-weight: 600;
-            font-size: 1rem;
+            color: #2c3e50;
+            font-size: 16px;
         }
 
         .game-details {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            color: #7f8c8d;
+            font-size: 14px;
+            font-weight: 400;
         }
+
+        .game-option:hover .game-title {
+            color: var(--belgium-red);
+        }
+
+        .game-option:hover .game-details {
+            color: #5a6c7d;
+        }
+
+
 
         /* Sélecteur de catégorie moderne */
         .category-selector {
@@ -248,13 +268,13 @@
         }
 
         .category-option:hover {
-            background: rgba(52, 152, 219, 0.1);
+            background: rgba(255, 215, 0, 0.1);
             transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
         }
 
         .category-option.selected {
-            background: var(--accent-blue);
+            background: var(--belgium-red);
             color: white;
             border-color: transparent;
             transform: translateY(-2px);
@@ -263,7 +283,7 @@
 
         /* Zone d'upload moderne */
         .upload-area {
-            border: 3px dashed rgba(52, 152, 219, 0.3);
+            border: 3px dashed rgba(255, 215, 0, 0.3);
             border-radius: 20px;
             padding: 60px 40px;
             text-align: center;
@@ -275,14 +295,14 @@
         }
 
         .upload-area:hover {
-            border-color: rgba(52, 152, 219, 0.6);
+            border-color: rgba(255, 215, 0, 0.6);
             background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
         }
 
         .upload-area.dragover {
-            border-color: var(--accent-blue);
-            background: rgba(52, 152, 219, 0.1);
+            border-color: var(--belgium-yellow);
+            background: rgba(255, 215, 0, 0.1);
             transform: scale(1.02);
         }
 
@@ -369,8 +389,8 @@
         .form-input:focus,
         .form-select:focus {
             outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
         }
 
         /* Boutons des filtres */
@@ -389,23 +409,23 @@
         }
 
         .btn-primary {
-            background: var(--accent-blue);
+            background: var(--belgium-red);
             color: var(--text-white);
         }
 
         .btn-primary:hover {
-            background: #2980b9;
+            background: #cc0000;
             transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
         }
 
         .btn-secondary {
-            background: var(--accent-orange);
-            color: var(--text-white);
+            background: var(--belgium-yellow);
+            color: var(--belgium-black);
         }
 
         .btn-secondary:hover {
-            background: #e67e22;
+            background: #d4a700;
             transform: translateY(-2px);
             box-shadow: var(--shadow-medium);
         }
@@ -436,7 +456,7 @@
 
         .stat-icon {
             font-size: 2.5rem;
-            color: var(--accent-blue);
+            color: var(--belgium-yellow);
             margin-bottom: 15px;
         }
 
@@ -482,7 +502,7 @@
         .media-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-medium);
-            border-color: var(--accent-blue);
+            border-color: var(--belgium-yellow);
         }
 
         .media-preview {
@@ -596,13 +616,13 @@
         }
 
         .upload-status.success {
-            background: var(--success-gradient);
-            color: white;
+            background: var(--belgium-yellow);
+            color: var(--belgium-black);
             box-shadow: var(--shadow-soft);
         }
 
         .upload-status.error {
-            background: var(--danger-gradient);
+            background: var(--belgium-red);
             color: white;
             box-shadow: var(--shadow-soft);
         }
@@ -633,7 +653,7 @@
 
         .form-label {
             font-weight: 600;
-            color: #333;
+            color: var(--belgium-yellow);
             font-size: 0.95rem;
         }
 
@@ -649,8 +669,8 @@
 
         .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
             transform: translateY(-1px);
         }
 
@@ -671,21 +691,23 @@
         }
 
         .btn-primary {
-            background: var(--primary-gradient);
+            background: var(--belgium-red);
             color: white;
         }
 
         .btn-primary:hover {
+            background: #cc0000;
             transform: translateY(-2px);
             box-shadow: var(--shadow-strong);
         }
 
         .btn-secondary {
-            background: var(--secondary-gradient);
-            color: white;
+            background: var(--belgium-yellow);
+            color: var(--belgium-black);
         }
 
         .btn-secondary:hover {
+            background: #d4a700;
             transform: translateY(-2px);
             box-shadow: var(--shadow-strong);
         }
@@ -718,7 +740,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: var(--primary-gradient);
+            background: var(--belgium-red);
         }
 
         .stat-card:hover {
@@ -730,18 +752,19 @@
             font-size: 3rem;
             margin-bottom: 20px;
             opacity: 0.8;
+            color: var(--belgium-yellow);
         }
 
         .stat-number {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #333;
+            color: var(--text-white);
             margin-bottom: 10px;
         }
 
         .stat-label {
             font-size: 1rem;
-            color: #666;
+            color: var(--text-muted);
             font-weight: 500;
         }
 
@@ -775,8 +798,8 @@
         }
 
         .media-card.selectable:hover {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 20px rgba(39, 174, 96, 0.3);
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
         .media-card.selectable:active {
@@ -808,13 +831,13 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #333;
+            color: var(--text-white);
             line-height: 1.4;
         }
 
         .media-details {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-muted);
             margin-bottom: 20px;
             line-height: 1.5;
         }
@@ -822,7 +845,7 @@
         .badge {
             display: inline-block;
             padding: 5px 12px;
-            background: var(--primary-gradient);
+            background: var(--belgium-red);
             color: white;
             border-radius: 20px;
             font-size: 0.8rem;
@@ -842,7 +865,7 @@
         }
 
         .btn-danger {
-            background: var(--danger-gradient);
+            background: var(--belgium-red);
             color: white;
         }
 
@@ -868,13 +891,13 @@
         }
 
         .page-link:hover {
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(255, 215, 0, 0.1);
             transform: translateY(-2px);
             box-shadow: var(--shadow-strong);
         }
 
         .page-link.active {
-            background: var(--primary-gradient);
+            background: var(--belgium-red);
             color: white;
             border-color: transparent;
         }
@@ -1084,12 +1107,10 @@
                     <label for="filterGame" class="form-label">
                         <i class="fas fa-gamepad"></i> Jeu
                     </label>
-                    <select id="filterGame" class="form-select">
-                        <option value="">Tous les jeux</option>
-                        <?php foreach ($games as $game): ?>
-                            <option value="<?= $game->getId() ?>"><?= htmlspecialchars($game->getTitle()) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="game-search-container">
+                        <input type="text" id="filterGame" class="form-input" placeholder="Rechercher un jeu..." autocomplete="off">
+                        <div id="filterGameDropdown" class="games-dropdown"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="filterCategory" class="form-label">
@@ -1283,40 +1304,111 @@
             }, 300);
         });
         
-        // Recherche de jeux
-        async function searchGames(query) {
+        // Utiliser les jeux déjà chargés en PHP (disponible globalement)
+        const allGames = <?= json_encode(array_map(function($game) {
             try {
-                console.log('🔍 Recherche de jeux pour:', query);
-                
-                const response = await fetch(`/media.php?action=search-games&q=${encodeURIComponent(query)}&limit=10`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Réponse non-JSON reçue du serveur');
-                }
-                
-                const data = await response.json();
-                console.log('✅ Réponse reçue:', data);
-                
-                if (data.success) {
-                    displayGamesDropdown(data.games);
-                } else {
-                    console.error('❌ Erreur serveur:', data.error);
-                    showToast('Erreur lors de la recherche: ' + (data.error || 'Erreur inconnue'), 'error');
-                }
-            } catch (error) {
-                console.error('❌ Erreur recherche jeux:', error);
-                showToast('Erreur de connexion lors de la recherche', 'error');
-                
-                // Afficher un message d'erreur dans le dropdown
-                gamesDropdown.innerHTML = '<div class="game-option" style="color: #ff6b6b;"><i class="fas fa-exclamation-triangle"></i> Erreur de connexion</div>';
-                gamesDropdown.style.display = 'block';
+                $hardwareName = $game->getHardwareName();
+                return [
+                    'id' => $game->getId(),
+                    'title' => $game->getTitle(),
+                    'slug' => $game->getSlug(),
+                    'hardware' => $hardwareName ?: 'Aucun hardware'
+                ];
+            } catch (Exception $e) {
+                return [
+                    'id' => $game->getId(),
+                    'title' => $game->getTitle(),
+                    'slug' => $game->getSlug(),
+                    'hardware' => 'Aucun hardware'
+                ];
             }
+        }, $games)) ?>;
+        
+        // Recherche de jeux (utilise les données PHP déjà chargées)
+        function searchGames(query) {
+            console.log('🔍 Recherche de jeux pour:', query);
+            
+            // Filtrer les jeux localement
+            const filteredGames = allGames.filter(game => 
+                game.title.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 10); // Limiter à 10 résultats
+            
+            console.log('✅ Jeux trouvés:', filteredGames);
+            displayGamesDropdown(filteredGames);
         }
+        
+        // Gestion de la recherche de jeux pour le filtre
+        const filterGameInput = document.getElementById('filterGame');
+        const filterGameDropdown = document.getElementById('filterGameDropdown');
+        let filterGameTimeout;
+        let selectedFilterGame = null;
+        
+        filterGameInput.addEventListener('input', function() {
+            clearTimeout(filterGameTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                filterGameDropdown.style.display = 'none';
+                selectedFilterGame = null;
+                return;
+            }
+            
+            filterGameTimeout = setTimeout(() => {
+                searchFilterGames(query);
+            }, 300);
+        });
+        
+        // Recherche de jeux pour le filtre (utilise les mêmes données)
+        function searchFilterGames(query) {
+            console.log('🔍 Recherche de jeux pour filtre:', query);
+            
+            // Filtrer les jeux localement
+            const filteredGames = allGames.filter(game => 
+                game.title.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 10);
+            
+            console.log('✅ Jeux trouvés pour filtre:', filteredGames);
+            displayFilterGamesDropdown(filteredGames);
+        }
+        
+        // Afficher le dropdown des jeux pour le filtre
+        function displayFilterGamesDropdown(games) {
+            filterGameDropdown.innerHTML = '';
+            
+            if (games.length === 0) {
+                filterGameDropdown.innerHTML = '<div class="game-option"><i class="fas fa-info-circle"></i> Aucun jeu trouvé</div>';
+            } else {
+                games.forEach(game => {
+                    const option = document.createElement('div');
+                    option.className = 'game-option';
+                    option.innerHTML = `
+                        <div class="game-info">
+                            <div class="game-title">${game.title}</div>
+                            <div class="game-details">${game.hardware || 'Aucun hardware'}</div>
+                        </div>
+                    `;
+                    option.addEventListener('click', () => selectFilterGame(game));
+                    filterGameDropdown.appendChild(option);
+                });
+            }
+            
+            filterGameDropdown.style.display = 'block';
+        }
+        
+        // Sélectionner un jeu pour le filtre
+        function selectFilterGame(game) {
+            selectedFilterGame = game;
+            filterGameInput.value = game.title;
+            filterGameDropdown.style.display = 'none';
+            console.log('🎮 Jeu sélectionné pour filtre:', game);
+        }
+        
+        // Masquer le dropdown quand on clique ailleurs
+        document.addEventListener('click', function(e) {
+            if (!filterGameInput.contains(e.target) && !filterGameDropdown.contains(e.target)) {
+                filterGameDropdown.style.display = 'none';
+            }
+        });
         
         // Afficher le dropdown des jeux
         function displayGamesDropdown(games) {
@@ -1491,22 +1583,29 @@
         
         function applyFilters() {
             const search = document.getElementById('filterSearch').value.toLowerCase();
-            const game = document.getElementById('filterGame').value;
+            const game = selectedFilterGame ? selectedFilterGame.id : '';
             const category = document.getElementById('filterCategory').value;
             
-            const mediaCards = document.querySelectorAll('.media-card');
+            console.log('🔍 Filtres appliqués:', { search, game, category });
+            console.log('🎮 Jeu sélectionné:', selectedFilterGame);
             
-            mediaCards.forEach(card => {
+            const mediaCards = document.querySelectorAll('.media-card');
+            console.log('📁 Nombre de cartes médias:', mediaCards.length);
+            
+            mediaCards.forEach((card, index) => {
                 const name = card.querySelector('.media-name').textContent.toLowerCase();
                 const cardGame = card.dataset.game;
                 const cardCategory = card.dataset.category;
                 
+                console.log(`📄 Carte ${index + 1}:`, { name, cardGame, cardCategory });
+                
                 let show = true;
                 
                 if (search && !name.includes(search)) show = false;
-                if (game && cardGame !== game) show = false;
+                if (game && cardGame !== game.toString()) show = false;
                 if (category && cardCategory !== category) show = false;
                 
+                console.log(`✅ Carte ${index + 1} affichée:`, show);
                 card.style.display = show ? 'block' : 'none';
             });
         }
@@ -1515,6 +1614,8 @@
             document.getElementById('filterSearch').value = '';
             document.getElementById('filterGame').value = '';
             document.getElementById('filterCategory').value = '';
+            selectedFilterGame = null;
+            filterGameDropdown.style.display = 'none';
             
             const mediaCards = document.querySelectorAll('.media-card');
             mediaCards.forEach(card => card.style.display = 'block');
@@ -1529,19 +1630,23 @@
             switch(type) {
                 case 'success':
                     icon = '✅ ';
-                    toast.style.background = 'var(--success-gradient)';
+                    toast.style.background = 'var(--belgium-yellow)';
+                    toast.style.color = 'var(--belgium-black)';
                     break;
                 case 'error':
                     icon = '❌ ';
-                    toast.style.background = 'var(--danger-gradient)';
+                    toast.style.background = 'var(--belgium-red)';
+                    toast.style.color = 'white';
                     break;
                 case 'warning':
                     icon = '⚠️ ';
-                    toast.style.background = 'var(--warning-gradient)';
+                    toast.style.background = 'var(--belgium-yellow)';
+                    toast.style.color = 'var(--belgium-black)';
                     break;
                 default:
                     icon = 'ℹ️ ';
-                    toast.style.background = 'var(--primary-gradient)';
+                    toast.style.background = 'var(--belgium-red)';
+                    toast.style.color = 'white';
             }
             
             toast.textContent = icon + message;

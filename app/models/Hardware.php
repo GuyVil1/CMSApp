@@ -115,6 +115,25 @@ class Hardware
     }
 
     /**
+     * Récupérer un hardware par son ID
+     */
+    public static function find(int $id): ?self
+    {
+        try {
+            $db = Database::getInstance();
+            $sql = "SELECT * FROM hardware WHERE id = ?";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$id]);
+            
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? new self($row) : null;
+        } catch (PDOException $e) {
+            error_log("Erreur lors de la récupération du hardware par ID: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Récupérer un hardware par son slug
      */
     public static function findBySlug(string $slug): ?self
