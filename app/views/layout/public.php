@@ -48,6 +48,9 @@
     <!-- CSS pour la navbar -->
     <link rel="stylesheet" href="/public/assets/css/components/navbar.css">
     
+    <!-- CSS pour le lazy loading -->
+    <link rel="stylesheet" href="/public/assets/css/components/lazy-loading.css">
+    
     <!-- CSS responsive pour les articles -->
     <link rel="stylesheet" href="/public/assets/css/components/article-responsive.css">
     
@@ -290,6 +293,9 @@
 
     <!-- JavaScript pour la navbar -->
     <script src="/public/assets/js/navbar.js"></script>
+    
+    <!-- JavaScript pour le lazy loading -->
+    <script src="/public/js/lazy-loading.js"></script>
     
     <!-- JavaScript additionnel spécifique à la page -->
     <?php if (isset($additionalJS)): ?>

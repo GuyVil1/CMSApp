@@ -37,39 +37,56 @@ class Setting
     public function getDescription(): ?string { return $this->description; }
     
     /**
-     * Récupérer une option par sa clé
+     * Récupérer une option par sa clé (avec cache mémoire ultra-rapide)
      */
     public static function get(string $key, ?string $default = null): ?string
     {
-        try {
-            $sql = "SELECT value FROM settings WHERE `key` = ?";
-            $result = Database::query($sql, [$key]);
-            
-            return !empty($result) ? $result[0]['value'] : $default;
-        } catch (Exception $e) {
-            error_log("Erreur récupération setting: " . $e->getMessage());
-            return $default;
-        }
+        require_once __DIR__ . '/../helpers/MemoryCache.php';
+        
+        $cacheKey = "setting_{$key}";
+        
+        return MemoryCache::remember($cacheKey, function() use ($key, $default) {
+            try {
+                $sql = "SELECT value FROM settings WHERE `key` = ?";
+                $result = Database::query($sql, [$key]);
+                
+                return !empty($result) ? $result[0]['value'] : $default;
+            } catch (Exception $e) {
+                error_log("Erreur récupération setting: " . $e->getMessage());
+                return $default;
+            }
+        }, 3600); // Cache 1 heure
     }
     
     /**
-     * Définir une option
+     * Définir une option (avec invalidation du cache)
      */
     public static function set(string $key, ?string $value, ?string $description = null): bool
     {
         try {
-            // Vérifier si l'option existe
-            $existing = self::get($key);
+            // Vérifier si l'option existe (sans cache pour éviter les boucles)
+            $sql = "SELECT value FROM settings WHERE `key` = ?";
+            $result = Database::query($sql, [$key]);
+            $existing = !empty($result) ? $result[0]['value'] : null;
             
+            $success = false;
             if ($existing !== null) {
                 // Mettre à jour
                 $sql = "UPDATE settings SET value = ?, description = ? WHERE `key` = ?";
-                return Database::execute($sql, [$value, $description, $key]) !== false;
+                $success = Database::execute($sql, [$value, $description, $key]) !== false;
             } else {
                 // Créer
                 $sql = "INSERT INTO settings (`key`, value, description) VALUES (?, ?, ?)";
-                return Database::execute($sql, [$key, $value, $description]) !== false;
+                $success = Database::execute($sql, [$key, $value, $description]) !== false;
             }
+            
+            // Invalider le cache si la sauvegarde a réussi
+            if ($success) {
+                require_once __DIR__ . '/../helpers/MemoryCache.php';
+                MemoryCache::forget("setting_{$key}");
+            }
+            
+            return $success;
         } catch (Exception $e) {
             error_log("Erreur sauvegarde setting: " . $e->getMessage());
             return false;

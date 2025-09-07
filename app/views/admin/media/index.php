@@ -1512,7 +1512,7 @@
             uploadStatus.className = 'upload-status';
             
             try {
-                const response = await fetch('/media/upload', {
+                const response = await fetch('/api_media_upload.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -1548,9 +1548,10 @@
             
             const formData = new FormData();
             formData.append('csrf_token', csrfToken);
+            formData.append('id', id);
             
             try {
-                const response = await fetch(`/media/delete/${id}`, {
+                const response = await fetch('/api_media_delete.php', {
                     method: 'POST',
                     body: formData
                 });

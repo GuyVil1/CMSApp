@@ -23,8 +23,9 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             <?php if (!empty($featuredArticles)): ?>
                 <!-- Article principal -->
                 <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer;">
-                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
-                         alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>">
+                    <img data-lazy="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>"
+                         class="lazy-responsive">
                     <div class="featured-overlay"></div>
                                                     <div class="featured-content">
                                     <span class="featured-badge">À la une</span>
@@ -39,8 +40,9 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                 <div class="featured-bottom">
                     <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
                         <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
-                            <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
-                                 alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
+                            <img data-lazy="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                                 alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>"
+                                 class="lazy-responsive">
                             <div class="featured-overlay"></div>
                             <div class="featured-content">
                                 <?php if (!empty($featuredArticles[$i]['category_name'])): ?>

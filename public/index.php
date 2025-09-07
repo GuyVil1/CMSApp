@@ -613,6 +613,20 @@ try {
         exit;
     }
     
+    // Vérifier si c'est une requête AJAX/API
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    $isApi = strpos($requestUri, '/media/') === 0;
+    
+    // Pour les requêtes API, ne pas afficher la page HTML
+    if ($isApi || $isAjax) {
+        // Définir le Content-Type pour les API
+        header('Content-Type: application/json; charset=utf-8');
+        
+        // Empêcher l'affichage de la page HTML
+        ob_start();
+    }
+    
     // Instancier le contrôleur et appeler l'action
     $controller = new $route['controller']();
     $action = $route['action'];
@@ -654,6 +668,20 @@ try {
         call_user_func_array([$controller, $action], $convertedParams);
     } else {
         $controller->$action();
+    }
+    
+    // Pour les requêtes API, nettoyer la sortie et ne garder que la réponse JSON
+    if ($isApi || $isAjax) {
+        $output = ob_get_clean();
+        // Si la sortie contient du HTML, la vider et laisser seulement la réponse JSON du contrôleur
+        if (strpos($output, '<!DOCTYPE') !== false || strpos($output, '<html') !== false) {
+            // La sortie contient du HTML, on la vide
+            echo '';
+        } else {
+            // La sortie contient la réponse JSON du contrôleur
+            echo $output;
+        }
+        exit;
     }
     
 } catch (Exception $e) {

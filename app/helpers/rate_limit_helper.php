@@ -10,10 +10,10 @@ class RateLimitHelper
 {
     // Configuration des limites
     private const UPLOAD_LIMITS = [
-        'uploads_per_hour' => 20,        // Max 20 uploads par heure
-        'uploads_per_day' => 100,        // Max 100 uploads par jour
-        'size_per_hour' => 100 * 1024 * 1024,  // Max 100MB par heure
-        'size_per_day' => 500 * 1024 * 1024,   // Max 500MB par jour
+        'uploads_per_hour' => 200,       // Max 200 uploads par heure (pour tests de jeux)
+        'uploads_per_day' => 1000,       // Max 1000 uploads par jour
+        'size_per_hour' => 500 * 1024 * 1024,  // Max 500MB par heure
+        'size_per_day' => 2000 * 1024 * 1024,  // Max 2GB par jour
     ];
     
     private const LOGIN_LIMITS = [
@@ -217,7 +217,11 @@ class RateLimitHelper
      */
     private static function getLoginAttempts(string $ip, string $period): int
     {
-        $cacheKey = "login_attempts_{$ip}_{$period}_" . self::getPeriodKey($period);
+        // Utiliser la même clé que storeRateLimitData
+        $date = date('Y-m-d');
+        $hour = date('Y-m-d H:00:00');
+        $cacheKey = "login_" . md5($ip . '_' . $date . '_' . $hour);
+        
         $data = self::getRateLimitData($cacheKey);
         
         return $data ? (int)$data : 0;
@@ -267,8 +271,24 @@ class RateLimitHelper
             mkdir($cacheDir, 0755, true);
         }
         
-        $cacheFile = $cacheDir . '/' . $type . '_' . md5(serialize($data)) . '.json';
-        file_put_contents($cacheFile, json_encode($data));
+        // Créer une clé de cache basée sur le type et les données importantes
+        $cacheKey = $type . '_' . md5($data['ip'] . '_' . $data['date'] . '_' . $data['hour']);
+        $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
+        
+        // Lire les données existantes ou créer un nouveau compteur
+        $existingData = [];
+        if (file_exists($cacheFile)) {
+            $existingData = json_decode(file_get_contents($cacheFile), true) ?: [];
+        }
+        
+        // Incrémenter le compteur
+        $existingData['count'] = ($existingData['count'] ?? 0) + 1;
+        $existingData['last_attempt'] = time();
+        $existingData['ip'] = $data['ip'];
+        $existingData['date'] = $data['date'];
+        $existingData['hour'] = $data['hour'];
+        
+        file_put_contents($cacheFile, json_encode($existingData));
         
         // Nettoyer les anciens fichiers (plus de 24h)
         self::cleanOldCacheFiles($cacheDir);
@@ -283,10 +303,11 @@ class RateLimitHelper
         $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
         
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 3600) { // 1 heure
-            return json_decode(file_get_contents($cacheFile), true);
+            $data = json_decode(file_get_contents($cacheFile), true);
+            return $data ? $data['count'] : 0;
         }
         
-        return null;
+        return 0;
     }
     
     /**
