@@ -1,0 +1,13 @@
+# Documentation - Fichiers temporaires
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Fichiers de test
+test_*.html
+test_*.md
+
+# Fichiers de travail
+work_*.md
+draft_*.md

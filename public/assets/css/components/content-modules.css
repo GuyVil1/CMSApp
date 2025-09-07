@@ -35,7 +35,7 @@
     background: transparent;
     box-shadow: none;
     padding: 0;
-    margin: 0.5rem 0;
+    margin: 1rem 0;
 }
 
 /* Style de l'article */
@@ -57,12 +57,12 @@
     border-left: none;
     box-shadow: none;
     padding: 0;
-    margin: 0.5rem 0;
+    margin: 1rem 0;
 }
 
 /* Forcer la couleur sur tous les paragraphes (priorité maximale) */
 p {
-    color: #333 !important;
+    color: #333;
 }
 
 /* Surcharge spécifique pour les paragraphes avec var(--text) */
@@ -73,7 +73,7 @@ p[style*="var(--text)"] {
 /* Surcharge pour tous les paragraphes dans le contenu de l'article */
 .article-content p[style*="var(--text)"] {
     color: #333 !important;
-    margin: 0 0 -0.75rem 0 !important;
+    margin: 0 0 0.25rem 0 !important;
 }
 
 .text-container {
@@ -187,13 +187,28 @@ p[style*="var(--text)"] {
 
 /* Module vidéo */
 .content-module-video {
-    text-align: left;
+    text-align: center;
     background: #ffffff;
+    margin: 1.5rem 0;
 }
 
 .video-container {
     margin: 0;
     text-align: center;
+    display: inline-block;
+}
+
+/* Alignements des vidéos */
+.video-container.align-left {
+    text-align: left;
+}
+
+.video-container.align-center {
+    text-align: center;
+}
+
+.video-container.align-right {
+    text-align: right;
 }
 
 .video-content {
@@ -208,6 +223,60 @@ p[style*="var(--text)"] {
     width: 100%;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les vidéos avec dimensions personnalisées */
+.video-container[style*="width"] {
+    display: inline-block;
+    max-width: 100%;
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.video-container[style*="width"] iframe,
+.video-container[style*="width"] video {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    border: none !important;
+    border-radius: 8px;
+}
+
+/* Responsive pour les vidéos avec dimensions personnalisées */
+@media (max-width: 768px) {
+    .video-container[style*="width"] {
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    .video-container[style*="width"] iframe,
+    .video-container[style*="width"] video {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+/* Titre et description de la vidéo */
+.video-title {
+    margin-top: 1rem;
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.video-description {
+    margin-top: 0.5rem;
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    position: relative;
+    z-index: 1;
 }
 
 /* Module galerie */

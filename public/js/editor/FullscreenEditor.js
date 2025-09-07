@@ -2424,11 +2424,22 @@ class FullscreenEditor {
                         const moduleInstance = this.modules.get(moduleId);
                         
                         if (moduleInstance && typeof moduleInstance.getContent === 'function') {
-                            sectionContent += `<div class="content-module content-module-${moduleInstance.type}">${moduleInstance.getContent()}</div>`;
+                            // Utiliser directement le contenu du module qui inclut déjà les données
+                            const moduleContent = moduleInstance.getContent();
+                            sectionContent += `<div class="content-module content-module-${moduleInstance.type}" data-module-id="${moduleId}" data-module-type="${moduleInstance.type}">${moduleContent}</div>`;
                         } else {
+                            // Fallback pour les modules sans instance
                             const moduleContent = module.querySelector('.module-content').innerHTML;
                             const moduleType = module.dataset.type;
-                            sectionContent += `<div class="content-module content-module-${moduleType}">${moduleContent}</div>`;
+                            const moduleData = module.getAttribute('data-module-data');
+                            
+                            // Préserver les données du module si elles existent
+                            let moduleAttributes = `class="content-module content-module-${moduleType}" data-module-id="${moduleId}" data-module-type="${moduleType}"`;
+                            if (moduleData) {
+                                moduleAttributes += ` data-module-data='${moduleData}'`;
+                            }
+                            
+                            sectionContent += `<div ${moduleAttributes}>${moduleContent}</div>`;
                         }
                     });
                     sectionContent += '</div>';
@@ -2443,6 +2454,13 @@ class FullscreenEditor {
     }
     
     save() {
+        // S'assurer que tous les modules sauvegardent leurs données avant la sauvegarde globale
+        this.modules.forEach(module => {
+            if (typeof module.saveData === 'function') {
+                module.saveData();
+            }
+        });
+        
         const content = this.getContent();
         if (this.options.onSave) {
             this.options.onSave(content);

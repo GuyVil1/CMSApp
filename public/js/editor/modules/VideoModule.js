@@ -13,7 +13,7 @@ class VideoModule extends BaseModule {
             width: null,
             height: null,
             aspectRatio: null, // Pour conserver le ratio
-            alignment: 'center', // 'left', 'center', 'right'
+            alignment: 'center', // Toujours centré par défaut
             autoplay: false,
             controls: true,
             loop: false,
@@ -252,23 +252,20 @@ class VideoModule extends BaseModule {
         const dimensions = this.calculateDimensions();
         const alignmentClass = this.getAlignmentClass();
         
+        // Styles pour le conteneur vidéo
+        let containerStyle = '';
+        if (dimensions.width) {
+            containerStyle += `width: ${dimensions.width}px; `;
+        }
+        if (dimensions.height) {
+            containerStyle += `height: ${dimensions.height}px; `;
+        }
+        
         if (this.videoData.type === 'youtube' || this.videoData.type === 'vimeo') {
-            // Calculer les styles CSS pour l'iframe uniquement
-            let iframeStyle = '';
-            
-            if (dimensions.width) {
-                iframeStyle += `width: ${dimensions.width}px; `;
-            }
-            
-            if (dimensions.height) {
-                iframeStyle += `height: ${dimensions.height}px; `;
-            }
-            
             videoHtml = `
-                <div class="video-container ${alignmentClass}">
+                <div class="video-container ${alignmentClass}" style="${containerStyle}">
                     <iframe 
                         src="${this.videoData.url}${this.getEmbedParams()}"
-                        style="${iframeStyle}"
                         frameborder="0" 
                         allowfullscreen
                         title="${this.videoData.title || 'Vidéo'}">
@@ -279,13 +276,14 @@ class VideoModule extends BaseModule {
             `;
         } else if (this.videoData.type === 'file') {
             videoHtml = `
-                <div class="video-container ${alignmentClass}">
+                <div class="video-container ${alignmentClass}" style="${containerStyle}">
                     <video 
                         controls="${this.videoData.controls}"
                         autoplay="${this.videoData.autoplay}"
                         loop="${this.videoData.loop}"
                         muted="${this.videoData.muted}"
-                        style="width: ${dimensions.width || '100%'}; height: ${dimensions.height || 'auto'};">
+                        width="${dimensions.width || '100%'}"
+                        height="${dimensions.height || 'auto'}">
                         <source src="${this.videoData.url}" type="${this.videoData.file?.type || 'video/mp4'}">
                         Votre navigateur ne supporte pas la lecture de vidéos.
                     </video>
@@ -335,7 +333,7 @@ class VideoModule extends BaseModule {
             width: null,
             height: null,
             aspectRatio: null,
-            alignment: 'center',
+            alignment: 'center', // Toujours centré par défaut
             autoplay: false,
             controls: true,
             loop: false,
@@ -356,29 +354,29 @@ class VideoModule extends BaseModule {
     }
 
     getContent() {
+        // S'assurer que les données sont sauvegardées avant de retourner le contenu
+        this.saveData();
+        
         if (!this.videoData.url) return '';
         
         let videoHtml = '';
         const dimensions = this.calculateDimensions();
         const alignmentClass = this.getAlignmentClass();
         
+        // Styles pour le conteneur vidéo
+        let containerStyle = '';
+        if (dimensions.width) {
+            containerStyle += `width: ${dimensions.width}px; `;
+        }
+        if (dimensions.height) {
+            containerStyle += `height: ${dimensions.height}px; `;
+        }
+        
         if (this.videoData.type === 'youtube' || this.videoData.type === 'vimeo') {
-            // Calculer les styles CSS pour l'iframe uniquement
-            let iframeStyle = '';
-            
-            if (dimensions.width) {
-                iframeStyle += `width: ${dimensions.width}px; `;
-            }
-            
-            if (dimensions.height) {
-                iframeStyle += `height: ${dimensions.height}px; `;
-            }
-            
             videoHtml = `
-                <div class="video-container ${alignmentClass}">
+                <div class="video-container ${alignmentClass}" style="${containerStyle}">
                     <iframe 
                         src="${this.videoData.url}${this.getEmbedParams()}"
-                        style="${iframeStyle}"
                         frameborder="0" 
                         allowfullscreen
                         title="${this.videoData.title || 'Vidéo'}">
@@ -389,13 +387,14 @@ class VideoModule extends BaseModule {
             `;
         } else if (this.videoData.type === 'file') {
             videoHtml = `
-                <div class="video-container ${alignmentClass}">
+                <div class="video-container ${alignmentClass}" style="${containerStyle}">
                     <video 
                         controls="${this.videoData.controls}"
                         autoplay="${this.videoData.autoplay}"
                         loop="${this.videoData.loop}"
                         muted="${this.videoData.muted}"
-                        style="width: ${dimensions.width || '100%'}; height: ${dimensions.height || 'auto'};">
+                        width="${dimensions.width || '100%'}"
+                        height="${dimensions.height || 'auto'}">
                         <source src="${this.videoData.url}" type="${this.videoData.file?.type || 'video/mp4'}">
                         Votre navigateur ne supporte pas la lecture de vidéos.
                     </video>
