@@ -24,6 +24,13 @@ class UploadController extends \Controller
             return;
         }
         
+        // Vérifier le token CSRF
+        $csrf_token = $_POST['csrf_token'] ?? '';
+        if (!\Auth::verifyCsrfToken($csrf_token)) {
+            $this->jsonResponse(['success' => false, 'message' => 'Token de sécurité invalide'], 403);
+            return;
+        }
+        
         // Vérifier qu'un fichier a été uploadé
         if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
             $this->jsonResponse(['success' => false, 'message' => 'Aucun fichier uploadé'], 400);
