@@ -70,9 +70,15 @@ class SecurityLogger
         $logFile = self::$logDir . '/security_' . date('Y-m-d') . '.log';
         $logLine = json_encode($logEntry) . "\n";
         
+        // Debug: Vérifier les valeurs
+        error_log("DEBUG SecurityLogger: logDir = " . self::$logDir);
+        error_log("DEBUG SecurityLogger: logFile = " . $logFile);
+        error_log("DEBUG SecurityLogger: is_writable = " . (is_writable(self::$logDir) ? 'true' : 'false'));
+        
         // Vérifier que le dossier est accessible avant d'écrire
         if (is_writable(self::$logDir)) {
             $result = file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+            error_log("DEBUG SecurityLogger: file_put_contents result = " . ($result !== false ? 'success' : 'failed'));
             if ($result === false) {
                 error_log("Impossible d'écrire dans le fichier de log: " . $logFile);
             }
