@@ -144,7 +144,6 @@ class SecurityMiddleware implements MiddlewareInterface
             '/<script[^>]*>.*?<\/script>/i',
             '/javascript:/i',
             '/on\w+\s*=/i',
-            '/<iframe[^>]*>/i',
             '/<object[^>]*>/i',
             '/<embed[^>]*>/i'
         ];
@@ -153,9 +152,23 @@ class SecurityMiddleware implements MiddlewareInterface
         
         foreach ($data as $value) {
             if (is_string($value)) {
+                // Vérifier les patterns XSS généraux
                 foreach ($xssPatterns as $pattern) {
                     if (preg_match($pattern, $value)) {
                         return true;
+                    }
+                }
+                
+                // Vérifier les iframes - autoriser seulement YouTube et Vimeo
+                if (preg_match('/<iframe[^>]*>/i', $value)) {
+                    // Extraire tous les iframes
+                    preg_match_all('/<iframe[^>]*src=["\']([^"\']*)["\'][^>]*>/i', $value, $matches);
+                    
+                    foreach ($matches[1] as $src) {
+                        // Autoriser seulement YouTube et Vimeo
+                        if (!preg_match('/^(https?:\/\/)?(www\.)?(youtube\.com\/embed\/|youtu\.be\/|player\.vimeo\.com\/video\/)/i', $src)) {
+                            return true; // iframe non autorisé
+                        }
                     }
                 }
             }

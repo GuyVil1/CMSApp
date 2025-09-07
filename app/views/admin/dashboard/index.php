@@ -107,9 +107,12 @@
                 </div>
             </div>
             
-            <div class="options-actions">
-                <a href="/admin/settings" class="settings-btn">
-                    ⚙️ Gérer les options
+            <div class="options-actions" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <a href="/admin/settings" class="btn">
+                    ⚙️ Paramètres
+                </a>
+                <a href="/admin/monitoring" class="btn" style="background: var(--admin-primary); color: var(--admin-dark);">
+                    📊 Monitoring
                 </a>
             </div>
         </div>

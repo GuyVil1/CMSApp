@@ -185,20 +185,24 @@ class ContainerConfig
         );
         $pipeline->add($authMiddleware);
         
+        // Monitoring Middleware (en premier pour capturer tout)
+        require_once __DIR__ . '/../middleware/middlewares/MonitoringMiddleware.php';
+        $monitoringMiddleware = new MonitoringMiddleware();
+        $pipeline->add($monitoringMiddleware);
+        
         // Validation Middleware
         require_once __DIR__ . '/../middleware/middlewares/ValidationMiddleware.php';
         $validationRules = [
             '/admin/articles/store' => [
                 'title' => ['required' => true, 'min_length' => 3, 'max_length' => 255],
-                'content' => ['required' => true, 'min_length' => 10],
-                'status' => ['required' => true, 'in' => ['draft', 'published']]
+                'content' => ['required' => true, 'min_length' => 10]
             ],
             '/auth/login' => [
                 'login' => ['required' => true, 'min_length' => 3],
                 'password' => ['required' => true, 'min_length' => 6]
             ]
         ];
-        $validationMiddleware = new ValidationMiddleware($validationRules, ['/api/*', '/assets/*', '/admin/articles/*', '/admin/settings/*']);
+        $validationMiddleware = new ValidationMiddleware($validationRules, ['/api/*', '/assets/*', '/admin/settings/*']);
         $pipeline->add($validationMiddleware);
         
         // Logging Middleware

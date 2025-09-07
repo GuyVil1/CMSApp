@@ -31,10 +31,17 @@ class MonitoringController
         // Calculer les statistiques
         $stats = $this->calculateStats($metrics);
         
+        // Vérifier les alertes
+        require_once __DIR__ . '/../../monitoring/AlertManager.php';
+        $alerts = \AlertManager::checkMetrics($metrics, $systemMetrics);
+        $systemStatus = \AlertManager::getSystemStatus();
+        
         $this->renderDashboard([
             'metrics' => $metrics,
             'systemMetrics' => $systemMetrics,
             'stats' => $stats,
+            'alerts' => $alerts,
+            'systemStatus' => $systemStatus,
             'title' => 'Dashboard de Monitoring'
         ]);
     }

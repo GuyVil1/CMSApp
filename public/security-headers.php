@@ -6,7 +6,7 @@
 
 // Headers de sécurité de base
 header('X-Content-Type-Options: nosniff');
-header('X-Frame-Options: SAMEORIGIN');
+// X-Frame-Options supprimé car il entre en conflit avec frame-src dans CSP
 header('X-XSS-Protection: 1; mode=block');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 
@@ -14,22 +14,22 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), fullscreen=(self), sync-xhr=()');
 
 // Cross-Origin Policies
-header('Cross-Origin-Embedder-Policy: require-corp');
 header('Cross-Origin-Opener-Policy: same-origin');
-header('Cross-Origin-Resource-Policy: same-origin');
+header('Cross-Origin-Resource-Policy: cross-origin');
 
 // Content Security Policy (CSP) renforcé
 $csp = "default-src 'self'; " .
-       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.youtube.com https://s.ytimg.com; " .
+       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.youtube.com https://s.ytimg.com https://www.google.com; " .
        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " .
        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; " .
-       "img-src 'self' data: blob: https://i.ytimg.com https://s.ytimg.com; " .
-       "connect-src 'self' https://www.youtube.com; " .
-       "frame-src 'self' https://www.youtube.com https://youtube.com; " .
+       "img-src 'self' data: blob: https://i.ytimg.com https://s.ytimg.com https://www.youtube.com; " .
+       "connect-src 'self' https://www.youtube.com https://www.google.com; " .
+       "frame-src 'self' https://www.youtube.com https://youtube.com https://player.vimeo.com; " .
        "frame-ancestors 'self'; " .
        "base-uri 'self'; " .
        "form-action 'self'; " .
        "object-src 'none'; " .
+       "media-src 'self' https://www.youtube.com https://player.vimeo.com; " .
        "upgrade-insecure-requests;";
 
 header("Content-Security-Policy: $csp");

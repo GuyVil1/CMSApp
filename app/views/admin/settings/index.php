@@ -20,8 +20,9 @@
             <?php unset($_SESSION['flash_message'], $_SESSION['flash_type']); ?>
         <?php endif; ?>
         
-        <div class="actions" style="margin-bottom: var(--admin-spacing-lg);">
+        <div class="actions" style="margin-bottom: var(--admin-spacing-lg); display: flex; gap: 15px; flex-wrap: wrap;">
             <a href="/admin/dashboard" class="btn">← Retour au dashboard</a>
+            <a href="/admin/monitoring" class="btn" style="background: var(--admin-primary); color: var(--admin-dark);">📊 Monitoring</a>
         </div>
 
         <form method="POST" action="/admin/settings/save" class="settings-form">

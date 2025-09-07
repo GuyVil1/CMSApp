@@ -441,38 +441,91 @@ function route($uri) {
             ];
         }
         
-        $controllerName = ucfirst($parts[1] ?? 'Dashboard') . 'Controller';
-        $controllerFile = __DIR__ . "/../app/controllers/admin/" . $controllerName . ".php";
+        // Gestion spéciale pour les routes admin avec contrôleurs spécifiques
+        $adminController = $parts[1] ?? 'dashboard';
+        $action = $parts[2] ?? 'index';
+        $params = array_slice($parts, 3);
         
+        // Déterminer le contrôleur admin
+        switch ($adminController) {
+            case 'dashboard':
+                $controller = 'Admin\\DashboardController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/DashboardController.php";
+                break;
+            case 'settings':
+                $controller = 'Admin\\SettingsController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/SettingsController.php";
+                break;
+            case 'articles':
+                $controller = 'Admin\\ArticlesController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/ArticlesController.php";
+                break;
+            case 'categories':
+                $controller = 'Admin\\CategoriesController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/CategoriesController.php";
+                break;
+            case 'games':
+                $controller = 'Admin\\GamesController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/GamesController.php";
+                break;
+            case 'genres':
+                $controller = 'Admin\\GenresController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/GenresController.php";
+                break;
+            case 'hardware':
+                $controller = 'Admin\\HardwareController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/HardwareController.php";
+                break;
+            case 'media':
+                $controller = 'Admin\\MediaController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/MediaController.php";
+                break;
+            case 'users':
+                $controller = 'Admin\\UsersController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/UsersController.php";
+                break;
+            case 'tags':
+                $controller = 'Admin\\TagsController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/TagsController.php";
+                break;
+            case 'themes':
+                $controller = 'Admin\\ThemesController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/ThemesController.php";
+                break;
+            case 'monitoring':
+                $controller = 'Admin\\MonitoringController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/MonitoringController.php";
+                break;
+            default:
+                return ['error' => '404'];
+        }
+        
+        // Charger le contrôleur admin
         if (file_exists($controllerFile)) {
             require_once $controllerFile;
-            $controller = 'Admin\\' . $controllerName;
-            // Pour les URLs admin, l'action est la 3ème partie si elle existe
-            $action = $parts[2] ?? 'index';
-            $params = array_slice($parts, 3);
-            
-            // Gestion spéciale pour les actions de chapitres
-            if ($controllerName === 'ArticlesController' && in_array($action, ['save-chapters', 'load-chapters', 'update-chapter-status', 'delete-chapter'])) {
-                // Convertir les tirets en camelCase pour les méthodes
-                if ($action === 'save-chapters') {
-                    $action = 'saveChapters';
-                } elseif ($action === 'load-chapters') {
-                    $action = 'loadChapters';
-                } elseif ($action === 'update-chapter-status') {
-                    $action = 'updateChapterStatus';
-                } elseif ($action === 'delete-chapter') {
-                    $action = 'deleteChapter';
-                }
-            }
-            
-            return [
-                'controller' => $controller,
-                'action' => $action,
-                'params' => $params
-            ];
         } else {
             return ['error' => '404'];
         }
+        
+        // Gestion spéciale pour les actions de chapitres
+        if ($adminController === 'articles' && in_array($action, ['save-chapters', 'load-chapters', 'update-chapter-status', 'delete-chapter'])) {
+            // Convertir les tirets en camelCase pour les méthodes
+            if ($action === 'save-chapters') {
+                $action = 'saveChapters';
+            } elseif ($action === 'load-chapters') {
+                $action = 'loadChapters';
+            } elseif ($action === 'update-chapter-status') {
+                $action = 'updateChapterStatus';
+            } elseif ($action === 'delete-chapter') {
+                $action = 'deleteChapter';
+            }
+        }
+        
+        return [
+            'controller' => $controller,
+            'action' => $action,
+            'params' => $params
+        ];
     } else {
         // Routes normales (non-admin)
         $controller = ucfirst($parts[0]) . 'Controller';

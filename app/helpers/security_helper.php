@@ -215,11 +215,11 @@ class SecurityHelper
      */
     public static function containsMaliciousContent(string $content): bool
     {
+        // Vérifier d'abord les patterns malveillants généraux
         $maliciousPatterns = [
             '/<script[^>]*>.*?<\/script>/is',
             '/javascript:/i',
             '/on\w+\s*=/i',
-            '/<iframe[^>]*>.*?<\/iframe>/is',
             '/<object[^>]*>.*?<\/object>/is',
             '/<embed[^>]*>/i',
             '/<link[^>]*>/i',
@@ -232,7 +232,56 @@ class SecurityHelper
             }
         }
         
+        // Vérifier les iframes - autoriser seulement YouTube et Vimeo
+        if (preg_match('/<iframe[^>]*>.*?<\/iframe>/is', $content)) {
+            // Extraire tous les iframes
+            preg_match_all('/<iframe[^>]*src=["\']([^"\']*)["\'][^>]*>.*?<\/iframe>/is', $content, $matches);
+            
+            foreach ($matches[1] as $src) {
+                // Autoriser seulement YouTube et Vimeo
+                if (!preg_match('/^(https?:\/\/)?(www\.)?(youtube\.com\/embed\/|youtu\.be\/|player\.vimeo\.com\/video\/)/i', $src)) {
+                    return true; // iframe non autorisé
+                }
+            }
+        }
+        
         return false;
+    }
+    
+    /**
+     * Nettoyer les iframes pour autoriser seulement YouTube et Vimeo
+     */
+    private static function sanitizeIframes(string $content): string
+    {
+        return preg_replace_callback('/<iframe[^>]*>.*?<\/iframe>/is', function($matches) {
+            $iframe = $matches[0];
+            
+            // Extraire l'attribut src
+            if (preg_match('/src\s*=\s*["\']([^"\']*)["\']/', $iframe, $srcMatches)) {
+                $src = $srcMatches[1];
+                
+                // Vérifier si c'est YouTube ou Vimeo
+                if (preg_match('/^(https?:\/\/)?(www\.)?(youtube\.com\/embed\/|youtu\.be\/|player\.vimeo\.com\/video\/)/i', $src)) {
+                    // Nettoyer l'iframe en gardant seulement les attributs autorisés
+                    $cleanIframe = '<iframe';
+                    
+                    // Attributs autorisés pour les iframes vidéo
+                    $allowedAttrs = ['src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen'];
+                    
+                    foreach ($allowedAttrs as $attr) {
+                        if (preg_match('/' . $attr . '\s*=\s*["\']([^"\']*)["\']/', $iframe, $attrMatches)) {
+                            $cleanIframe .= ' ' . $attr . '="' . self::escapeAttr($attrMatches[1]) . '"';
+                        }
+                    }
+                    
+                    $cleanIframe .= '></iframe>';
+                    return $cleanIframe;
+                }
+            }
+            
+            // Si ce n'est pas YouTube/Vimeo, supprimer l'iframe
+            return '';
+        }, $content);
     }
     
     /**
@@ -243,9 +292,12 @@ class SecurityHelper
         if ($allowedTags === null) {
             $allowedTags = [
                 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre'
+                'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'iframe', 'div'
             ];
         }
+        
+        // Traitement spécial pour les iframes YouTube/Vimeo
+        $content = self::sanitizeIframes($content);
         
         // Supprimer les balises non autorisées
         $content = strip_tags($content, '<' . implode('><', $allowedTags) . '>');

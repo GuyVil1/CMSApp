@@ -168,7 +168,41 @@ class MetricsCollector
             'memory_limit' => ini_get('memory_limit'),
             'execution_time' => microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'],
             'php_version' => PHP_VERSION,
-            'timestamp' => time()
+            'timestamp' => time(),
+            'database_metrics' => self::getDatabaseMetrics()
         ];
+    }
+    
+    /**
+     * Obtenir les métriques de base de données
+     */
+    public static function getDatabaseMetrics(): array
+    {
+        try {
+            require_once __DIR__ . '/../../core/Database.php';
+            
+            $metrics = [];
+            
+            // Compter les tables principales
+            $tables = ['articles', 'users', 'games', 'categories', 'media', 'settings'];
+            foreach ($tables as $table) {
+                try {
+                    $result = Database::queryOne("SELECT COUNT(*) as count FROM {$table}");
+                    $metrics["table_{$table}_count"] = $result['count'] ?? 0;
+                } catch (Exception $e) {
+                    $metrics["table_{$table}_count"] = 0;
+                }
+            }
+            
+            // Métriques de performance DB
+            $start = microtime(true);
+            Database::queryOne("SELECT 1");
+            $metrics['db_ping_time'] = (microtime(true) - $start) * 1000;
+            
+            return $metrics;
+            
+        } catch (Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
     }
 }

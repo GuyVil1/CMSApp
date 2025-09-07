@@ -4,37 +4,179 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title) ?> - Belgium Video Gaming</title>
+    <link rel="stylesheet" href="/admin.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .stat-value { font-size: 2em; font-weight: bold; color: #2c3e50; }
-        .stat-label { color: #7f8c8d; margin-top: 5px; }
-        .metric-section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .metric-title { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
-        .metric-table { width: 100%; border-collapse: collapse; }
-        .metric-table th, .metric-table td { padding: 10px; text-align: left; border-bottom: 1px solid #ecf0f1; }
-        .metric-table th { background: #ecf0f1; font-weight: bold; }
+        .monitoring-header { 
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: var(--admin-text);
+            padding: var(--admin-spacing-lg);
+            border-radius: 12px;
+            margin-bottom: var(--admin-spacing-lg);
+            box-shadow: var(--admin-shadow);
+        }
+        .monitoring-header h1 { 
+            color: var(--admin-primary);
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+        .monitoring-header p { 
+            color: var(--admin-text-muted);
+            margin: 0;
+        }
+        .monitoring-actions { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 15px; 
+            flex-wrap: wrap; 
+        }
+        .system-status { 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 0.9em; 
+        }
+        .status-healthy { 
+            background: rgba(39, 174, 96, 0.2); 
+            color: #27ae60; 
+            border: 1px solid rgba(39, 174, 96, 0.3); 
+        }
+        .status-warning { 
+            background: rgba(243, 156, 18, 0.2); 
+            color: #f39c12; 
+            border: 1px solid rgba(243, 156, 18, 0.3); 
+        }
+        .status-critical { 
+            background: rgba(231, 76, 60, 0.2); 
+            color: #e74c3c; 
+            border: 1px solid rgba(231, 76, 60, 0.3); 
+        }
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: var(--admin-spacing-md); 
+            margin-bottom: var(--admin-spacing-lg); 
+        }
+        .stat-card { 
+            background: var(--admin-card-bg); 
+            padding: var(--admin-spacing-lg); 
+            border-radius: 12px; 
+            box-shadow: var(--admin-shadow);
+            border: 1px solid var(--admin-border);
+            text-align: center;
+        }
+        .stat-value { 
+            font-size: 2.5em; 
+            font-weight: bold; 
+            color: var(--admin-primary);
+            margin-bottom: 5px;
+        }
+        .stat-label { 
+            color: var(--admin-text-muted); 
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-section { 
+            background: var(--admin-card-bg); 
+            padding: var(--admin-spacing-lg); 
+            border-radius: 12px; 
+            box-shadow: var(--admin-shadow);
+            margin-bottom: var(--admin-spacing-md);
+            border: 1px solid var(--admin-border);
+        }
+        .metric-title { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            margin-bottom: var(--admin-spacing-md); 
+            color: var(--admin-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .metric-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .metric-table th, .metric-table td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--admin-border); 
+        }
+        .metric-table th { 
+            background: rgba(255, 255, 255, 0.05); 
+            font-weight: bold; 
+            color: var(--admin-text);
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 0.5px;
+        }
+        .metric-table td { 
+            color: var(--admin-text-muted);
+        }
         .status-good { color: #27ae60; }
         .status-warning { color: #f39c12; }
         .status-danger { color: #e74c3c; }
-        .refresh-btn { background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        .refresh-btn:hover { background: #2980b9; }
-        .auto-refresh { margin-left: 10px; }
+        .alert-item { 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            border-left: 4px solid;
+        }
+        .alert-critical { 
+            background: rgba(231, 76, 60, 0.1); 
+            border-left-color: #e74c3c;
+        }
+        .alert-warning { 
+            background: rgba(243, 156, 18, 0.1); 
+            border-left-color: #f39c12;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
+        <div class="monitoring-header">
             <h1>📊 Dashboard de Monitoring</h1>
             <p>Surveillance des performances en temps réel</p>
-            <button class="refresh-btn" onclick="refreshData()">🔄 Actualiser</button>
-            <button class="refresh-btn auto-refresh" onclick="toggleAutoRefresh()">⏰ Auto-refresh</button>
-            <button class="refresh-btn" onclick="resetMetrics()" style="background: #e74c3c;">🗑️ Reset</button>
+            <div class="monitoring-actions">
+                <div class="system-status status-<?= $systemStatus ?>">
+                    <?php if ($systemStatus === 'healthy'): ?>
+                        ✅ Système sain
+                    <?php elseif ($systemStatus === 'warning'): ?>
+                        ⚠️ Avertissements
+                    <?php else: ?>
+                        🚨 Problèmes critiques
+                    <?php endif; ?>
+                </div>
+                <a href="/admin/dashboard" class="btn">← Dashboard</a>
+                <a href="/admin/settings" class="btn">⚙️ Settings</a>
+                <button class="btn btn-info" onclick="refreshData()">🔄 Actualiser</button>
+                <button class="btn btn-info auto-refresh" onclick="toggleAutoRefresh()">⏰ Auto-refresh</button>
+                <button class="btn" onclick="resetMetrics()">🗑️ Reset</button>
+            </div>
         </div>
+
+        <!-- Alertes -->
+        <?php if (!empty($alerts)): ?>
+        <div class="metric-section">
+            <div class="metric-title">🚨 Alertes Actives (<?= count($alerts) ?>)</div>
+            <?php foreach ($alerts as $alert): ?>
+                <div class="alert-item alert-<?= $alert['level'] ?>">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong style="color: var(--admin-text);"><?= htmlspecialchars($alert['message']) ?></strong>
+                            <div style="font-size: 0.9em; color: var(--admin-text-muted); margin-top: 5px;">
+                                <?= htmlspecialchars($alert['action']) ?>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8em; color: var(--admin-text-muted);">
+                            <?= date('H:i:s', $alert['timestamp']) ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
 
         <!-- Statistiques principales -->
         <div class="stats-grid">
@@ -100,8 +242,45 @@
                     <td><?= $systemMetrics['php_version'] ?></td>
                     <td class="status-good">✅ À jour</td>
                 </tr>
+                <?php if (isset($systemMetrics['database_metrics']['db_ping_time'])): ?>
+                <tr>
+                    <td>Ping DB</td>
+                    <td><?= round($systemMetrics['database_metrics']['db_ping_time'], 2) ?>ms</td>
+                    <td class="<?= $systemMetrics['database_metrics']['db_ping_time'] < 10 ? 'status-good' : 'status-warning' ?>">
+                        <?= $systemMetrics['database_metrics']['db_ping_time'] < 10 ? '✅ Rapide' : '⚠️ Lent' ?>
+                    </td>
+                </tr>
+                <?php endif; ?>
             </table>
         </div>
+
+        <!-- Métriques de base de données -->
+        <?php if (isset($systemMetrics['database_metrics']) && !isset($systemMetrics['database_metrics']['error'])): ?>
+        <div class="metric-section">
+            <div class="metric-title">🗄️ Base de Données</div>
+            <table class="metric-table">
+                <tr>
+                    <th>Table</th>
+                    <th>Nombre d'enregistrements</th>
+                    <th>Statut</th>
+                </tr>
+                <?php foreach ($systemMetrics['database_metrics'] as $key => $value): ?>
+                    <?php if (strpos($key, 'table_') === 0 && strpos($key, '_count') !== false): ?>
+                        <?php 
+                        $tableName = str_replace(['table_', '_count'], '', $key);
+                        $status = $value > 0 ? 'status-good' : 'status-warning';
+                        $statusText = $value > 0 ? '✅ Données' : '⚠️ Vide';
+                        ?>
+                        <tr>
+                            <td><?= ucfirst($tableName) ?></td>
+                            <td><?= number_format($value) ?></td>
+                            <td class="<?= $status ?>"><?= $statusText ?></td>
+                        </tr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </table>
+        </div>
+        <?php endif; ?>
 
         <!-- Métriques de performance -->
         <div class="metric-section">
