@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../../app/models/Hardware.php';
 require_once __DIR__ . '/../../../app/utils/ImageOptimizer.php';
 require_once __DIR__ . '/../../../app/helpers/security_helper.php';
 require_once __DIR__ . '/../../../app/helpers/rate_limit_helper.php';
-require_once __DIR__ . '/../../../app/helpers/security_logger.php';
+require_once __DIR__ . '/../../../app/helpers/security_logger_simple.php';
 
 class MediaController extends \Controller
 {
@@ -126,7 +126,7 @@ class MediaController extends \Controller
         
         // Vérifier le token CSRF
         if (!\Auth::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
-            \SecurityLogger::logCsrfViolation('media_upload', $_POST['csrf_token'] ?? '');
+            \SecurityLoggerSimple::logCsrfViolation('media_upload', $_POST['csrf_token'] ?? '');
             $this->jsonResponse($this->formatError('upload_failed', 'Token CSRF invalide'), 403);
             return;
         }
@@ -135,7 +135,7 @@ class MediaController extends \Controller
         $userId = \Auth::isLoggedIn() ? \Auth::getUserId() : null;
         $rateLimitCheck = \RateLimitHelper::checkUploadLimits($userId);
         if (!$rateLimitCheck['allowed']) {
-            \SecurityLogger::logUploadBlocked($_FILES['file']['name'] ?? 'unknown', $rateLimitCheck, $userId);
+            \SecurityLoggerSimple::logUploadBlocked($_FILES['file']['name'] ?? 'unknown', $rateLimitCheck, $userId);
             $this->jsonResponse([
                 'success' => false,
                 'error' => $rateLimitCheck['reason'],
@@ -260,14 +260,14 @@ class MediaController extends \Controller
             // Enregistrer l'upload pour le rate limiting
             \RateLimitHelper::recordUpload($userId, null, $file['size']);
             // Logger l'upload réussi
-            \SecurityLogger::logUploadSuccess($file['name'], $file['size'], $userId);
+            \SecurityLoggerSimple::logUploadSuccess($file['name'], $file['size'], $userId);
             
             error_log("✅ Upload réussi, réponse: " . json_encode($response));
             $this->jsonResponse($response);
             
         } catch (\Exception $e) {
             // Logger l'erreur d'upload
-            \SecurityLogger::logUploadFailed($_FILES['file']['name'] ?? 'unknown', $e->getMessage(), $userId);
+            \SecurityLoggerSimple::logUploadFailed($_FILES['file']['name'] ?? 'unknown', $e->getMessage(), $userId);
             
             $errorCode = $this->determineErrorCode($e);
             $errorData = $this->formatError($errorCode, $e->getMessage());

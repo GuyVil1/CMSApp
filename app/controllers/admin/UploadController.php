@@ -6,7 +6,7 @@ namespace Admin;
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../app/helpers/rate_limit_helper.php';
-require_once __DIR__ . '/../../../app/helpers/security_logger.php';
+require_once __DIR__ . '/../../../app/helpers/security_logger_simple.php';
 
 class UploadController extends \Controller
 {
@@ -29,7 +29,7 @@ class UploadController extends \Controller
         // Vérifier le token CSRF
         $csrf_token = $_POST['csrf_token'] ?? '';
         if (!\Auth::verifyCsrfToken($csrf_token)) {
-            \SecurityLogger::logCsrfViolation('upload_image', $csrf_token);
+            \SecurityLoggerSimple::logCsrfViolation('upload_image', $csrf_token);
             $this->jsonResponse(['success' => false, 'message' => 'Token de sécurité invalide'], 403);
             return;
         }
@@ -38,7 +38,7 @@ class UploadController extends \Controller
         $userId = \Auth::isLoggedIn() ? \Auth::getUserId() : null;
         $rateLimitCheck = \RateLimitHelper::checkUploadLimits($userId);
         if (!$rateLimitCheck['allowed']) {
-            \SecurityLogger::logUploadBlocked($_FILES['image']['name'] ?? 'unknown', $rateLimitCheck, $userId);
+            \SecurityLoggerSimple::logUploadBlocked($_FILES['image']['name'] ?? 'unknown', $rateLimitCheck, $userId);
             $this->jsonResponse([
                 'success' => false, 
                 'message' => $rateLimitCheck['reason'],
@@ -59,7 +59,7 @@ class UploadController extends \Controller
         // Validation du fichier
         $validation = $this->validateImage($file);
         if (!$validation['valid']) {
-            \SecurityLogger::logUploadFailed($file['name'], $validation['message'], $userId);
+            \SecurityLoggerSimple::logUploadFailed($file['name'], $validation['message'], $userId);
             $this->jsonResponse(['success' => false, 'message' => $validation['message']], 400);
             return;
         }
@@ -70,10 +70,10 @@ class UploadController extends \Controller
             // Enregistrer l'upload pour le rate limiting
             \RateLimitHelper::recordUpload($userId, null, $file['size']);
             // Logger l'upload réussi
-            \SecurityLogger::logUploadSuccess($file['name'], $file['size'], $userId);
+            \SecurityLoggerSimple::logUploadSuccess($file['name'], $file['size'], $userId);
             $this->jsonResponse($result);
         } else {
-            \SecurityLogger::logUploadFailed($file['name'], $result['message'] ?? 'Erreur inconnue', $userId);
+            \SecurityLoggerSimple::logUploadFailed($file['name'], $result['message'] ?? 'Erreur inconnue', $userId);
             $this->jsonResponse($result, 500);
         }
     }

@@ -10,7 +10,7 @@ require_once __DIR__ . '/../../core/Controller.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../helpers/rate_limit_helper.php';
-require_once __DIR__ . '/../helpers/security_logger.php';
+require_once __DIR__ . '/../helpers/security_logger_simple.php';
 
 class AuthController extends Controller
 {
@@ -35,24 +35,24 @@ class AuthController extends Controller
             $rateLimitCheck = \RateLimitHelper::checkLoginLimits();
             if (!$rateLimitCheck['allowed']) {
                 $error = $rateLimitCheck['reason'] . ' (Limite: ' . $rateLimitCheck['limit'] . ' tentatives par heure)';
-                \SecurityLogger::logLoginBlocked($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1', $rateLimitCheck);
+                \SecurityLoggerSimple::logLoginBlocked($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1', $rateLimitCheck);
             } elseif (!Auth::verifyCsrfToken($csrf_token)) {
                 $error = 'Token de sécurité invalide';
-                \SecurityLogger::logCsrfViolation('login', $csrf_token);
+                \SecurityLoggerSimple::logCsrfViolation('login', $csrf_token);
                 \RateLimitHelper::recordLoginAttempt(null, false);
             } elseif (empty($login) || empty($password)) {
                 $error = 'Tous les champs sont requis';
-                \SecurityLogger::logLoginFailed($login, 'Champs manquants');
+                \SecurityLoggerSimple::logLoginFailed($login, 'Champs manquants');
                 \RateLimitHelper::recordLoginAttempt(null, false);
             } else {
                 // Tenter la connexion
                 if (Auth::login($login, $password)) {
-                    \SecurityLogger::logLoginSuccess($login, Auth::getUserId());
+                    \SecurityLoggerSimple::logLoginSuccess($login, Auth::getUserId());
                     \RateLimitHelper::recordLoginAttempt(null, true);
                     $this->redirectTo('/');
                 } else {
                     $error = 'Identifiants incorrects';
-                    \SecurityLogger::logLoginFailed($login, 'Identifiants incorrects');
+                    \SecurityLoggerSimple::logLoginFailed($login, 'Identifiants incorrects');
                     \RateLimitHelper::recordLoginAttempt(null, false);
                 }
             }
