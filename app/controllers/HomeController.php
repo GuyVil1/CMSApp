@@ -9,13 +9,21 @@ require_once __DIR__ . '/../../core/Controller.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Database.php';
 require_once __DIR__ . '/../helpers/seo_helper.php';
-require_once __DIR__ . '/../models/Article.php';
+require_once __DIR__ . '/../services/ArticleService.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/Game.php';
 require_once __DIR__ . '/../models/Media.php';
 
 class HomeController extends Controller
 {
+    private ArticleService $articleService;
+    
+    public function __construct()
+    {
+        parent::__construct();
+        $this->articleService = new ArticleService();
+    }
+    
     /**
      * Page d'accueil avec articles en vedette et dernières news
      */
@@ -31,11 +39,11 @@ class HomeController extends Controller
             // Récupérer l'état des inscriptions
             $allowRegistration = $this->isRegistrationEnabled();
             
-            // Récupérer les articles en vedette (featured_position = 1)
-            $featuredArticles = $this->getFeaturedArticles();
+            // Récupérer les articles en vedette via le service
+            $featuredArticles = $this->articleService->getFeaturedArticles(6);
             
-            // Récupérer les dernières news (articles publiés récents)
-            $latestArticles = $this->getLatestArticles();
+            // Récupérer les dernières news via le service
+            $latestArticles = $this->articleService->getRecentArticles(1, 10);
             
             // Récupérer les catégories populaires
             $popularCategories = $this->getPopularCategories();

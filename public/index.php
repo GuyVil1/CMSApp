@@ -314,7 +314,7 @@ function route($uri) {
     // Gérer les routes admin
     if (strpos($uri, 'admin') === 0) {
         // Route spéciale pour SEO
-        if ($parts[1] === 'seo') {
+        if (isset($parts[1]) && $parts[1] === 'seo') {
             $controller = 'Admin\\SeoController';
             $action = $parts[2] ?? 'test';
             $params = array_slice($parts, 3);
