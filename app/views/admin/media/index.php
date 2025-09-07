@@ -1088,7 +1088,7 @@
                 
                 <div class="upload-hint" style="text-align: center; margin-top: 20px; color: #666;">
                     <i class="fas fa-info-circle"></i>
-                    Formats acceptés : JPG, PNG, WebP, GIF • Taille maximale : 4MB par fichier
+                    Formats acceptés : JPG, PNG, WebP, GIF • Taille maximale : 15MB par fichier
                 </div>
             </form>
         </div>
@@ -1683,10 +1683,16 @@
                 return;
             }
 
+            // Récupérer l'URL de l'image depuis l'élément DOM
+            const mediaCard = document.querySelector(`[data-id="${mediaId}"]`);
+            const mediaImg = mediaCard ? mediaCard.querySelector('img') : null;
+            const mediaUrl = mediaImg ? mediaImg.src : '';
+
             // Envoyer les données à la fenêtre parent
             const mediaData = {
                 id: mediaId,
-                original_name: mediaName
+                filename: mediaName,
+                url: mediaUrl
             };
 
             // Envoyer le message à la fenêtre parent

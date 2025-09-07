@@ -30,6 +30,11 @@ class ValidationMiddleware implements MiddlewareInterface
             return $next($request);
         }
         
+        // Ne valider que les requêtes POST (pas les GET)
+        if ($request->getMethod() !== 'POST') {
+            return $next($request);
+        }
+        
         // Vérifier s'il y a des règles de validation pour cette route
         $rules = $this->getValidationRules($uri);
         if (empty($rules)) {
@@ -122,13 +127,13 @@ class ValidationMiddleware implements MiddlewareInterface
                 break;
                 
             case 'min_length':
-                if (strlen($value) < $ruleValue) {
+                if ($value === null || strlen($value) < $ruleValue) {
                     return "Le champ {$field} doit contenir au moins {$ruleValue} caractères";
                 }
                 break;
                 
             case 'max_length':
-                if (strlen($value) > $ruleValue) {
+                if ($value !== null && strlen($value) > $ruleValue) {
                     return "Le champ {$field} ne peut pas dépasser {$ruleValue} caractères";
                 }
                 break;
@@ -161,9 +166,9 @@ class ValidationMiddleware implements MiddlewareInterface
     private function matchRoute(string $uri, string $pattern): bool
     {
         $pattern = str_replace('*', '.*', $pattern);
-        // Échapper les délimiteurs de regex
-        $pattern = preg_quote($pattern, '/');
-        $pattern = '/^' . $pattern . '$/';
+        // Échapper les caractères spéciaux de regex (sauf les délimiteurs)
+        $pattern = preg_quote($pattern, '#');
+        $pattern = '#^' . $pattern . '$#';
         
         return preg_match($pattern, $uri) === 1;
     }

@@ -25,6 +25,7 @@ class ContainerConfig
         $this->registerEventSystem();
         $this->registerMiddlewareSystem();
         $this->registerControllers();
+        $this->registerMonitoring();
     }
 
     /**
@@ -208,6 +209,11 @@ class ContainerConfig
             false // Ne pas logger les données POST
         );
         $pipeline->add($loggingMiddleware);
+        
+        // Monitoring Middleware
+        require_once __DIR__ . '/../middleware/middlewares/MonitoringMiddleware.php';
+        $monitoringMiddleware = new MonitoringMiddleware();
+        $pipeline->add($monitoringMiddleware);
     }
     
     /**
@@ -261,6 +267,11 @@ class ContainerConfig
             require_once __DIR__ . '/../controllers/admin/ArticlesController.php';
             return new ArticlesController();
         });
+
+        $this->container->bind('Admin\\MonitoringController', function($container) {
+            require_once __DIR__ . '/../controllers/admin/MonitoringController.php';
+            return new \Admin\MonitoringController();
+        });
     }
 
     /**
@@ -277,5 +288,23 @@ class ContainerConfig
         $this->container->alias('ArticleService', 'article.service.class');
         $this->container->alias('CategoryService', 'category.service.class');
         $this->container->alias('GameService', 'game.service.class');
+    }
+
+    /**
+     * Enregistrer le système de monitoring
+     */
+    private function registerMonitoring(): void
+    {
+        // MetricsCollector en singleton
+        $this->container->singleton('MetricsCollector', function() {
+            require_once __DIR__ . '/../monitoring/MetricsCollector.php';
+            return new MetricsCollector();
+        });
+
+        // MonitoringMiddleware
+        $this->container->bind('MonitoringMiddleware', function() {
+            require_once __DIR__ . '/../middleware/middlewares/MonitoringMiddleware.php';
+            return new MonitoringMiddleware();
+        });
     }
 }

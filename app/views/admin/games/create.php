@@ -255,7 +255,7 @@
                             <div class="upload-area" id="uploadArea">
                                 <div class="upload-icon">📷</div>
                                 <div class="upload-text">Cliquez ou glissez une image ici</div>
-                                <div class="upload-hint">Formats acceptés: JPG, PNG, GIF (max 5MB)</div>
+                                <div class="upload-hint">Formats acceptés: JPG, PNG, GIF (max 15MB)</div>
                                 <input type="file" id="cover_image" name="cover_image" accept="image/*" class="file-input">
                             </div>
                             <div id="previewContainer" class="preview-container" style="display: none;">
@@ -378,8 +378,6 @@
         // Gestion des options d'image de couverture
         const coverOptionUpload = document.querySelector('input[name="cover_option"][value="upload"]');
         const coverOptionExisting = document.querySelector('input[name="cover_option"][value="existing"]');
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('cover_image');
         const openMediaLibraryCreateBtn = document.getElementById('openMediaLibraryCreate');
         const existingCoverImageInput = document.getElementById('existing_cover_image');
         const selectedImageNameCreateSpan = document.getElementById('selectedImageNameCreate');
@@ -436,9 +434,9 @@
                 return;
             }
 
-            // Vérifier la taille (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('L\'image ne doit pas dépasser 5MB');
+            // Vérifier la taille (15MB max)
+            if (file.size > 15 * 1024 * 1024) {
+                alert('L\'image ne doit pas dépasser 15MB');
                 return;
             }
 

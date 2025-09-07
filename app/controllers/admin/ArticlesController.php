@@ -1037,14 +1037,14 @@ class ArticlesController extends \Controller
     {
         // Validation du fichier
         $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        $maxSize = 4 * 1024 * 1024; // 4MB
+        $maxSize = 15 * 1024 * 1024; // 15MB
         
         if (!in_array($file['type'], $allowedTypes)) {
             throw new \Exception('Type de fichier non autorisé. Utilisez JPG, PNG ou WebP.');
         }
         
         if ($file['size'] > $maxSize) {
-            throw new \Exception('Fichier trop volumineux. Taille maximum : 4MB.');
+            throw new \Exception('Fichier trop volumineux. Taille maximum : 15MB.');
         }
         
         // Vérifier le MIME type réel

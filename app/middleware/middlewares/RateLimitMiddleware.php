@@ -115,9 +115,9 @@ class RateLimitMiddleware implements MiddlewareInterface
     private function matchRoute(string $uri, string $pattern): bool
     {
         $pattern = str_replace('*', '.*', $pattern);
-        // Échapper les délimiteurs de regex
-        $pattern = preg_quote($pattern, '/');
-        $pattern = '/^' . $pattern . '$/';
+        // Échapper les caractères spéciaux de regex (sauf les délimiteurs)
+        $pattern = preg_quote($pattern, '#');
+        $pattern = '#^' . $pattern . '$#';
         
         return preg_match($pattern, $uri) === 1;
     }

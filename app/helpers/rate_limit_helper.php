@@ -2,359 +2,292 @@
 declare(strict_types=1);
 
 /**
- * Helper de rate limiting
- * Gère les limitations de fréquence pour les uploads et actions sensibles
+ * Helper de rate limiting avancé
+ * Protection contre les attaques DDoS et brute force
  */
-
 class RateLimitHelper
 {
-    // Configuration des limites
-    private const UPLOAD_LIMITS = [
-        'uploads_per_hour' => 200,       // Max 200 uploads par heure (pour tests de jeux)
-        'uploads_per_day' => 1000,       // Max 1000 uploads par jour
-        'size_per_hour' => 500 * 1024 * 1024,  // Max 500MB par heure
-        'size_per_day' => 2000 * 1024 * 1024,  // Max 2GB par jour
+    private static array $limits = [
+        // Limites générales
+        'default' => ['requests' => 100, 'window' => 3600], // 100 req/heure
+        
+        // Limites par route
+        'auth' => ['requests' => 5, 'window' => 300], // 5 req/5min pour l'auth
+        'admin' => ['requests' => 50, 'window' => 3600], // 50 req/heure pour admin
+        'api' => ['requests' => 200, 'window' => 3600], // 200 req/heure pour API
+        'upload' => ['requests' => 10, 'window' => 3600], // 10 uploads/heure
+        'search' => ['requests' => 30, 'window' => 300], // 30 recherches/5min
+        
+        // Limites strictes pour les actions sensibles
+        'login' => ['requests' => 3, 'window' => 300], // 3 tentatives/5min
+        'register' => ['requests' => 2, 'window' => 3600], // 2 inscriptions/heure
+        'password_reset' => ['requests' => 1, 'window' => 3600], // 1 reset/heure
     ];
     
-    private const LOGIN_LIMITS = [
-        'attempts_per_hour' => 10,       // Max 10 tentatives de connexion par heure
-        'attempts_per_day' => 50,        // Max 50 tentatives par jour
-    ];
-    
-    private const GENERAL_LIMITS = [
-        'requests_per_minute' => 60,     // Max 60 requêtes par minute
-        'requests_per_hour' => 1000,     // Max 1000 requêtes par heure
-    ];
+    private static array $ipBlacklist = [];
+    private static array $ipWhitelist = [];
     
     /**
-     * Vérifier les limites d'upload pour un utilisateur
+     * Vérifier le rate limit pour une IP et une route
      */
-    public static function checkUploadLimits(int $userId = null, string $ip = null): array
+    public static function checkRateLimit(string $ip, string $route = 'default'): array
     {
-        $ip = $ip ?: self::getClientIp();
-        $userId = $userId ?: 0; // 0 pour les utilisateurs non connectés
+        // Vérifier la whitelist
+        if (self::isWhitelisted($ip)) {
+            return ['allowed' => true, 'remaining' => 999, 'reset' => time() + 3600];
+        }
         
-        // Vérifier les limites par heure
-        $hourlyUploads = self::getUploadCount($userId, $ip, 'hour');
-        $hourlySize = self::getUploadSize($userId, $ip, 'hour');
+        // Vérifier la blacklist
+        if (self::isBlacklisted($ip)) {
+            return ['allowed' => false, 'remaining' => 0, 'reset' => time() + 3600, 'reason' => 'IP blacklisted'];
+        }
         
-        if ($hourlyUploads >= self::UPLOAD_LIMITS['uploads_per_hour']) {
-            return [
-                'allowed' => false,
-                'reason' => 'Limite d\'uploads par heure atteinte',
-                'limit' => self::UPLOAD_LIMITS['uploads_per_hour'],
-                'current' => $hourlyUploads,
-                'reset_time' => self::getNextHour()
+        // Déterminer les limites
+        $limits = self::getLimits($route);
+        $key = "rate_limit:{$ip}:{$route}";
+        
+        // Récupérer les données actuelles
+        $data = self::getRateLimitData($key);
+        
+        // Vérifier si la fenêtre de temps est expirée
+        if ($data['reset'] < time()) {
+            $data = [
+                'count' => 0,
+                'reset' => time() + $limits['window']
             ];
         }
         
-        if ($hourlySize >= self::UPLOAD_LIMITS['size_per_hour']) {
+        // Vérifier si la limite est atteinte
+        if ($data['count'] >= $limits['requests']) {
+            // Ajouter à la blacklist temporaire si trop de violations
+            self::handleViolation($ip, $route);
+            
             return [
                 'allowed' => false,
-                'reason' => 'Limite de taille par heure atteinte',
-                'limit' => self::formatBytes(self::UPLOAD_LIMITS['size_per_hour']),
-                'current' => self::formatBytes($hourlySize),
-                'reset_time' => self::getNextHour()
+                'remaining' => 0,
+                'reset' => $data['reset'],
+                'reason' => 'Rate limit exceeded'
             ];
         }
         
-        // Vérifier les limites par jour
-        $dailyUploads = self::getUploadCount($userId, $ip, 'day');
-        $dailySize = self::getUploadSize($userId, $ip, 'day');
-        
-        if ($dailyUploads >= self::UPLOAD_LIMITS['uploads_per_day']) {
-            return [
-                'allowed' => false,
-                'reason' => 'Limite d\'uploads par jour atteinte',
-                'limit' => self::UPLOAD_LIMITS['uploads_per_day'],
-                'current' => $dailyUploads,
-                'reset_time' => self::getNextDay()
-            ];
-        }
-        
-        if ($dailySize >= self::UPLOAD_LIMITS['size_per_day']) {
-            return [
-                'allowed' => false,
-                'reason' => 'Limite de taille par jour atteinte',
-                'limit' => self::formatBytes(self::UPLOAD_LIMITS['size_per_day']),
-                'current' => self::formatBytes($dailySize),
-                'reset_time' => self::getNextDay()
-            ];
-        }
+        // Incrémenter le compteur
+        $data['count']++;
+        self::setRateLimitData($key, $data);
         
         return [
             'allowed' => true,
-            'hourly_uploads' => $hourlyUploads,
-            'hourly_size' => $hourlySize,
-            'daily_uploads' => $dailyUploads,
-            'daily_size' => $dailySize,
-            'limits' => self::UPLOAD_LIMITS
+            'remaining' => $limits['requests'] - $data['count'],
+            'reset' => $data['reset']
         ];
     }
     
     /**
-     * Enregistrer un upload pour le rate limiting
+     * Enregistrer une requête
      */
-    public static function recordUpload(int $userId = null, string $ip = null, int $fileSize = 0): void
+    public static function recordRequest(string $ip, string $route = 'default'): void
     {
-        $ip = $ip ?: self::getClientIp();
-        $userId = $userId ?: 0;
+        $key = "rate_limit:{$ip}:{$route}";
+        $data = self::getRateLimitData($key);
         
-        $data = [
-            'user_id' => $userId,
-            'ip' => $ip,
-            'file_size' => $fileSize,
-            'timestamp' => time(),
-            'date' => date('Y-m-d'),
-            'hour' => date('Y-m-d H:00:00')
-        ];
-        
-        self::storeRateLimitData('upload', $data);
-    }
-    
-    /**
-     * Vérifier les limites de connexion
-     */
-    public static function checkLoginLimits(string $ip = null): array
-    {
-        $ip = $ip ?: self::getClientIp();
-        
-        $hourlyAttempts = self::getLoginAttempts($ip, 'hour');
-        $dailyAttempts = self::getLoginAttempts($ip, 'day');
-        
-        if ($hourlyAttempts >= self::LOGIN_LIMITS['attempts_per_hour']) {
-            return [
-                'allowed' => false,
-                'reason' => 'Trop de tentatives de connexion par heure',
-                'limit' => self::LOGIN_LIMITS['attempts_per_hour'],
-                'current' => $hourlyAttempts,
-                'reset_time' => self::getNextHour()
+        if ($data['reset'] < time()) {
+            $limits = self::getLimits($route);
+            $data = [
+                'count' => 0,
+                'reset' => time() + $limits['window']
             ];
         }
         
-        if ($dailyAttempts >= self::LOGIN_LIMITS['attempts_per_day']) {
-            return [
-                'allowed' => false,
-                'reason' => 'Trop de tentatives de connexion par jour',
-                'limit' => self::LOGIN_LIMITS['attempts_per_day'],
-                'current' => $dailyAttempts,
-                'reset_time' => self::getNextDay()
+        $data['count']++;
+        self::setRateLimitData($key, $data);
+    }
+    
+    /**
+     * Gérer les violations de rate limit
+     */
+    private static function handleViolation(string $ip, string $route): void
+    {
+        $violationKey = "violations:{$ip}";
+        $violations = self::getRateLimitData($violationKey);
+        
+        if ($violations['reset'] < time()) {
+            $violations = [
+                'count' => 0,
+                'reset' => time() + 3600 // 1 heure
             ];
         }
         
-        return [
-            'allowed' => true,
-            'hourly_attempts' => $hourlyAttempts,
-            'daily_attempts' => $dailyAttempts,
-            'limits' => self::LOGIN_LIMITS
-        ];
+        $violations['count']++;
+        self::setRateLimitData($violationKey, $violations);
+        
+        // Blacklister temporairement si trop de violations
+        if ($violations['count'] >= 10) {
+            self::addToBlacklist($ip, 3600); // 1 heure
+        }
+        
+        // Logger la violation
+        self::logViolation($ip, $route, $violations['count']);
     }
     
     /**
-     * Enregistrer une tentative de connexion
+     * Ajouter une IP à la blacklist
      */
-    public static function recordLoginAttempt(string $ip = null, bool $success = false): void
+    public static function addToBlacklist(string $ip, int $duration = 3600): void
     {
-        $ip = $ip ?: self::getClientIp();
-        
-        $data = [
-            'ip' => $ip,
-            'success' => $success,
-            'timestamp' => time(),
-            'date' => date('Y-m-d'),
-            'hour' => date('Y-m-d H:00:00')
-        ];
-        
-        self::storeRateLimitData('login', $data);
+        self::$ipBlacklist[$ip] = time() + $duration;
+        self::setRateLimitData("blacklist:{$ip}", ['expires' => time() + $duration]);
     }
     
     /**
-     * Obtenir l'adresse IP du client
+     * Ajouter une IP à la whitelist
      */
-    private static function getClientIp(): string
+    public static function addToWhitelist(string $ip): void
     {
-        $ipKeys = ['HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'];
+        self::$ipWhitelist[] = $ip;
+    }
+    
+    /**
+     * Vérifier si une IP est blacklistée
+     */
+    private static function isBlacklisted(string $ip): bool
+    {
+        $data = self::getRateLimitData("blacklist:{$ip}");
+        return $data && isset($data['expires']) && $data['expires'] > time();
+    }
+    
+    /**
+     * Vérifier si une IP est whitelistée
+     */
+    private static function isWhitelisted(string $ip): bool
+    {
+        return in_array($ip, self::$ipWhitelist);
+    }
+    
+    /**
+     * Obtenir les limites pour une route
+     */
+    private static function getLimits(string $route): array
+    {
+        return self::$limits[$route] ?? self::$limits['default'];
+    }
+    
+    /**
+     * Récupérer les données de rate limit
+     */
+    private static function getRateLimitData(string $key): array
+    {
+        // Nettoyer la clé pour le nom de fichier
+        $safeKey = str_replace([':', '/', '\\'], '_', $key);
+        $cacheFile = dirname(__DIR__, 2) . "/cache/rate_limit/{$safeKey}.json";
         
-        foreach ($ipKeys as $key) {
-            if (!empty($_SERVER[$key])) {
-                $ip = $_SERVER[$key];
-                if (strpos($ip, ',') !== false) {
-                    $ip = trim(explode(',', $ip)[0]);
-                }
-                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                    return $ip;
+        if (file_exists($cacheFile)) {
+            $content = file_get_contents($cacheFile);
+            if ($content !== false) {
+                $data = json_decode($content, true);
+                if ($data && isset($data['reset']) && $data['reset'] > time()) {
+                    return $data;
                 }
             }
         }
         
-        return $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        return ['count' => 0, 'reset' => time() + 3600];
     }
     
     /**
-     * Obtenir le nombre d'uploads pour une période
+     * Sauvegarder les données de rate limit
      */
-    private static function getUploadCount(int $userId, string $ip, string $period): int
+    private static function setRateLimitData(string $key, array $data): void
     {
-        $cacheKey = "upload_count_{$userId}_{$ip}_{$period}_" . self::getPeriodKey($period);
-        $data = self::getRateLimitData($cacheKey);
-        
-        return $data ? (int)$data : 0;
-    }
-    
-    /**
-     * Obtenir la taille totale uploadée pour une période
-     */
-    private static function getUploadSize(int $userId, string $ip, string $period): int
-    {
-        $cacheKey = "upload_size_{$userId}_{$ip}_{$period}_" . self::getPeriodKey($period);
-        $data = self::getRateLimitData($cacheKey);
-        
-        return $data ? (int)$data : 0;
-    }
-    
-    /**
-     * Obtenir le nombre de tentatives de connexion
-     */
-    private static function getLoginAttempts(string $ip, string $period): int
-    {
-        // Utiliser la même clé que storeRateLimitData
-        $date = date('Y-m-d');
-        $hour = date('Y-m-d H:00:00');
-        $cacheKey = "login_" . md5($ip . '_' . $date . '_' . $hour);
-        
-        $data = self::getRateLimitData($cacheKey);
-        
-        return $data ? (int)$data : 0;
-    }
-    
-    /**
-     * Obtenir la clé de période pour le cache
-     */
-    private static function getPeriodKey(string $period): string
-    {
-        switch ($period) {
-            case 'hour':
-                return date('Y-m-d-H');
-            case 'day':
-                return date('Y-m-d');
-            case 'minute':
-                return date('Y-m-d-H-i');
-            default:
-                return date('Y-m-d-H');
-        }
-    }
-    
-    /**
-     * Obtenir l'heure de reset (prochaine heure)
-     */
-    private static function getNextHour(): string
-    {
-        return date('Y-m-d H:00:00', strtotime('+1 hour'));
-    }
-    
-    /**
-     * Obtenir l'heure de reset (prochain jour)
-     */
-    private static function getNextDay(): string
-    {
-        return date('Y-m-d 00:00:00', strtotime('+1 day'));
-    }
-    
-    /**
-     * Stocker les données de rate limiting
-     */
-    private static function storeRateLimitData(string $type, array $data): void
-    {
-        // Utiliser un système de cache simple basé sur des fichiers
-        $cacheDir = __DIR__ . '/../../cache/rate_limit';
+        // Nettoyer la clé pour le nom de fichier
+        $safeKey = str_replace([':', '/', '\\'], '_', $key);
+        $cacheDir = dirname(__DIR__, 2) . "/cache/rate_limit";
         if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0755, true);
+            if (!mkdir($cacheDir, 0755, true)) {
+                error_log("Impossible de créer le répertoire cache: {$cacheDir}");
+                return;
+            }
         }
         
-        // Créer une clé de cache basée sur le type et les données importantes
-        $cacheKey = $type . '_' . md5($data['ip'] . '_' . $data['date'] . '_' . $data['hour']);
-        $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
-        
-        // Lire les données existantes ou créer un nouveau compteur
-        $existingData = [];
-        if (file_exists($cacheFile)) {
-            $existingData = json_decode(file_get_contents($cacheFile), true) ?: [];
+        $cacheFile = "{$cacheDir}/{$safeKey}.json";
+        if (file_put_contents($cacheFile, json_encode($data)) === false) {
+            error_log("Impossible d'écrire le fichier cache: {$cacheFile}");
         }
-        
-        // Incrémenter le compteur
-        $existingData['count'] = ($existingData['count'] ?? 0) + 1;
-        $existingData['last_attempt'] = time();
-        $existingData['ip'] = $data['ip'];
-        $existingData['date'] = $data['date'];
-        $existingData['hour'] = $data['hour'];
-        
-        file_put_contents($cacheFile, json_encode($existingData));
-        
-        // Nettoyer les anciens fichiers (plus de 24h)
-        self::cleanOldCacheFiles($cacheDir);
     }
     
     /**
-     * Récupérer les données de rate limiting
+     * Logger les violations
      */
-    private static function getRateLimitData(string $cacheKey): mixed
+    private static function logViolation(string $ip, string $route, int $violationCount): void
     {
-        $cacheDir = __DIR__ . '/../../cache/rate_limit';
-        $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
+        $logEntry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'ip' => $ip,
+            'route' => $route,
+            'violation_count' => $violationCount,
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+        ];
         
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 3600) { // 1 heure
-            $data = json_decode(file_get_contents($cacheFile), true);
-            return $data ? $data['count'] : 0;
+        $logFile = dirname(__DIR__, 2) . "/logs/security/rate_limit_violations.log";
+        $logDir = dirname($logFile);
+        
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
         }
         
-        return 0;
+        file_put_contents($logFile, json_encode($logEntry) . "\n", FILE_APPEND | LOCK_EX);
     }
     
     /**
      * Nettoyer les anciens fichiers de cache
      */
-    private static function cleanOldCacheFiles(string $cacheDir): void
+    public static function cleanup(): void
     {
-        $files = glob($cacheDir . '/*.json');
-        $cutoff = time() - 86400; // 24 heures
+        $cacheDir = dirname(__DIR__, 2) . "/cache/rate_limit";
+        if (!is_dir($cacheDir)) {
+            return;
+        }
+        
+        $files = glob("{$cacheDir}/*.json");
+        $now = time();
         
         foreach ($files as $file) {
-            if (filemtime($file) < $cutoff) {
-                unlink($file);
+            $content = file_get_contents($file);
+            if ($content !== false) {
+                $data = json_decode($content, true);
+                if ($data && isset($data['reset']) && $data['reset'] < $now) {
+                    unlink($file);
+                }
             }
         }
     }
     
     /**
-     * Formater les bytes en format lisible
+     * Obtenir les statistiques de rate limit
      */
-    private static function formatBytes(int $bytes): string
+    public static function getStats(): array
     {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        
-        $bytes /= pow(1024, $pow);
-        
-        return round($bytes, 2) . ' ' . $units[$pow];
-    }
-    
-    /**
-     * Obtenir les statistiques de rate limiting pour un utilisateur
-     */
-    public static function getStats(int $userId = null, string $ip = null): array
-    {
-        $ip = $ip ?: self::getClientIp();
-        $userId = $userId ?: 0;
-        
-        return [
-            'user_id' => $userId,
-            'ip' => $ip,
-            'upload_limits' => self::checkUploadLimits($userId, $ip),
-            'login_limits' => self::checkLoginLimits($ip),
-            'timestamp' => time(),
-            'date' => date('Y-m-d H:i:s')
+        $stats = [
+            'blacklisted_ips' => count(self::$ipBlacklist),
+            'whitelisted_ips' => count(self::$ipWhitelist),
+            'active_limits' => count(self::$limits)
         ];
+        
+        // Compter les violations récentes
+        $logFile = dirname(__DIR__, 2) . "/logs/security/rate_limit_violations.log";
+        if (file_exists($logFile)) {
+            $lines = file($logFile, FILE_IGNORE_NEW_LINES);
+            $recentViolations = 0;
+            $oneHourAgo = time() - 3600;
+            
+            foreach ($lines as $line) {
+                $data = json_decode($line, true);
+                if ($data && strtotime($data['timestamp']) > $oneHourAgo) {
+                    $recentViolations++;
+                }
+            }
+            
+            $stats['recent_violations'] = $recentViolations;
+        }
+        
+        return $stats;
     }
 }

@@ -101,7 +101,7 @@ class GamesController extends \Controller
     public function create(): void
     {
         // Récupérer la liste des hardware actifs
-        $hardwareList = \Hardware::findAllActive();
+        $hardwareList = \Hardware::getAllActive();
         
         // Récupérer la liste des genres
         $genres = \Genre::findAll();
@@ -410,7 +410,7 @@ class GamesController extends \Controller
         }
 
         // Récupérer la liste des hardware actifs
-        $hardwareList = \Hardware::findAllActive();
+        $hardwareList = \Hardware::getAllActive();
         
         // Récupérer la liste des genres
         $genres = \Genre::findAll();

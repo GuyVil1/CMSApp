@@ -139,7 +139,7 @@ class SecurityHelper
     /**
      * Valider la taille d'un fichier
      */
-    public static function validateFileSize(int $size, int $maxSize = 4194304): bool // 4MB par défaut
+    public static function validateFileSize(int $size, int $maxSize = 15728640): bool // 15MB par défaut
     {
         return $size <= $maxSize && $size > 0;
     }

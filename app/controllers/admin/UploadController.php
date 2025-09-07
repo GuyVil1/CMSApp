@@ -83,10 +83,10 @@ class UploadController extends \Controller
      */
     private function validateImage(array $file): array
     {
-        // Vérifier la taille (max 5MB)
-        $maxSize = 5 * 1024 * 1024; // 5MB
+        // Vérifier la taille (max 15MB)
+        $maxSize = 15 * 1024 * 1024; // 15MB
         if ($file['size'] > $maxSize) {
-            return ['valid' => false, 'message' => 'Fichier trop volumineux (max 5MB)'];
+            return ['valid' => false, 'message' => 'Fichier trop volumineux (max 15MB)'];
         }
         
         // Vérifier le type MIME

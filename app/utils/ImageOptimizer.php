@@ -88,7 +88,8 @@ class ImageOptimizer
             
             // 4. Calculer les statistiques d'optimisation
             $originalSize = filesize($sourcePath);
-            $optimizedSize = filesize($webpPath ?? $jpgPath);
+            $optimizedPath = $webpPath ?? $jpgPath ?? $sourcePath;
+            $optimizedSize = filesize($optimizedPath);
             $compressionRatio = round((1 - ($optimizedSize / $originalSize)) * 100, 1);
             
             return [
@@ -339,7 +340,12 @@ class ImageOptimizer
                 case 'image/jpeg':
                     return imagecreatefromjpeg($path);
                 case 'image/png':
-                    return imagecreatefrompng($path);
+                    // Désactiver les avertissements pour les profils sRGB problématiques
+                    $oldErrorReporting = error_reporting();
+                    error_reporting($oldErrorReporting & ~E_WARNING);
+                    $image = imagecreatefrompng($path);
+                    error_reporting($oldErrorReporting);
+                    return $image;
                 case 'image/webp':
                     return imagecreatefromwebp($path);
                 case 'image/gif':

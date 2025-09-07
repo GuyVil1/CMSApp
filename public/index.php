@@ -553,6 +553,10 @@ function route($uri) {
                 $controller = 'Admin\\MediaController';
                 $controllerFile = __DIR__ . "/../app/controllers/admin/MediaController.php";
                 break;
+            case 'monitoring':
+                $controller = 'Admin\\MonitoringController';
+                $controllerFile = __DIR__ . "/../app/controllers/admin/MonitoringController.php";
+                break;
             default:
                 return ['error' => '404'];
         }
@@ -638,6 +642,10 @@ try {
     // Récupérer le pipeline middleware
     try {
         $pipeline = ContainerFactory::make('MiddlewarePipeline');
+        
+        // Ajouter le middleware de monitoring
+        $monitoringMiddleware = ContainerFactory::make('MonitoringMiddleware');
+        $pipeline->add($monitoringMiddleware);
         
         // Définir le handler final (le routeur existant)
         $finalHandler = function($request) use ($requestUri) {
@@ -733,7 +741,7 @@ try {
             foreach ($response->getHeaders() as $name => $value) {
                 header("$name: $value");
             }
-            echo $response->getBody();
+            echo $response->getContent();
             exit;
         }
         

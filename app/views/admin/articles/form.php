@@ -1532,7 +1532,16 @@
                                 <img id="preview-image" src="" alt="Prévisualisation" style="max-width: 200px; border-radius: 8px;">
                             </div>
                             <p class="form-hint">Ou sélectionnez une image existante dans la médiathèque :</p>
-                            <input type="number" id="cover_image_id" name="cover_image_id" class="form-control" placeholder="ID de l'image de la médiathèque" value="<?= htmlspecialchars($article && $article->getCoverImageId() ? $article->getCoverImageId() : '') ?>">
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="number" id="cover_image_id" name="cover_image_id" class="form-control" placeholder="ID de l'image de la médiathèque" value="<?= htmlspecialchars($article && $article->getCoverImageId() ? $article->getCoverImageId() : '') ?>" style="flex: 1;">
+                                <button type="button" class="btn btn-info" onclick="openMediaLibrary()" style="white-space: nowrap;">
+                                    📚 Parcourir la médiathèque
+                                </button>
+                            </div>
+                            <div id="selected-media-preview" style="margin-top: 10px; display: none;">
+                                <img id="selected-media-image" src="" alt="Image sélectionnée" style="max-width: 200px; border-radius: 8px;">
+                                <p class="form-hint" id="selected-media-info"></p>
+                            </div>
                         </div>
                     </div>
 
@@ -3300,6 +3309,40 @@
                     console.log('✅ Élément de chapitre créé avec succès');
                     return chapterDiv;
                 }
+
+                // Fonction pour ouvrir la médiathèque
+                window.openMediaLibrary = function() {
+                    // Ouvrir la médiathèque dans une nouvelle fenêtre
+                    const mediaWindow = window.open('/admin/media?select_mode=1', 'mediaLibrary', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    
+                    // Écouter les messages de la fenêtre de médiathèque
+                    window.addEventListener('message', function(event) {
+                        if (event.origin !== window.location.origin) return;
+                        
+                        if (event.data.type === 'mediaSelected') {
+                            const media = event.data.media;
+                            
+                            // Mettre à jour l'ID de l'image
+                            document.getElementById('cover_image_id').value = media.id;
+                            
+                            // Afficher la prévisualisation
+                            const preview = document.getElementById('selected-media-preview');
+                            const previewImg = document.getElementById('selected-media-image');
+                            const previewInfo = document.getElementById('selected-media-info');
+                            
+                            previewImg.src = media.url;
+                            previewInfo.textContent = `Image sélectionnée: ${media.filename}`;
+                            preview.style.display = 'block';
+                            
+                            // Cacher l'upload preview
+                            document.getElementById('upload-preview').style.display = 'none';
+                            document.getElementById('cover_image_file').value = '';
+                            
+                            // Fermer la fenêtre de médiathèque
+                            mediaWindow.close();
+                        }
+                    });
+                };
 
             });
         </script>

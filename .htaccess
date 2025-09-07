@@ -1,18 +1,20 @@
-# Forcer l'activation de la réécriture
-Options +FollowSymLinks
 RewriteEngine On
-RewriteBase /
 
-# Permettre l'accès aux fichiers statiques (CSS, JS, images, etc.)
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^(.*)$ - [L]
-
-# Rediriger tout vers index.php sauf les fichiers/dossiers existants
+# Rediriger toutes les requêtes vers le dossier public
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
+RewriteRule ^(.*)$ public/$1 [QSA,L]
 
-# Sécurité basique
-<FilesMatch "\.(env|sql|md|log|ini|phps|fla|psd|sh|inc|bak|htaccess)$">
-  Require all denied
-</FilesMatch>
+# Sécurité - Empêcher l'accès aux fichiers sensibles
+<Files "*.env">
+    Require all denied
+</Files>
+
+<Files "*.log">
+    Require all denied
+</Files>
+
+# Empêcher l'accès aux dossiers sensibles
+<IfModule mod_rewrite.c>
+    RewriteRule ^(app|config|core|database|docs|scripts|themes|uploads)/ - [F,L]
+</IfModule>

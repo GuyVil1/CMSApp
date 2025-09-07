@@ -29,7 +29,7 @@ class MediaController extends \Controller
     ];
     
     // Limites de taille
-    private const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+    private const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
     private const MAX_DIMENSIONS = 4096; // 4096x4096 pixels max
     
     // Messages d'erreur contextuels avec solutions
@@ -41,7 +41,7 @@ class MediaController extends \Controller
         ],
         'file_too_large' => [
             'message' => 'Fichier trop volumineux',
-            'solution' => 'Compressez votre image ou réduisez sa résolution (max 4MB)',
+            'solution' => 'Compressez votre image ou réduisez sa résolution (max 15MB)',
             'code' => 'SIZE_001'
         ],
         'invalid_type' => [
@@ -326,7 +326,7 @@ class MediaController extends \Controller
         
         // Vérifier la taille avec validation renforcée
         if (!\SecurityHelper::validateFileSize($file['size'], self::MAX_FILE_SIZE)) {
-            throw new \Exception('Fichier trop volumineux (max 4MB)', 400);
+            throw new \Exception('Fichier trop volumineux (max 15MB)', 400);
         }
         
         // VALIDATION RENFORCÉE : Vérifier le contenu réel de l'image
@@ -432,7 +432,7 @@ class MediaController extends \Controller
         $baseDir = __DIR__ . '/../../../public/uploads/';
         
         if ($gameId) {
-            // Image liée à un jeu
+            // Image liée à un jeu - aller dans games/nom_du_jeu/
             $game = \Game::find($gameId);
             if ($game) {
                 return $baseDir . 'games/' . $game->getSlug();
