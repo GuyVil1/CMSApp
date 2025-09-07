@@ -25,8 +25,22 @@ require_once __DIR__ . '/../core/Database.php';
 require_once __DIR__ . '/../core/Controller.php';
 require_once __DIR__ . '/../core/Auth.php';
 
+// Charger le système de container et middleware
+require_once __DIR__ . '/../app/container/Container.php';
+require_once __DIR__ . '/../app/container/ContainerFactory.php';
+require_once __DIR__ . '/../app/container/ContainerConfig.php';
+
 // Initialiser l'authentification
 Auth::init();
+
+// Initialiser le container et le système middleware
+try {
+    $container = new Container();
+    $containerConfig = new ContainerConfig($container);
+    $containerConfig->register();
+} catch (Exception $e) {
+    error_log("Erreur initialisation container: " . $e->getMessage());
+}
 
 // Vérifier le mode maintenance
 require_once __DIR__ . '/../app/models/Setting.php';
@@ -63,6 +77,11 @@ spl_autoload_register(function ($class) {
         __DIR__ . '/../app/controllers/',
         __DIR__ . '/../app/models/',
         __DIR__ . '/../app/helpers/',
+        __DIR__ . '/../app/middleware/',
+        __DIR__ . '/../app/events/',
+        __DIR__ . '/../app/services/',
+        __DIR__ . '/../app/repositories/',
+        __DIR__ . '/../app/interfaces/',
         __DIR__ . '/../core/'
     ];
     
@@ -604,84 +623,131 @@ function route($uri) {
 // Traiter la requête
 try {
     $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-    $route = route($requestUri);
     
-    if (isset($route['error'])) {
-        // Page d'erreur
-        http_response_code(404);
-        include __DIR__ . '/../app/views/layout/404.php';
-        exit;
-    }
+    // Créer la requête HTTP pour le middleware pipeline
+    $httpRequest = new HttpRequest(
+        $_SERVER['REQUEST_METHOD'] ?? 'GET',
+        $requestUri,
+        $_GET,
+        $_POST,
+        getallheaders() ?: [],
+        $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+        $_SERVER['HTTP_USER_AGENT'] ?? null
+    );
     
-    // Vérifier si c'est une requête AJAX/API
-    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-    $isApi = strpos($requestUri, '/media/') === 0;
-    
-    // Pour les requêtes API, ne pas afficher la page HTML
-    if ($isApi || $isAjax) {
-        // Définir le Content-Type pour les API
-        header('Content-Type: application/json; charset=utf-8');
+    // Récupérer le pipeline middleware
+    try {
+        $pipeline = ContainerFactory::make('MiddlewarePipeline');
         
-        // Empêcher l'affichage de la page HTML
-        ob_start();
-    }
-    
-    // Instancier le contrôleur et appeler l'action
-    $controller = new $route['controller']();
-    $action = $route['action'];
-    
-    // Appeler l'action avec les paramètres
-    if (!empty($route['params'])) {
-        // Convertir les paramètres selon le type attendu par la méthode
-        $reflection = new ReflectionMethod($controller, $action);
-        $parameters = $reflection->getParameters();
-        $convertedParams = [];
-        
-        foreach ($route['params'] as $index => $param) {
-            if (isset($parameters[$index])) {
-                $parameter = $parameters[$index];
-                $type = $parameter->getType();
-                
-                if ($type && !$type->isBuiltin()) {
-                    // Type personnalisé, laisser tel quel
-                    $convertedParams[] = $param;
-                } elseif ($type && $type->getName() === 'int') {
-                    // Convertir en int
-                    $convertedParams[] = (int)$param;
-                } elseif ($type && $type->getName() === 'float') {
-                    // Convertir en float
-                    $convertedParams[] = (float)$param;
-                } elseif ($type && $type->getName() === 'bool') {
-                    // Convertir en bool
-                    $convertedParams[] = (bool)$param;
-                } else {
-                    // Type string ou pas de type, laisser tel quel
-                    $convertedParams[] = $param;
-                }
-            } else {
-                // Plus de paramètres que d'arguments, ignorer
-                break;
+        // Définir le handler final (le routeur existant)
+        $finalHandler = function($request) use ($requestUri) {
+            $route = route($requestUri);
+            
+            if (isset($route['error'])) {
+                // Page d'erreur
+                http_response_code(404);
+                include __DIR__ . '/../app/views/layout/404.php';
+                exit;
             }
+            
+            // Vérifier si c'est une requête AJAX/API
+            $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                      strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            $isApi = strpos($requestUri, '/media/') === 0;
+            
+            // Pour les requêtes API, ne pas afficher la page HTML
+            if ($isApi || $isAjax) {
+                // Définir le Content-Type pour les API
+                header('Content-Type: application/json; charset=utf-8');
+                
+                // Empêcher l'affichage de la page HTML
+                ob_start();
+            }
+            
+            // Instancier le contrôleur et appeler l'action
+            $controller = new $route['controller']();
+            $action = $route['action'];
+            
+            // Appeler l'action avec les paramètres
+            if (!empty($route['params'])) {
+                // Convertir les paramètres selon le type attendu par la méthode
+                $reflection = new ReflectionMethod($controller, $action);
+                $parameters = $reflection->getParameters();
+                $convertedParams = [];
+                
+                foreach ($route['params'] as $index => $param) {
+                    if (isset($parameters[$index])) {
+                        $parameter = $parameters[$index];
+                        $type = $parameter->getType();
+                        
+                        if ($type && !$type->isBuiltin()) {
+                            // Type personnalisé, laisser tel quel
+                            $convertedParams[] = $param;
+                        } elseif ($type && $type->getName() === 'int') {
+                            // Convertir en int
+                            $convertedParams[] = (int)$param;
+                        } elseif ($type && $type->getName() === 'float') {
+                            // Convertir en float
+                            $convertedParams[] = (float)$param;
+                        } elseif ($type && $type->getName() === 'bool') {
+                            // Convertir en bool
+                            $convertedParams[] = (bool)$param;
+                        } else {
+                            // Type string ou pas de type, laisser tel quel
+                            $convertedParams[] = $param;
+                        }
+                    } else {
+                        // Plus de paramètres que d'arguments, ignorer
+                        break;
+                    }
+                }
+                
+                call_user_func_array([$controller, $action], $convertedParams);
+            } else {
+                $controller->$action();
+            }
+            
+            // Pour les requêtes API, nettoyer la sortie et ne garder que la réponse JSON
+            if ($isApi || $isAjax) {
+                $output = ob_get_clean();
+                // Si la sortie contient du HTML, la vider et laisser seulement la réponse JSON du contrôleur
+                if (strpos($output, '<!DOCTYPE') !== false || strpos($output, '<html') !== false) {
+                    // La sortie contient du HTML, on la vide
+                    echo '';
+                } else {
+                    // La sortie contient la réponse JSON du contrôleur
+                    echo $output;
+                }
+                exit;
+            }
+            
+            return new HttpResponse(200, 'OK', []);
+        };
+        
+        // Traiter la requête via le pipeline middleware
+        $response = $pipeline->handle($httpRequest, $finalHandler);
+        
+        // Si le middleware a retourné une réponse, l'utiliser
+        if ($response && $response->getStatusCode() !== 200) {
+            http_response_code($response->getStatusCode());
+            foreach ($response->getHeaders() as $name => $value) {
+                header("$name: $value");
+            }
+            echo $response->getBody();
+            exit;
         }
         
-        call_user_func_array([$controller, $action], $convertedParams);
-    } else {
-        $controller->$action();
-    }
-    
-    // Pour les requêtes API, nettoyer la sortie et ne garder que la réponse JSON
-    if ($isApi || $isAjax) {
-        $output = ob_get_clean();
-        // Si la sortie contient du HTML, la vider et laisser seulement la réponse JSON du contrôleur
-        if (strpos($output, '<!DOCTYPE') !== false || strpos($output, '<html') !== false) {
-            // La sortie contient du HTML, on la vide
-            echo '';
-        } else {
-            // La sortie contient la réponse JSON du contrôleur
-            echo $output;
+    } catch (Exception $e) {
+        // Si le middleware échoue, continuer avec le routeur normal
+        error_log("Erreur middleware: " . $e->getMessage());
+        $route = route($requestUri);
+        
+        if (isset($route['error'])) {
+            // Page d'erreur
+            http_response_code(404);
+            include __DIR__ . '/../app/views/layout/404.php';
+            exit;
         }
-        exit;
     }
     
 } catch (Exception $e) {

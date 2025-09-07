@@ -22,6 +22,8 @@ class ContainerConfig
         $this->registerCore();
         $this->registerRepositories();
         $this->registerServices();
+        $this->registerEventSystem();
+        $this->registerMiddlewareSystem();
         $this->registerControllers();
     }
 
@@ -123,6 +125,126 @@ class ContainerConfig
             require_once __DIR__ . '/../services/GameService.php';
             return new GameService();
         });
+    }
+    
+    /**
+     * Enregistrer le système d'événements
+     */
+    private function registerEventSystem(): void
+    {
+        // EventDispatcher
+        $this->container->singleton('EventDispatcher', function($container) {
+            require_once __DIR__ . '/../events/EventDispatcher.php';
+            $dispatcher = new EventDispatcher();
+            
+            // Enregistrer les listeners
+            $this->registerEventListeners($dispatcher);
+            
+            return $dispatcher;
+        });
+    }
+    
+    /**
+     * Enregistrer le système de middleware
+     */
+    private function registerMiddlewareSystem(): void
+    {
+        // MiddlewarePipeline
+        $this->container->singleton('MiddlewarePipeline', function($container) {
+            require_once __DIR__ . '/../middleware/MiddlewarePipeline.php';
+            $pipeline = new MiddlewarePipeline();
+            
+            // Enregistrer les middlewares
+            $this->registerMiddlewares($pipeline);
+            
+            return $pipeline;
+        });
+    }
+    
+    /**
+     * Enregistrer les middlewares
+     */
+    private function registerMiddlewares(MiddlewarePipeline $pipeline): void
+    {
+        // Security Middleware
+        require_once __DIR__ . '/../middleware/middlewares/SecurityMiddleware.php';
+        $securityMiddleware = new SecurityMiddleware();
+        $pipeline->add($securityMiddleware);
+        
+        // Rate Limit Middleware
+        require_once __DIR__ . '/../middleware/middlewares/RateLimitMiddleware.php';
+        $rateLimitMiddleware = new RateLimitMiddleware(100, 3600, ['/api/*', '/assets/*']);
+        $pipeline->add($rateLimitMiddleware);
+        
+        // Authentication Middleware
+        require_once __DIR__ . '/../middleware/middlewares/AuthenticationMiddleware.php';
+        $authMiddleware = new AuthenticationMiddleware(
+            ['/admin/*'], // Routes protégées
+            ['/auth/*', '/api/public/*'] // Routes publiques
+        );
+        $pipeline->add($authMiddleware);
+        
+        // Validation Middleware
+        require_once __DIR__ . '/../middleware/middlewares/ValidationMiddleware.php';
+        $validationRules = [
+            '/admin/articles/store' => [
+                'title' => ['required' => true, 'min_length' => 3, 'max_length' => 255],
+                'content' => ['required' => true, 'min_length' => 10],
+                'status' => ['required' => true, 'in' => ['draft', 'published']]
+            ],
+            '/auth/login' => [
+                'login' => ['required' => true, 'min_length' => 3],
+                'password' => ['required' => true, 'min_length' => 6]
+            ]
+        ];
+        $validationMiddleware = new ValidationMiddleware($validationRules, ['/api/*', '/assets/*', '/admin/articles/*']);
+        $pipeline->add($validationMiddleware);
+        
+        // Logging Middleware
+        require_once __DIR__ . '/../middleware/middlewares/LoggingMiddleware.php';
+        $loggingMiddleware = new LoggingMiddleware(
+            null, // Fichier par défaut
+            ['/assets/*', '/favicon.ico'], // Routes exclues
+            false // Ne pas logger les données POST
+        );
+        $pipeline->add($loggingMiddleware);
+    }
+    
+    /**
+     * Enregistrer les listeners d'événements
+     */
+    private function registerEventListeners(EventDispatcher $dispatcher): void
+    {
+        // Cache Invalidation Listener
+        require_once __DIR__ . '/../events/listeners/CacheInvalidationListener.php';
+        $cacheListener = new CacheInvalidationListener();
+        $dispatcher->addListener('article.created', $cacheListener, 100);
+        $dispatcher->addListener('article.updated', $cacheListener, 100);
+        $dispatcher->addListener('article.deleted', $cacheListener, 100);
+        
+        // Logging Listener
+        require_once __DIR__ . '/../events/listeners/LoggingListener.php';
+        $loggingListener = new LoggingListener();
+        $dispatcher->addListener('article.created', $loggingListener, 50);
+        $dispatcher->addListener('article.updated', $loggingListener, 50);
+        $dispatcher->addListener('article.deleted', $loggingListener, 50);
+        $dispatcher->addListener('article.viewed', $loggingListener, 50);
+        $dispatcher->addListener('user.logged_in', $loggingListener, 50);
+        $dispatcher->addListener('user.logged_out', $loggingListener, 50);
+        $dispatcher->addListener('user.registered', $loggingListener, 50);
+        
+        // Notification Listener
+        require_once __DIR__ . '/../events/listeners/NotificationListener.php';
+        $notificationListener = new NotificationListener();
+        $dispatcher->addListener('article.created', $notificationListener, 10);
+        $dispatcher->addListener('article.updated', $notificationListener, 10);
+        $dispatcher->addListener('user.registered', $notificationListener, 10);
+        
+        // Analytics Listener
+        require_once __DIR__ . '/../events/listeners/AnalyticsListener.php';
+        $analyticsListener = new AnalyticsListener();
+        $dispatcher->addListener('article.viewed', $analyticsListener, 5);
+        $dispatcher->addListener('user.logged_in', $analyticsListener, 5);
     }
 
     /**

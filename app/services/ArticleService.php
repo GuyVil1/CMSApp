@@ -13,18 +13,28 @@ require_once __DIR__ . '/../helpers/MemoryCache.php';
 require_once __DIR__ . '/../../core/Database.php';
 require_once __DIR__ . '/../container/ContainerFactory.php';
 require_once __DIR__ . '/../interfaces/ArticleServiceInterface.php';
+require_once __DIR__ . '/../events/ArticleEvents.php';
 
 class ArticleService implements ArticleServiceInterface
 {
     private Article $articleModel;
     private Category $categoryModel;
     private ArticleRepository $articleRepository;
+    private $eventDispatcher;
     
     public function __construct()
     {
         $this->articleModel = new Article();
         $this->categoryModel = new Category();
         $this->articleRepository = ContainerFactory::make('ArticleRepository');
+        
+        // Récupérer l'EventDispatcher depuis le container
+        try {
+            $this->eventDispatcher = ContainerFactory::make('EventDispatcher');
+        } catch (Exception $e) {
+            // Fallback si le container n'est pas disponible
+            $this->eventDispatcher = null;
+        }
     }
     
     /**
@@ -150,6 +160,12 @@ class ArticleService implements ArticleServiceInterface
         // Invalider le cache
         $this->invalidateArticleCache();
         
+        // Dispatcher l'événement
+        if ($this->eventDispatcher) {
+            $event = new ArticleCreatedEvent($articleId, $articleData);
+            $this->eventDispatcher->dispatch($event);
+        }
+        
         return $articleId; // Retourner l'ID de l'article créé
     }
     
@@ -188,6 +204,12 @@ class ArticleService implements ArticleServiceInterface
         // Invalider le cache
         $this->invalidateArticleCache($id);
         
+        // Dispatcher l'événement
+        if ($this->eventDispatcher) {
+            $event = new ArticleUpdatedEvent($id, $article, $articleData);
+            $this->eventDispatcher->dispatch($event);
+        }
+        
         return true; // Succès
     }
     
@@ -211,6 +233,12 @@ class ArticleService implements ArticleServiceInterface
         
         // Invalider le cache
         $this->invalidateArticleCache($id);
+        
+        // Dispatcher l'événement
+        if ($this->eventDispatcher) {
+            $event = new ArticleDeletedEvent($id, $article);
+            $this->eventDispatcher->dispatch($event);
+        }
         
         return true; // Succès
     }

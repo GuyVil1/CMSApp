@@ -126,4 +126,19 @@ class MemoryCache
         
         return $cleaned;
     }
+    
+    /**
+     * Supprimer par pattern (wildcard)
+     */
+    public static function forgetPattern(string $pattern): void
+    {
+        $pattern = str_replace('*', '.*', $pattern);
+        $pattern = '/^' . $pattern . '$/';
+        
+        foreach (self::$cache as $key => $value) {
+            if (preg_match($pattern, $key)) {
+                self::forget($key);
+            }
+        }
+    }
 }
