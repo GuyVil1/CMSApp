@@ -36,7 +36,15 @@ class SecurityLogger
     {
         self::$logDir = __DIR__ . '/../../logs/security';
         if (!is_dir(self::$logDir)) {
-            mkdir(self::$logDir, 0755, true);
+            if (!mkdir(self::$logDir, 0755, true)) {
+                error_log("Impossible de créer le dossier de logs: " . self::$logDir);
+                return;
+            }
+        }
+        
+        // Vérifier que le dossier est accessible en écriture
+        if (!is_writable(self::$logDir)) {
+            error_log("Le dossier de logs n'est pas accessible en écriture: " . self::$logDir);
         }
     }
     
@@ -62,7 +70,15 @@ class SecurityLogger
         $logFile = self::$logDir . '/security_' . date('Y-m-d') . '.log';
         $logLine = json_encode($logEntry) . "\n";
         
-        file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+        // Vérifier que le dossier est accessible avant d'écrire
+        if (is_writable(self::$logDir)) {
+            $result = file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+            if ($result === false) {
+                error_log("Impossible d'écrire dans le fichier de log: " . $logFile);
+            }
+        } else {
+            error_log("Dossier de logs non accessible en écriture: " . self::$logDir);
+        }
         
         // Aussi logger dans les logs système PHP si niveau critique
         if ($level === self::LEVEL_CRITICAL) {
