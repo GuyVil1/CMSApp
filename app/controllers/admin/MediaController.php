@@ -15,6 +15,7 @@ require_once __DIR__ . '/../../../app/models/Game.php';
 require_once __DIR__ . '/../../../app/models/Hardware.php';
 require_once __DIR__ . '/../../../app/utils/ImageOptimizer.php';
 require_once __DIR__ . '/../../../app/helpers/security_helper.php';
+require_once __DIR__ . '/../../../app/helpers/rate_limit_helper.php';
 
 class MediaController extends \Controller
 {
@@ -125,6 +126,18 @@ class MediaController extends \Controller
         // Vérifier le token CSRF
         if (!\Auth::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
             $this->jsonResponse($this->formatError('upload_failed', 'Token CSRF invalide'), 403);
+            return;
+        }
+        
+        // Vérifier les limites de rate limiting
+        $userId = \Auth::isLoggedIn() ? \Auth::getUserId() : null;
+        $rateLimitCheck = \RateLimitHelper::checkUploadLimits($userId);
+        if (!$rateLimitCheck['allowed']) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $rateLimitCheck['reason'],
+                'rate_limit' => $rateLimitCheck
+            ], 429);
             return;
         }
         
@@ -240,6 +253,9 @@ class MediaController extends \Controller
                     'message' => '⚠️ L\'optimisation a échoué, mais l\'upload a réussi'
                 ];
             }
+            
+            // Enregistrer l'upload pour le rate limiting
+            \RateLimitHelper::recordUpload($userId, null, $file['size']);
             
             error_log("✅ Upload réussi, réponse: " . json_encode($response));
             $this->jsonResponse($response);

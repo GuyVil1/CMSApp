@@ -9,6 +9,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../core/Controller.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../helpers/rate_limit_helper.php';
 
 class AuthController extends Controller
 {
@@ -29,17 +30,24 @@ class AuthController extends Controller
             $password = $this->getPostParam('password', '');
             $csrf_token = $this->getPostParam('csrf_token', '');
             
-            // Valider le token CSRF
-            if (!Auth::verifyCsrfToken($csrf_token)) {
+            // Vérifier les limites de rate limiting pour les connexions
+            $rateLimitCheck = \RateLimitHelper::checkLoginLimits();
+            if (!$rateLimitCheck['allowed']) {
+                $error = $rateLimitCheck['reason'] . ' (Limite: ' . $rateLimitCheck['limit'] . ' tentatives par heure)';
+            } elseif (!Auth::verifyCsrfToken($csrf_token)) {
                 $error = 'Token de sécurité invalide';
+                \RateLimitHelper::recordLoginAttempt(null, false);
             } elseif (empty($login) || empty($password)) {
                 $error = 'Tous les champs sont requis';
+                \RateLimitHelper::recordLoginAttempt(null, false);
             } else {
                 // Tenter la connexion
                 if (Auth::login($login, $password)) {
+                    \RateLimitHelper::recordLoginAttempt(null, true);
                     $this->redirectTo('/');
                 } else {
                     $error = 'Identifiants incorrects';
+                    \RateLimitHelper::recordLoginAttempt(null, false);
                 }
             }
         }

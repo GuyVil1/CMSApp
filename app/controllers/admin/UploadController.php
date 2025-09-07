@@ -5,6 +5,7 @@ namespace Admin;
 
 require_once __DIR__ . '/../../../core/Controller.php';
 require_once __DIR__ . '/../../../core/Auth.php';
+require_once __DIR__ . '/../../../app/helpers/rate_limit_helper.php';
 
 class UploadController extends \Controller
 {
@@ -31,6 +32,18 @@ class UploadController extends \Controller
             return;
         }
         
+        // Vérifier les limites de rate limiting
+        $userId = \Auth::isLoggedIn() ? \Auth::getUserId() : null;
+        $rateLimitCheck = \RateLimitHelper::checkUploadLimits($userId);
+        if (!$rateLimitCheck['allowed']) {
+            $this->jsonResponse([
+                'success' => false, 
+                'message' => $rateLimitCheck['reason'],
+                'rate_limit' => $rateLimitCheck
+            ], 429);
+            return;
+        }
+        
         // Vérifier qu'un fichier a été uploadé
         if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
             $this->jsonResponse(['success' => false, 'message' => 'Aucun fichier uploadé'], 400);
@@ -50,6 +63,8 @@ class UploadController extends \Controller
         // Upload et traitement de l'image
         $result = $this->processImage($file, $type);
         if ($result['success']) {
+            // Enregistrer l'upload pour le rate limiting
+            \RateLimitHelper::recordUpload($userId, null, $file['size']);
             $this->jsonResponse($result);
         } else {
             $this->jsonResponse($result, 500);
