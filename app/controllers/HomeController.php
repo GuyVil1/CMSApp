@@ -13,15 +13,25 @@ require_once __DIR__ . '/../container/ContainerFactory.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/Game.php';
 require_once __DIR__ . '/../models/Media.php';
+require_once __DIR__ . '/../events/ArticleEvents.php';
 
 class HomeController extends Controller
 {
     private ArticleService $articleService;
+    private $eventDispatcher;
     
     public function __construct()
     {
         parent::__construct();
         $this->articleService = ContainerFactory::make('ArticleService');
+        
+        // Récupérer l'EventDispatcher depuis le container
+        try {
+            $this->eventDispatcher = ContainerFactory::make('EventDispatcher');
+        } catch (Exception $e) {
+            // Fallback si le container n'est pas disponible
+            $this->eventDispatcher = null;
+        }
     }
     
     /**
@@ -380,6 +390,12 @@ class HomeController extends Controller
             }
             
             error_log("🎨 Rendu de l'article: " . $article->getTitle());
+            
+            // Dispatcher l'événement de vue d'article
+            if ($this->eventDispatcher) {
+                $event = new ArticleViewedEvent($article->getId(), $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+                $this->eventDispatcher->dispatch($event);
+            }
             
             // Générer les meta tags SEO pour l'article
             $seoMetaTags = SeoHelper::generateArticleMetaTags($article);

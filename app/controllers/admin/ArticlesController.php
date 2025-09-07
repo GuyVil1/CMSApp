@@ -12,11 +12,14 @@ require_once __DIR__ . '/../../../core/Auth.php';
 require_once __DIR__ . '/../../../core/Database.php';
 require_once __DIR__ . '/../../models/Article.php';
 require_once __DIR__ . '/../../models/Media.php'; // Added for cover image validation
+require_once __DIR__ . '/../../container/ContainerFactory.php';
+require_once __DIR__ . '/../../events/ArticleEvents.php';
 
 class ArticlesController extends \Controller
 {
     private $userRole;
     private $userId;
+    private $eventDispatcher;
     
     public function __construct()
     {
@@ -26,6 +29,14 @@ class ArticlesController extends \Controller
         // Stocker le rôle de l'utilisateur pour les vérifications de permissions
         $this->userRole = \Auth::getUserRole();
         $this->userId = \Auth::getUserId();
+        
+        // Récupérer l'EventDispatcher depuis le container
+        try {
+            $this->eventDispatcher = \ContainerFactory::make('EventDispatcher');
+        } catch (Exception $e) {
+            // Fallback si le container n'est pas disponible
+            $this->eventDispatcher = null;
+        }
     }
     
     /**
@@ -263,6 +274,17 @@ class ArticlesController extends \Controller
             $statusText = $status === 'published' ? 'publié' : ($status === 'archived' ? 'archivé' : 'créé en brouillon');
             \Auth::logActivity(\Auth::getUserId(), "Article $statusText : $title");
             
+            // Dispatcher l'événement de création d'article
+            if ($this->eventDispatcher) {
+                $event = new \ArticleCreatedEvent($articleId, [
+                    'title' => $title,
+                    'status' => $status,
+                    'user_id' => $this->userId,
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+                $this->eventDispatcher->dispatch($event);
+            }
+            
             $this->setFlash('success', "Article $statusText avec succès !");
             $this->redirect('/admin/articles');
             
@@ -455,6 +477,31 @@ class ArticlesController extends \Controller
             // Log de l'activité
             \Auth::logActivity(\Auth::getUserId(), "Article mis à jour : $title");
             
+            // Dispatcher l'événement de mise à jour d'article
+            if ($this->eventDispatcher) {
+                // Convertir l'objet Article en array pour l'événement
+                $oldData = [
+                    'title' => $article->getTitle(),
+                    'status' => $article->getStatus(),
+                    'excerpt' => $article->getExcerpt(),
+                    'content' => $article->getContent(),
+                    'category_id' => $article->getCategoryId(),
+                    'game_id' => $article->getGameId(),
+                    'cover_image_id' => $article->getCoverImageId(),
+                    'featured_position' => $article->getFeaturedPosition()
+                ];
+                
+                $newData = [
+                    'title' => $title,
+                    'status' => $status,
+                    'user_id' => $this->userId,
+                    'updated_at' => date('Y-m-d H:i:s')
+                ];
+                
+                $event = new \ArticleUpdatedEvent($id, $oldData, $newData);
+                $this->eventDispatcher->dispatch($event);
+            }
+            
             $this->setFlash('success', 'Article mis à jour avec succès !');
             $this->redirect('/admin/articles');
             
@@ -497,6 +544,28 @@ class ArticlesController extends \Controller
             
             // Log de l'activité
             \Auth::logActivity(\Auth::getUserId(), "Article supprimé : {$article->getTitle()}");
+            
+            // Dispatcher l'événement de suppression d'article
+            if ($this->eventDispatcher) {
+                // Convertir l'objet Article en array pour l'événement
+                $articleData = [
+                    'title' => $article->getTitle(),
+                    'slug' => $article->getSlug(),
+                    'status' => $article->getStatus(),
+                    'excerpt' => $article->getExcerpt(),
+                    'content' => $article->getContent(),
+                    'category_id' => $article->getCategoryId(),
+                    'game_id' => $article->getGameId(),
+                    'cover_image_id' => $article->getCoverImageId(),
+                    'author_id' => $article->getAuthorId(),
+                    'featured_position' => $article->getFeaturedPosition(),
+                    'created_at' => $article->getCreatedAt(),
+                    'published_at' => $article->getPublishedAt()
+                ];
+                
+                $event = new \ArticleDeletedEvent($id, $articleData);
+                $this->eventDispatcher->dispatch($event);
+            }
             
             $this->setFlash('success', 'Article supprimé avec succès !');
             $this->redirect('/admin/articles');
