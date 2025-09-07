@@ -164,6 +164,41 @@ class SecurityHelper
     }
     
     /**
+     * Validation renforcée du contenu d'image
+     */
+    public static function validateImageContent(string $filepath): array
+    {
+        if (!file_exists($filepath)) {
+            return ['valid' => false, 'message' => 'Fichier introuvable'];
+        }
+        
+        // Vérifier que c'est bien une image avec getimagesize
+        $imageInfo = getimagesize($filepath);
+        if ($imageInfo === false) {
+            return ['valid' => false, 'message' => 'Fichier corrompu ou non-image'];
+        }
+        
+        // Vérifier que le MIME type détecté correspond à un type d'image autorisé
+        $detectedMimeType = $imageInfo['mime'];
+        if (!self::validateImageMimeType($detectedMimeType)) {
+            return ['valid' => false, 'message' => 'Contenu d\'image invalide détecté'];
+        }
+        
+        // Vérifier les dimensions
+        [$width, $height] = $imageInfo;
+        if ($width <= 0 || $height <= 0) {
+            return ['valid' => false, 'message' => 'Image invalide (dimensions nulles)'];
+        }
+        
+        // Vérifier que l'image n'est pas trop grande
+        if ($width > 4096 || $height > 4096) {
+            return ['valid' => false, 'message' => 'Image trop grande (max 4096x4096px)'];
+        }
+        
+        return ['valid' => true, 'dimensions' => [$width, $height], 'mime' => $detectedMimeType];
+    }
+    
+    /**
      * Générer un nom de fichier sécurisé
      */
     public static function generateSecureFilename(string $originalName): string

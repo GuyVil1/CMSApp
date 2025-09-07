@@ -305,9 +305,10 @@ class MediaController extends \Controller
             throw new \Exception('Fichier trop volumineux (max 4MB)', 400);
         }
         
-        // Vérifier les dimensions si c'est une image
-        if (!\SecurityHelper::validateImageDimensions($file['tmp_name'], self::MAX_DIMENSIONS, self::MAX_DIMENSIONS)) {
-            throw new \Exception('Dimensions d\'image trop grandes (max 4096x4096 pixels)', 400);
+        // VALIDATION RENFORCÉE : Vérifier le contenu réel de l'image
+        $imageValidation = \SecurityHelper::validateImageContent($file['tmp_name']);
+        if (!$imageValidation['valid']) {
+            throw new \Exception($imageValidation['message'], 400);
         }
         
         error_log("✅ Fichier validé: " . $file['name'] . " (" . $file['size'] . " bytes, " . $mimeType . ")");

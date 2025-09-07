@@ -84,6 +84,30 @@ class UploadController extends \Controller
             return ['valid' => false, 'message' => 'Extension de fichier non autorisée'];
         }
         
+        // VALIDATION RENFORCÉE : Vérifier le contenu réel de l'image
+        $imageInfo = getimagesize($file['tmp_name']);
+        if ($imageInfo === false) {
+            return ['valid' => false, 'message' => 'Fichier corrompu ou non-image'];
+        }
+        
+        // Vérifier que le MIME type détecté par getimagesize correspond
+        $detectedMimeType = $imageInfo['mime'];
+        if (!in_array($detectedMimeType, $allowedTypes)) {
+            return ['valid' => false, 'message' => 'Contenu d\'image invalide détecté'];
+        }
+        
+        // Vérifier les dimensions (protection contre les images malveillantes)
+        $maxWidth = 4096;
+        $maxHeight = 4096;
+        if ($imageInfo[0] > $maxWidth || $imageInfo[1] > $maxHeight) {
+            return ['valid' => false, 'message' => "Image trop grande (max {$maxWidth}x{$maxHeight}px)"];
+        }
+        
+        // Vérifier que l'image n'est pas vide
+        if ($imageInfo[0] <= 0 || $imageInfo[1] <= 0) {
+            return ['valid' => false, 'message' => 'Image invalide (dimensions nulles)'];
+        }
+        
         return ['valid' => true];
     }
     
