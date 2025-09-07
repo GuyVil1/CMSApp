@@ -7,8 +7,9 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../interfaces/ArticleRepositoryInterface.php';
 
-class ArticleRepository
+class ArticleRepository implements ArticleRepositoryInterface
 {
     private string $table = 'articles';
     
@@ -209,6 +210,22 @@ class ArticleRepository
                 LIMIT ? OFFSET ?";
         
         return Database::query($sql, [$categoryId, $limit, $offset]);
+    }
+    
+    /**
+     * Trouver les articles par jeu
+     */
+    public function findByGame(int $gameId, int $limit = 10, int $offset = 0): array
+    {
+        $sql = "SELECT a.*, c.name as category_name, g.name as game_name
+                FROM {$this->table} a 
+                LEFT JOIN categories c ON a.category_id = c.id 
+                LEFT JOIN games g ON a.game_id = g.id 
+                WHERE a.game_id = ? AND a.status = 'published' 
+                ORDER BY a.published_at DESC 
+                LIMIT ? OFFSET ?";
+        
+        return Database::query($sql, [$gameId, $limit, $offset]);
     }
     
     /**

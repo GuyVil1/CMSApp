@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../core/Controller.php';
 require_once __DIR__ . '/../../core/Auth.php';
 require_once __DIR__ . '/../../core/Database.php';
 require_once __DIR__ . '/../helpers/seo_helper.php';
-require_once __DIR__ . '/../services/ArticleService.php';
+require_once __DIR__ . '/../container/ContainerFactory.php';
 require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../models/Game.php';
 require_once __DIR__ . '/../models/Media.php';
@@ -21,7 +21,7 @@ class HomeController extends Controller
     public function __construct()
     {
         parent::__construct();
-        $this->articleService = new ArticleService();
+        $this->articleService = ContainerFactory::make('ArticleService');
     }
     
     /**

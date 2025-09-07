@@ -10,7 +10,7 @@
 .main-content {
     position: relative;
     z-index: 2;
-    width: 85vw;
+    width: 70vw!important;
     max-width: 1200px;
     background: white;
     min-height: calc(100vh - 200px);

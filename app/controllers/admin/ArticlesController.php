@@ -349,10 +349,6 @@ class ArticlesController extends \Controller
         }
         
         try {
-            // DEBUG: Afficher les données POST
-            error_log("🔍 DEBUG UPDATE - Données POST: " . print_r($_POST, true));
-            error_log("🔍 DEBUG UPDATE - FILES: " . print_r($_FILES, true));
-            
             // Validation des données
             $title = trim($_POST['title'] ?? '');
             $excerpt = trim($_POST['excerpt'] ?? '');
@@ -376,35 +372,24 @@ class ArticlesController extends \Controller
             // Déterminer l'ID de l'image de couverture finale
             $finalCoverImageId = null;
 
-            // DEBUG: Afficher les valeurs
-            error_log("🔍 DEBUG UPDATE - uploadedImageId: " . ($uploadedImageId ?? 'NULL'));
-            error_log("🔍 DEBUG UPDATE - current_cover_image_id: " . ($_POST['current_cover_image_id'] ?? 'NULL'));
-            error_log("🔍 DEBUG UPDATE - game_id: " . ($game_id ?? 'NULL'));
-
             // Priorité 1: Nouvelle image uploadée
             if ($uploadedImageId) {
                 $finalCoverImageId = $uploadedImageId;
-                error_log("🔍 DEBUG UPDATE - Utilisation image uploadée: " . $finalCoverImageId);
             }
             // Priorité 2: Image existante conservée (si l'article est en édition et qu'aucune nouvelle image n'est uploadée)
             else if (isset($_POST['current_cover_image_id']) && $_POST['current_cover_image_id'] !== '') {
                 $finalCoverImageId = (int)$_POST['current_cover_image_id'];
-                error_log("🔍 DEBUG UPDATE - Conservation image existante: " . $finalCoverImageId);
             }
             // Priorité 3: Image de jeu sélectionnée
             else if ($game_id) {
                 $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
                 if ($game && $game['cover_image_id']) {
                     $finalCoverImageId = $game['cover_image_id'];
-                    error_log("🔍 DEBUG UPDATE - Utilisation image de jeu: " . $finalCoverImageId);
                 }
             }
 
-            error_log("🔍 DEBUG UPDATE - finalCoverImageId: " . ($finalCoverImageId ?? 'NULL'));
-
             // Validation de l'image de couverture
             if (empty($finalCoverImageId)) {
-                error_log("❌ DEBUG UPDATE - ERREUR: Aucune image de couverture trouvée");
                 throw new \Exception('L\'image de couverture est obligatoire');
             }
             $cover_image_id = $finalCoverImageId;

@@ -11,8 +11,10 @@ require_once __DIR__ . '/../models/Category.php';
 require_once __DIR__ . '/../repositories/ArticleRepository.php';
 require_once __DIR__ . '/../helpers/MemoryCache.php';
 require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../container/ContainerFactory.php';
+require_once __DIR__ . '/../interfaces/ArticleServiceInterface.php';
 
-class ArticleService
+class ArticleService implements ArticleServiceInterface
 {
     private Article $articleModel;
     private Category $categoryModel;
@@ -22,7 +24,7 @@ class ArticleService
     {
         $this->articleModel = new Article();
         $this->categoryModel = new Category();
-        $this->articleRepository = new ArticleRepository();
+        $this->articleRepository = ContainerFactory::make('ArticleRepository');
     }
     
     /**
@@ -122,15 +124,12 @@ class ArticleService
     /**
      * Créer un nouvel article
      */
-    public function createArticle(array $data): array
+    public function createArticle(array $data): ?int
     {
         // Validation des données
         $validation = $this->validateArticleData($data);
         if (!$validation['valid']) {
-            return [
-                'success' => false,
-                'errors' => $validation['errors']
-            ];
+            return null; // Échec de validation
         }
         
         // Préparer les données
@@ -140,10 +139,7 @@ class ArticleService
         $articleId = $this->articleModel->create($articleData);
         
         if (!$articleId) {
-            return [
-                'success' => false,
-                'errors' => ['Erreur lors de la création de l\'article']
-            ];
+            return null; // Échec de création
         }
         
         // Gérer les tags
@@ -154,34 +150,24 @@ class ArticleService
         // Invalider le cache
         $this->invalidateArticleCache();
         
-        return [
-            'success' => true,
-            'article_id' => $articleId,
-            'message' => 'Article créé avec succès'
-        ];
+        return $articleId; // Retourner l'ID de l'article créé
     }
     
     /**
      * Mettre à jour un article
      */
-    public function updateArticle(int $id, array $data): array
+    public function updateArticle(int $id, array $data): bool
     {
         // Vérifier que l'article existe
         $article = $this->articleModel->findById($id);
         if (!$article) {
-            return [
-                'success' => false,
-                'errors' => ['Article non trouvé']
-            ];
+            return false; // Article non trouvé
         }
         
         // Validation des données
         $validation = $this->validateArticleData($data, $id);
         if (!$validation['valid']) {
-            return [
-                'success' => false,
-                'errors' => $validation['errors']
-            ];
+            return false; // Échec de validation
         }
         
         // Préparer les données
@@ -191,10 +177,7 @@ class ArticleService
         $success = $this->articleModel->update($id, $articleData);
         
         if (!$success) {
-            return [
-                'success' => false,
-                'errors' => ['Erreur lors de la mise à jour de l\'article']
-            ];
+            return false; // Échec de mise à jour
         }
         
         // Gérer les tags
@@ -205,43 +188,31 @@ class ArticleService
         // Invalider le cache
         $this->invalidateArticleCache($id);
         
-        return [
-            'success' => true,
-            'message' => 'Article mis à jour avec succès'
-        ];
+        return true; // Succès
     }
     
     /**
      * Supprimer un article
      */
-    public function deleteArticle(int $id): array
+    public function deleteArticle(int $id): bool
     {
         // Vérifier que l'article existe
         $article = $this->articleModel->findById($id);
         if (!$article) {
-            return [
-                'success' => false,
-                'errors' => ['Article non trouvé']
-            ];
+            return false; // Article non trouvé
         }
         
         // Supprimer l'article
         $success = $this->articleModel->delete($id);
         
         if (!$success) {
-            return [
-                'success' => false,
-                'errors' => ['Erreur lors de la suppression de l\'article']
-            ];
+            return false; // Échec de suppression
         }
         
         // Invalider le cache
         $this->invalidateArticleCache($id);
         
-        return [
-            'success' => true,
-            'message' => 'Article supprimé avec succès'
-        ];
+        return true; // Succès
     }
     
     /**
@@ -338,5 +309,39 @@ class ArticleService
                 MemoryCache::forget("article_slug_{$article['slug']}");
             }
         }
+    }
+    
+    /**
+     * Récupérer un article par son ID avec cache
+     */
+    public function getArticleById(int $id): ?array
+    {
+        return $this->cache->remember("article_{$id}", function() use ($id) {
+            return $this->articleRepository->findById($id);
+        }, 600); // Cache 10 minutes
+    }
+    
+    /**
+     * Récupérer les articles par catégorie
+     */
+    public function getArticlesByCategory(int $categoryId, int $page = 1, int $limit = 10): array
+    {
+        $offset = ($page - 1) * $limit;
+        
+        return $this->cache->remember("articles_category_{$categoryId}_page_{$page}_limit_{$limit}", function() use ($categoryId, $limit, $offset) {
+            return $this->articleRepository->findByCategory($categoryId, $limit, $offset);
+        }, 300); // Cache 5 minutes
+    }
+    
+    /**
+     * Récupérer les articles par jeu
+     */
+    public function getArticlesByGame(int $gameId, int $page = 1, int $limit = 10): array
+    {
+        $offset = ($page - 1) * $limit;
+        
+        return $this->cache->remember("articles_game_{$gameId}_page_{$page}_limit_{$limit}", function() use ($gameId, $limit, $offset) {
+            return $this->articleRepository->findByGame($gameId, $limit, $offset);
+        }, 300); // Cache 5 minutes
     }
 }
