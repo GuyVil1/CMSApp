@@ -137,6 +137,94 @@ function route($uri) {
         ];
     }
     
+    // Route de debug pour tester les paramètres
+    if ($parts[0] === 'debug_settings') {
+        echo "🔍 DEBUG SETTINGS SAVE\n";
+        echo "=====================\n\n";
+        
+        echo "Méthode: " . ($_SERVER['REQUEST_METHOD'] ?? 'non défini') . "\n";
+        echo "URI: " . ($_SERVER['REQUEST_URI'] ?? 'non défini') . "\n";
+        echo "POST: " . print_r($_POST, true) . "\n";
+        echo "SESSION: " . print_r($_SESSION, true) . "\n";
+        
+        // Tester la route settings/save
+        $_SERVER['REQUEST_URI'] = '/admin/settings/save';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['csrf_token'] = $_SESSION['csrf_token'] ?? 'test';
+        $_POST['allow_registration'] = '1';
+        
+        echo "\n🎯 Test de la route /admin/settings/save:\n";
+        
+        try {
+            $route = route('/admin/settings/save');
+            echo "Route trouvée: " . print_r($route, true) . "\n";
+            
+            // Tester le pipeline de middlewares
+            echo "\n🔧 Test du pipeline de middlewares:\n";
+            
+            // Créer la requête HTTP
+            $httpRequest = new HttpRequest(
+                $_SERVER['REQUEST_METHOD'],
+                $_SERVER['REQUEST_URI'],
+                $_GET,
+                $_POST,
+                getallheaders(),
+                $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+                $_SERVER['HTTP_USER_AGENT'] ?? null
+            );
+            
+            // Récupérer le pipeline
+            $pipeline = ContainerFactory::make('MiddlewarePipeline');
+            
+            // Handler final simple
+            $finalHandler = function($request) {
+                echo "✅ Handler final atteint !\n";
+                return new HttpResponse(200, 'OK', []);
+            };
+            
+            echo "Pipeline créé, test en cours...\n";
+            $response = $pipeline->handle($httpRequest, $finalHandler);
+            
+            echo "Réponse du pipeline:\n";
+            echo "- Status: " . $response->getStatusCode() . "\n";
+            echo "- Content: " . $response->getContent() . "\n";
+            echo "- Headers: " . print_r($response->getHeaders(), true) . "\n";
+            
+            // Tester directement le contrôleur
+            echo "\n🎮 Test direct du contrôleur:\n";
+            
+            try {
+                // Charger le contrôleur
+                require_once __DIR__ . "/../app/controllers/admin/SettingsController.php";
+                
+                // Créer une instance
+                $controller = new Admin\SettingsController();
+                echo "✅ Contrôleur créé avec succès\n";
+                
+                // Tester la méthode save
+                echo "Test de la méthode save()...\n";
+                
+                // Capturer la sortie
+                ob_start();
+                $controller->save();
+                $output = ob_get_clean();
+                
+                echo "Sortie de la méthode save(): " . $output . "\n";
+                echo "✅ Méthode save() exécutée sans erreur\n";
+                
+            } catch (Exception $e) {
+                echo "❌ Erreur dans le contrôleur: " . $e->getMessage() . "\n";
+                echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+            }
+            
+        } catch (Exception $e) {
+            echo "Erreur: " . $e->getMessage() . "\n";
+            echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+        }
+        
+        exit;
+    }
+    
     // Routes SEO
     if ($parts[0] === 'sitemap.xml') {
         return [

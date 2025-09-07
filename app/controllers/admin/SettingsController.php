@@ -17,7 +17,27 @@ class SettingsController extends \Controller
     public function __construct()
     {
         // Vérifier que l'utilisateur est connecté et a les droits admin
-        \Auth::requireRole('admin');
+        if (!\Auth::isLoggedIn()) {
+            // Si c'est une requête POST, afficher une erreur
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                http_response_code(401);
+                echo json_encode(['error' => 'Non authentifié. Veuillez vous connecter.']);
+                exit;
+            }
+            $this->redirect('/auth/login');
+            return;
+        }
+        
+        if (!\Auth::hasRole('admin')) {
+            // Si c'est une requête POST, afficher une erreur
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                http_response_code(403);
+                echo json_encode(['error' => 'Accès refusé. Droits administrateur requis.']);
+                exit;
+            }
+            $this->redirect('/admin/dashboard');
+            return;
+        }
     }
     
     /**
@@ -65,21 +85,30 @@ class SettingsController extends \Controller
                 return;
             }
             
+            // Vérifier le token CSRF
+            $csrfToken = $this->getPostParam('csrf_token', '');
+            if (!\Auth::verifyCsrfToken($csrfToken)) {
+                $this->setFlash('error', 'Token de sécurité invalide. Veuillez réessayer.');
+                $this->redirect('/admin/settings');
+                return;
+            }
+            
+            
         $settings = [
-            'allow_registration' => $_POST['allow_registration'] ?? '0',
-            'dark_mode' => $_POST['dark_mode'] ?? '0',
-            'maintenance_mode' => $_POST['maintenance_mode'] ?? '0',
-            'default_theme' => $_POST['default_theme'] ?? 'defaut',
-            'footer_tagline' => $_POST['footer_tagline'] ?? '',
-            'social_twitter' => $_POST['social_twitter'] ?? '',
-            'social_facebook' => $_POST['social_facebook'] ?? '',
-            'social_youtube' => $_POST['social_youtube'] ?? '',
-            'header_logo' => $_POST['header_logo'] ?? 'Logo.svg',
-            'footer_logo' => $_POST['footer_logo'] ?? 'Logo_neutre_500px.png',
-            'legal_mentions_content' => $_POST['legal_mentions_content'] ?? '',
-            'legal_privacy_content' => $_POST['legal_privacy_content'] ?? '',
-            'legal_cgu_content' => $_POST['legal_cgu_content'] ?? '',
-            'legal_cookies_content' => $_POST['legal_cookies_content'] ?? ''
+            'allow_registration' => $this->getPostParam('allow_registration', '0'),
+            'dark_mode' => $this->getPostParam('dark_mode', '0'),
+            'maintenance_mode' => $this->getPostParam('maintenance_mode', '0'),
+            'default_theme' => $this->getPostParam('default_theme', 'defaut'),
+            'footer_tagline' => $this->getPostParam('footer_tagline', ''),
+            'social_twitter' => $this->getPostParam('social_twitter', ''),
+            'social_facebook' => $this->getPostParam('social_facebook', ''),
+            'social_youtube' => $this->getPostParam('social_youtube', ''),
+            'header_logo' => $this->getPostParam('header_logo', 'Logo.svg'),
+            'footer_logo' => $this->getPostParam('footer_logo', 'Logo_neutre_500px.png'),
+            'legal_mentions_content' => $this->getPostParam('legal_mentions_content', ''),
+            'legal_privacy_content' => $this->getPostParam('legal_privacy_content', ''),
+            'legal_cgu_content' => $this->getPostParam('legal_cgu_content', ''),
+            'legal_cookies_content' => $this->getPostParam('legal_cookies_content', '')
         ];
             
             $success = true;

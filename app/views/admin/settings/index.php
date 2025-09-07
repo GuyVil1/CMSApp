@@ -25,6 +25,7 @@
         </div>
 
         <form method="POST" action="/admin/settings/save" class="settings-form">
+            <input type="hidden" name="csrf_token" value="<?= \Auth::generateCsrfToken() ?>">
             <div class="settings-section">
                 <h3>👥 Gestion des utilisateurs</h3>
                 <div class="setting-item">

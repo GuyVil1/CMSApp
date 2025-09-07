@@ -65,12 +65,12 @@ class Setting
     {
         try {
             // Vérifier si l'option existe (sans cache pour éviter les boucles)
-            $sql = "SELECT value FROM settings WHERE `key` = ?";
+            $sql = "SELECT id FROM settings WHERE `key` = ?";
             $result = Database::query($sql, [$key]);
-            $existing = !empty($result) ? $result[0]['value'] : null;
+            $exists = !empty($result);
             
             $success = false;
-            if ($existing !== null) {
+            if ($exists) {
                 // Mettre à jour
                 $sql = "UPDATE settings SET value = ?, description = ? WHERE `key` = ?";
                 $success = Database::execute($sql, [$value, $description, $key]) !== false;

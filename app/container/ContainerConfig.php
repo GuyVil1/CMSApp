@@ -198,7 +198,7 @@ class ContainerConfig
                 'password' => ['required' => true, 'min_length' => 6]
             ]
         ];
-        $validationMiddleware = new ValidationMiddleware($validationRules, ['/api/*', '/assets/*', '/admin/articles/*']);
+        $validationMiddleware = new ValidationMiddleware($validationRules, ['/api/*', '/assets/*', '/admin/articles/*', '/admin/settings/*']);
         $pipeline->add($validationMiddleware);
         
         // Logging Middleware

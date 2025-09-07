@@ -1,8 +1,9 @@
 RewriteEngine On
 
-# Rediriger toutes les requêtes vers le dossier public
+# Rediriger toutes les requêtes vers le dossier public (sauf les fichiers PHP à la racine)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !\.php$
 RewriteRule ^(.*)$ public/$1 [QSA,L]
 
 # Sécurité - Empêcher l'accès aux fichiers sensibles
