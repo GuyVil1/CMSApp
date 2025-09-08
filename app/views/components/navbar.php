@@ -12,7 +12,8 @@ $categories = [
     'actualités' => ['name' => 'ACTUALITÉS', 'slug' => 'actu'],
     'tests' => ['name' => 'TESTS', 'slug' => 'test'],
     'dossiers' => ['name' => 'DOSSIERS', 'slug' => 'dossiers'],
-    'trailers' => ['name' => 'TRAILERS', 'slug' => 'trailers']
+    'trailers' => ['name' => 'TRAILERS', 'slug' => 'trailers'],
+    'belges' => ['name' => '🇧🇪 BELGES', 'slug' => 'belges']
 ];
 ?>
 

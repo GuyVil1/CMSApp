@@ -383,15 +383,42 @@ function route($uri) {
         }
     }
     
+    
     // Route spéciale pour category
     if ($parts[0] === 'category') {
         error_log("🔍 Route category détectée");
-        $controller = 'HomeController';
-        $action = 'category';
         
         // Extraire le slug de la catégorie (2ème partie après 'category')
         if (isset($parts[1])) {
-            $params = [$parts[1]]; // Le slug de la catégorie
+            $categorySlug = $parts[1];
+            
+            // Cas spécial pour les jeux belges
+            if ($categorySlug === 'belges') {
+                error_log("🔍 Route category/belges détectée - redirection vers BelgianGamesController");
+                $controller = 'BelgianGamesController';
+                $action = 'index';
+                $params = [];
+                
+                // Charger le BelgianGamesController
+                $controllerFile = __DIR__ . "/../app/controllers/{$controller}.php";
+                if (file_exists($controllerFile)) {
+                    require_once $controllerFile;
+                } else {
+                    error_log("❌ BelgianGamesController non trouvé");
+                    return ['error' => '404'];
+                }
+                
+                return [
+                    'controller' => $controller,
+                    'action' => $action,
+                    'params' => $params
+                ];
+            } else {
+                // Route normale pour les autres catégories
+                $controller = 'HomeController';
+                $action = 'category';
+                $params = [$categorySlug]; // Le slug de la catégorie
+            }
         } else {
             // Pas de slug, rediriger vers 404
             error_log("❌ Pas de slug de catégorie spécifié");

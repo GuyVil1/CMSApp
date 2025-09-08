@@ -23,8 +23,9 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             <?php if (!empty($featuredArticles)): ?>
                 <!-- Article principal -->
                 <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer;">
-                    <img data-lazy="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>"
+                         loading="lazy"
                          class="lazy-responsive">
                     <div class="featured-overlay"></div>
                                                     <div class="featured-content">
@@ -40,8 +41,9 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                 <div class="featured-bottom">
                     <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
                         <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
-                            <img data-lazy="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
+                            <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
                                  alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>"
+                                 loading="lazy"
                                  class="lazy-responsive">
                             <div class="featured-overlay"></div>
                             <div class="featured-content">
@@ -193,7 +195,9 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
                     <?php foreach ($trailers as $trailer): ?>
                         <div class="trailer-item" onclick="window.location.href='/article/<?php echo $trailer['slug']; ?>'" style="cursor: pointer;">
                             <img src="/image.php?file=<?php echo urlencode($trailer['cover_image'] ?? 'default.jpg'); ?>" 
-                                 alt="<?php echo htmlspecialchars($trailer['title']); ?>" class="trailer-image">
+                                 alt="<?php echo htmlspecialchars($trailer['title']); ?>" 
+                                 loading="lazy"
+                                 class="trailer-image">
                             <div class="trailer-overlay"></div>
                             <div class="trailer-play">
                                 <svg class="trailer-play-icon" fill="currentColor" viewBox="0 0 24 24">

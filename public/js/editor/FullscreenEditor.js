@@ -1996,16 +1996,16 @@ class FullscreenEditor {
                          align-items: center;
                      }
 
-                     .button-align-left {
-                         justify-content: flex-start;
+                     .button-container.button-align-left {
+                         justify-content: flex-start !important;
                      }
 
-                     .button-align-center {
-                         justify-content: center;
+                     .button-container.button-align-center {
+                         justify-content: center !important;
                      }
 
-                     .button-align-right {
-                         justify-content: flex-end;
+                     .button-container.button-align-right {
+                         justify-content: flex-end !important;
                      }
 
                      .button-full-width .content-module-button {

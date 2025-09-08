@@ -285,3 +285,67 @@
         justify-content: center;
     }
 }
+
+/* ========================================
+   BOUTONS MODULAIRES - STYLES POUR LIENS
+   ======================================== */
+
+/* S'assurer que les liens stylés en boutons ressemblent parfaitement à des boutons */
+.content-module-button {
+    display: inline-block !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    border: none !important;
+    outline: none !important;
+    transition: all 0.3s ease !important;
+    box-sizing: border-box !important;
+    font-family: inherit !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+/* Supprimer les styles de lien par défaut */
+.content-module-button:link,
+.content-module-button:visited,
+.content-module-button:hover,
+.content-module-button:active,
+.content-module-button:focus {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+/* Effet de focus pour l'accessibilité */
+.content-module-button:focus {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+}
+
+/* Animation de hover pour tous les boutons */
+.content-module-button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.content-module-button:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Styles spécifiques pour les boutons avec href="#" */
+.content-module-button[href="#"] {
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
+
+/* Responsive pour les boutons modulaires */
+@media (max-width: 768px) {
+    .content-module-button {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+    }
+}

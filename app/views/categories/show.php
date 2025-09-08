@@ -5,58 +5,52 @@
  */
 ?>
 
-<!-- Section Catégorie -->
-<section class="section">
-    <div class="section-header">
-        <div class="section-line yellow"></div>
-        <h2 class="section-title"><?= htmlspecialchars($category->getName()) ?></h2>
-        <div class="section-line red"></div>
-    </div>
-
-    <!-- Informations de la catégorie -->
-    <div class="category-info">
-        <div class="category-details">
-            <div class="category-badge category-<?= $category->getSlug() ?>">
-                <?= htmlspecialchars($category->getName()) ?>
+<!-- Hero Section -->
+<section class="category-hero category-<?= $category->getSlug() ?>">
+    <div class="container">
+        <h1><?= htmlspecialchars($category->getName()) ?></h1>
+        <?php if ($category->getDescription()): ?>
+            <p><?= htmlspecialchars($category->getDescription()) ?></p>
+        <?php else: ?>
+            <p>Découvrez tous les articles de la catégorie <?= htmlspecialchars($category->getName()) ?>. Une sélection exclusive de contenu de qualité.</p>
+        <?php endif; ?>
+        
+        <div class="category-stats">
+            <div class="stat-item">
+                <span class="stat-number"><?= count($articles) ?></span>
+                <span class="stat-label">Article<?= count($articles) > 1 ? 's' : '' ?></span>
             </div>
-            
-            <?php if ($category->getDescription()): ?>
-                <div class="category-description">
-                    <p><?= htmlspecialchars($category->getDescription()) ?></p>
-                </div>
-            <?php endif; ?>
-            
-            <div class="category-stats">
-                <span class="articles-count"><?= count($articles) ?> article<?= count($articles) > 1 ? 's' : '' ?></span>
+            <div class="stat-item">
+                <span class="stat-number"><?= count(array_unique(array_column($articles, 'author_name'))) ?></span>
+                <span class="stat-label">Auteur<?= count(array_unique(array_column($articles, 'author_name'))) > 1 ? 's' : '' ?></span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number"><?= count(array_filter($articles, function($article) { return !empty($article['cover_image']); })) ?></span>
+                <span class="stat-label">Avec images</span>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Section Articles -->
-<?php if (!empty($articles)): ?>
-<section class="section">
-    <div class="section-header">
-        <div class="section-line red"></div>
-        <h2 class="section-title">Articles <?= htmlspecialchars($category->getName()) ?></h2>
-        <div class="section-line yellow"></div>
-    </div>
-
-    <div class="articles-layout">
-        <!-- Articles principaux -->
-        <div class="articles-main">
-            <?php foreach ($articles as $index => $article): ?>
-                <?php if ($index < 6): // 6 premiers articles en grand format ?>
-                    <div class="article-card-large" onclick="window.location.href='/article/<?= $article['slug'] ?>'" style="cursor: pointer;">
-                        <div class="article-image">
-                            <?php if ($article['cover_image']): ?>
-                                <img src="/image.php?file=<?= urlencode($article['cover_image']) ?>" 
-                                     alt="<?= htmlspecialchars($article['title']) ?>">
-                            <?php else: ?>
-                                <img src="/assets/images/default-article.jpg" 
-                                     alt="<?= htmlspecialchars($article['title']) ?>">
-                            <?php endif; ?>
-                        </div>
+<div class="container">
+    <!-- Section Articles -->
+    <?php if (!empty($articles)): ?>
+        <section class="articles-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #333;">📰 Articles <?= htmlspecialchars($category->getName()) ?></h2>
+            
+            <div class="articles-grid">
+                <?php foreach ($articles as $article): ?>
+                    <a href="/article/<?= htmlspecialchars($article['slug']) ?>" class="article-card" style="text-decoration: none; color: inherit;">
+                        <?php if (!empty($article['cover_image'])): ?>
+                            <img src="/image.php?file=<?= urlencode($article['cover_image']) ?>" 
+                                 alt="<?= htmlspecialchars($article['title']) ?>" 
+                                 class="article-cover">
+                        <?php else: ?>
+                            <div class="article-cover" style="display: flex; align-items: center; justify-content: center; background: #f0f0f0; color: #999;">
+                                📰
+                            </div>
+                        <?php endif; ?>
+                        
                         <div class="article-content">
                             <div class="article-header">
                                 <span class="article-badge category-<?= $article['category_slug'] ?>">
@@ -74,55 +68,187 @@
                                 <span class="article-author">Par <?= htmlspecialchars($article['author_name']) ?></span>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- Articles secondaires -->
-        <?php if (count($articles) > 6): ?>
-            <div class="articles-secondary">
-                <h3 class="secondary-title">Autres articles</h3>
-                <div class="articles-grid">
-                    <?php foreach ($articles as $index => $article): ?>
-                        <?php if ($index >= 6): // Articles restants en petit format ?>
-                            <div class="article-card-small" onclick="window.location.href='/article/<?= $article['slug'] ?>'" style="cursor: pointer;">
-                                <div class="article-image">
-                                    <?php if ($article['cover_image']): ?>
-                                        <img src="/image.php?file=<?= urlencode($article['cover_image']) ?>" 
-                                             alt="<?= htmlspecialchars($article['title']) ?>">
-                                    <?php else: ?>
-                                        <img src="/assets/images/default-article.jpg" 
-                                             alt="<?= htmlspecialchars($article['title']) ?>">
-                                    <?php endif; ?>
-                                </div>
-                                <div class="article-content">
-                                    <h4 class="article-title"><?= htmlspecialchars($article['title']) ?></h4>
-                                    <span class="article-date">
-                                        <?= date('d/m/Y', strtotime($article['published_at'])) ?>
-                                    </span>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </div>
+                    </a>
+                <?php endforeach; ?>
             </div>
-        <?php endif; ?>
-    </div>
-</section>
-<?php else: ?>
-<!-- Message si aucun article -->
-<section class="section">
-    <div class="empty-state">
-        <div class="empty-icon">📰</div>
-        <h3>Aucun article disponible</h3>
-        <p>Il n'y a pas encore d'articles dans la catégorie <?= htmlspecialchars($category->getName()) ?>.</p>
-        <p>Revenez bientôt pour découvrir du nouveau contenu !</p>
-    </div>
-</section>
-<?php endif; ?>
+        </section>
+    <?php else: ?>
+        <!-- Message si aucun article -->
+        <section class="empty-state">
+            <div class="empty-icon">📰</div>
+            <h3>Aucun article disponible</h3>
+            <p>Il n'y a pas encore d'articles dans la catégorie <?= htmlspecialchars($category->getName()) ?>.</p>
+            <p>Revenez bientôt pour découvrir du nouveau contenu !</p>
+        </section>
+    <?php endif; ?>
+</div>
 
 <style>
+/* Hero Section avec couleurs dynamiques selon la catégorie */
+.category-hero {
+    background: linear-gradient(135deg, var(--category-primary, #ffd700), var(--category-secondary, #ffed4e));
+    color: #000;
+    padding: 3rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.category-hero h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.category-hero p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    opacity: 0.8;
+}
+
+.category-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Couleurs spécifiques par catégorie */
+.category-hero.category-actu {
+    --category-primary: #DC2626;
+    --category-secondary: #B91C1C;
+    color: #fff;
+}
+
+.category-hero.category-test {
+    --category-primary: #059669;
+    --category-secondary: #047857;
+    color: #fff;
+}
+
+.category-hero.category-dossiers {
+    --category-primary: #7C3AED;
+    --category-secondary: #6D28D9;
+    color: #fff;
+}
+
+.category-hero.category-trailers {
+    --category-primary: #EA580C;
+    --category-secondary: #DC2626;
+    color: #fff;
+}
+
+/* Grille d'articles moderne */
+.articles-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--category-primary, #ffd700);
+}
+
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.article-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+}
+
+.article-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.article-cover {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.article-content {
+    padding: 1rem;
+}
+
+.article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.article-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.article-date {
+    font-size: 11px;
+    color: #666;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 8px;
+}
+
+.article-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+    line-height: 1.3;
+}
+
+.article-excerpt {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.article-meta {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.article-author {
+    font-style: italic;
+}
+
 /* Styles spécifiques pour la page catégorie */
 .category-info {
     background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
@@ -479,17 +605,12 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .category-info {
-        padding: 1.5rem;
+    .category-hero h1 {
+        font-size: 2rem;
     }
     
-    .articles-main {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-    
-    .article-card-large .article-content {
-        padding: 1.5rem;
+    .category-stats {
+        gap: 1rem;
     }
     
     .articles-grid {
@@ -497,8 +618,8 @@
         gap: 1rem;
     }
     
-    .articles-secondary {
-        padding: 1.5rem;
+    .article-content {
+        padding: 0.8rem;
     }
 }
 </style>

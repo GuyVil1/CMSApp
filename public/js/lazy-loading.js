@@ -198,7 +198,9 @@ class LazyLoader {
     }
 }
 
-// Auto-initialisation
+// Auto-initialisation DÉSACTIVÉE pour éviter les conflits avec le lazy loading natif
+// Le lazy loading natif (loading="lazy") est plus performant et stable
+/*
 document.addEventListener('DOMContentLoaded', () => {
     window.lazyLoader = new LazyLoader({
         rootMargin: '100px', // Commencer à charger 100px avant que l'image soit visible
@@ -219,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`🎉 LazyLoader: Toutes les images chargées! (${loadedCount}/${totalCount})`);
     });
 });
+*/
 
 // Export pour utilisation dans d'autres modules
 if (typeof module !== 'undefined' && module.exports) {

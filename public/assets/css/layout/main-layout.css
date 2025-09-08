@@ -34,6 +34,43 @@
 }
 
 /* ========================================
+   LAZY LOADING NATIF - AMÉLIORATIONS
+   ======================================== */
+
+/* Améliorer l'affichage des images avec lazy loading natif */
+img[loading="lazy"] {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Placeholder pour les images en cours de chargement */
+img[loading="lazy"]:not([src]) {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Améliorer l'affichage des images responsive */
+.lazy-responsive {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Prévenir les sauts de layout */
+.featured-main img,
+.featured-small img,
+.trailer-image {
+    aspect-ratio: 16/9;
+    object-fit: cover;
+}
+
+/* ========================================
    HEADER PRINCIPAL
    ======================================== */
 .header {
