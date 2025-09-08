@@ -35,6 +35,7 @@ class GamesController extends \Controller
         $search = $this->getQueryParam('search', '');
         $platform = $this->getQueryParam('platform', '');
         $genre = $this->getQueryParam('genre', '');
+        $belgian = $this->getQueryParam('belgian', '');
 
         $limit = 20;
         $offset = ($page - 1) * $limit;
@@ -55,6 +56,11 @@ class GamesController extends \Controller
         if (!empty($genre)) {
             $conditions[] = "g.genre_id = ?";
             $params[] = (int)$genre;
+        }
+
+        if ($belgian !== '') {
+            $conditions[] = "g.is_belgian = ?";
+            $params[] = (int)$belgian;
         }
 
         $whereClause = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
@@ -82,17 +88,22 @@ class GamesController extends \Controller
         $games = \Game::findWithQuery($query, $params);
 
         // Récupérer les plateformes et genres pour les filtres
-        $platforms = \Game::getPlatforms();
+        $platforms = \Game::getUniquePlatforms();
         $genres = \Game::getGenres();
+        
+        // Compter les jeux belges
+        $belgianGamesCount = \Game::countBelgianGames();
 
         $this->render('admin/games/index', [
             'games' => $games,
             'currentPage' => $page,
             'totalPages' => $totalPages,
             'totalGames' => $totalGames,
+            'belgianGamesCount' => $belgianGamesCount,
             'search' => $search,
             'platform' => $platform,
             'genre' => $genre,
+            'belgian' => $belgian,
             'platforms' => $platforms,
             'genres' => $genres
         ]);
@@ -132,7 +143,7 @@ class GamesController extends \Controller
                 'error' => 'Token de sécurité invalide',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -152,6 +163,10 @@ class GamesController extends \Controller
         $developer = trim($_POST['developer'] ?? '');
         $publisher = trim($_POST['publisher'] ?? '');
         $pegiRating = !empty($_POST['pegi_rating']) ? (int)$_POST['pegi_rating'] : null;
+        $isBelgian = isset($_POST['is_belgian']) && $_POST['is_belgian'] === '1';
+        
+        // Gestion des plateformes multiples
+        $selectedPlatforms = $_POST['platforms'] ?? [];
         
         // Liens d'achat
         $steamUrl = trim($_POST['steam_url'] ?? '');
@@ -167,7 +182,7 @@ class GamesController extends \Controller
                 'error' => 'Le titre du jeu est obligatoire',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -183,7 +198,7 @@ class GamesController extends \Controller
                 'error' => 'Ce slug existe déjà, veuillez en choisir un autre',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -195,7 +210,7 @@ class GamesController extends \Controller
                 'error' => 'Si le jeu est testé, la note doit être comprise entre 0 et 10',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -206,11 +221,42 @@ class GamesController extends \Controller
                 'error' => 'La classification PEGI doit être 3, 7, 12, 16 ou 18',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll(),
                 'media' => \Media::findAllImages()
             ]);
             return;
+        }
+
+        // Validation des plateformes multiples
+        if ($hardwareId && \Hardware::find($hardwareId) && \Hardware::find($hardwareId)->getName() === 'Multi-plateforme') {
+            if (empty($selectedPlatforms)) {
+                $this->render('admin/games/create', [
+                    'error' => 'Veuillez sélectionner au moins une plateforme pour un jeu multi-plateforme',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::getAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+            
+            // Valider que les plateformes sélectionnées existent
+            foreach ($selectedPlatforms as $platformId) {
+                $platform = \Hardware::find((int)$platformId);
+                if (!$platform || $platform->getName() === 'Multi-plateforme') {
+                    $this->render('admin/games/create', [
+                        'error' => 'Une des plateformes sélectionnées n\'est pas valide',
+                        'success' => '',
+                        'csrf_token' => \Auth::generateCsrfToken(),
+                        'hardware' => \Hardware::getAllActive(),
+                        'genres' => \Genre::findAll(),
+                        'media' => \Media::findAllImages()
+                    ]);
+                    return;
+                }
+            }
         }
 
         // Validation des URLs d'achat
@@ -229,7 +275,7 @@ class GamesController extends \Controller
                     'error' => "L'URL {$platform} n'est pas valide",
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -249,7 +295,7 @@ class GamesController extends \Controller
                     'error' => 'Veuillez sélectionner une image existante',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -263,7 +309,7 @@ class GamesController extends \Controller
                     'error' => 'Veuillez sélectionner une image de couverture',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -275,13 +321,13 @@ class GamesController extends \Controller
             $coverFile = $_FILES['cover_image'];
             
             // Vérifier le type de fichier
-            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
             if (!in_array($coverFile['type'], $allowedTypes)) {
                 $this->render('admin/games/create', [
-                    'error' => 'Format d\'image non supporté. Utilisez JPG, PNG ou GIF',
+                    'error' => 'Format d\'image non supporté. Utilisez JPG, PNG, GIF ou WebP',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -294,7 +340,7 @@ class GamesController extends \Controller
                     'error' => 'L\'image ne doit pas dépasser 5MB',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -317,6 +363,7 @@ class GamesController extends \Controller
             'developer' => $developer ?: null,
             'publisher' => $publisher ?: null,
             'pegi_rating' => $pegiRating,
+            'is_belgian' => $isBelgian,
             'steam_url' => $steamUrl ?: null,
             'eshop_url' => $eshopUrl ?: null,
             'xbox_url' => $xboxUrl ?: null,
@@ -332,7 +379,7 @@ class GamesController extends \Controller
                 'error' => 'Erreur lors de la création du jeu',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll(),
                 'media' => \Media::findAllImages()
             ]);
@@ -357,7 +404,7 @@ class GamesController extends \Controller
                     'error' => 'Erreur lors de l\'upload de l\'image',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -390,10 +437,23 @@ class GamesController extends \Controller
                     'error' => 'Erreur lors de l\'enregistrement de l\'image',
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
+            }
+        }
+        
+        // Gérer les plateformes multiples
+        if ($hardwareId && \Hardware::find($hardwareId) && \Hardware::find($hardwareId)->getName() === 'Multi-plateforme') {
+            foreach ($selectedPlatforms as $platformId) {
+                $platformId = (int)$platformId;
+                if ($platformId > 0) {
+                    \Database::query(
+                        "INSERT INTO game_platforms (game_id, hardware_id) VALUES (?, ?)",
+                        [$game->getId(), $platformId]
+                    );
+                }
             }
         }
         
@@ -449,7 +509,7 @@ class GamesController extends \Controller
                 'error' => 'Token de sécurité invalide',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -470,6 +530,10 @@ class GamesController extends \Controller
         $developer = trim($_POST['developer'] ?? '');
         $publisher = trim($_POST['publisher'] ?? '');
         $pegiRating = !empty($_POST['pegi_rating']) ? (int)$_POST['pegi_rating'] : null;
+        $isBelgian = isset($_POST['is_belgian']) && $_POST['is_belgian'] === '1';
+        
+        // Gestion des plateformes multiples
+        $selectedPlatforms = $_POST['platforms'] ?? [];
         
         // Liens d'achat
         $steamUrl = trim($_POST['steam_url'] ?? '');
@@ -486,7 +550,7 @@ class GamesController extends \Controller
                 'error' => 'Le titre du jeu est obligatoire',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -503,7 +567,7 @@ class GamesController extends \Controller
                 'error' => 'Ce slug existe déjà, veuillez en choisir un autre',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -516,7 +580,7 @@ class GamesController extends \Controller
                 'error' => 'Si le jeu est testé, la note doit être comprise entre 0 et 10',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
             return;
@@ -528,11 +592,44 @@ class GamesController extends \Controller
                 'error' => 'La classification PEGI doit être 3, 7, 12, 16 ou 18',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll(),
                 'media' => \Media::findAllImages()
             ]);
             return;
+        }
+
+        // Validation des plateformes multiples
+        if ($hardwareId && \Hardware::find($hardwareId) && \Hardware::find($hardwareId)->getName() === 'Multi-plateforme') {
+            if (empty($selectedPlatforms)) {
+                $this->render('admin/games/edit', [
+                    'game' => $game,
+                    'error' => 'Veuillez sélectionner au moins une plateforme pour un jeu multi-plateforme',
+                    'success' => '',
+                    'csrf_token' => \Auth::generateCsrfToken(),
+                    'hardware' => \Hardware::getAllActive(),
+                    'genres' => \Genre::findAll(),
+                    'media' => \Media::findAllImages()
+                ]);
+                return;
+            }
+            
+            // Valider que les plateformes sélectionnées existent
+            foreach ($selectedPlatforms as $platformId) {
+                $platform = \Hardware::find((int)$platformId);
+                if (!$platform || $platform->getName() === 'Multi-plateforme') {
+                    $this->render('admin/games/edit', [
+                        'game' => $game,
+                        'error' => 'Une des plateformes sélectionnées n\'est pas valide',
+                        'success' => '',
+                        'csrf_token' => \Auth::generateCsrfToken(),
+                        'hardware' => \Hardware::getAllActive(),
+                        'genres' => \Genre::findAll(),
+                        'media' => \Media::findAllImages()
+                    ]);
+                    return;
+                }
+            }
         }
 
         // Validation des URLs d'achat
@@ -552,7 +649,7 @@ class GamesController extends \Controller
                     'error' => "L'URL {$platform} n'est pas valide",
                     'success' => '',
                     'csrf_token' => \Auth::generateCsrfToken(),
-                    'hardware' => \Hardware::findAllActive(),
+                    'hardware' => \Hardware::getAllActive(),
                     'genres' => \Genre::findAll(),
                     'media' => \Media::findAllImages()
                 ]);
@@ -574,6 +671,7 @@ class GamesController extends \Controller
             'developer' => $developer ?: null,
             'publisher' => $publisher ?: null,
             'pegi_rating' => $pegiRating,
+            'is_belgian' => $isBelgian,
             'steam_url' => $steamUrl ?: null,
             'eshop_url' => $eshopUrl ?: null,
             'xbox_url' => $xboxUrl ?: null,
@@ -584,6 +682,14 @@ class GamesController extends \Controller
 
         // Mettre à jour le jeu
         if ($game->update($data)) {
+            // Gérer les plateformes multiples
+            if ($hardwareId && \Hardware::find($hardwareId) && \Hardware::find($hardwareId)->getName() === 'Multi-plateforme') {
+                $game->updatePlatforms($selectedPlatforms);
+            } else {
+                // Si ce n'est plus multi-plateforme, supprimer toutes les plateformes
+                $game->updatePlatforms([]);
+            }
+            
             $this->redirectTo('/games.php?success=updated');
         } else {
             $this->render('admin/games/edit', [
@@ -591,7 +697,7 @@ class GamesController extends \Controller
                 'error' => 'Erreur lors de la mise à jour du jeu',
                 'success' => '',
                 'csrf_token' => \Auth::generateCsrfToken(),
-                'hardware' => \Hardware::findAllActive(),
+                'hardware' => \Hardware::getAllActive(),
                 'genres' => \Genre::findAll()
             ]);
         }

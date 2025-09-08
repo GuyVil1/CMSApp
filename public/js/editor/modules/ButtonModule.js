@@ -8,6 +8,7 @@ class ButtonModule extends BaseModule {
             text: 'Cliquez ici',
             link: '',
             target: '_self', // _self, _blank, _parent, _top
+            onclick: '', // JavaScript onclick
             style: 'primary', // primary, secondary, success, danger, warning, info, light, dark, outline-primary, outline-secondary, etc.
             size: 'medium', // small, medium, large
             alignment: 'left', // left, center, right
@@ -65,13 +66,25 @@ class ButtonModule extends BaseModule {
         const buttonElement = this.buttonData.link ? 'a' : 'button';
         const hrefAttr = this.buttonData.link ? `href="${this.buttonData.link}"` : '';
         const targetAttr = this.buttonData.link && this.buttonData.target !== '_self' ? `target="${this.buttonData.target}"` : '';
+        const onclickAttr = this.buttonData.onclick ? `onclick="${this.buttonData.onclick}"` : '';
         
-        return `
-            <div class="button-container ${alignmentClass} ${widthClass}">
+        // Forcer l'alignement avec du CSS inline
+        let alignmentStyle = '';
+        if (this.buttonData.alignment === 'center') {
+            alignmentStyle = 'justify-content: center !important;';
+        } else if (this.buttonData.alignment === 'right') {
+            alignmentStyle = 'justify-content: flex-end !important;';
+        } else {
+            alignmentStyle = 'justify-content: flex-start !important;';
+        }
+        
+        const html = `
+            <div class="button-container ${alignmentClass} ${widthClass}" style="display: flex !important; align-items: center; ${alignmentStyle}">
                 <${buttonElement} 
                     class="content-module-button ${buttonClass} ${animationClass}" 
                     ${hrefAttr} 
                     ${targetAttr}
+                    ${onclickAttr}
                     style="${customStyles}"
                     ${buttonElement === 'button' ? 'type="button"' : ''}
                 >
@@ -79,6 +92,9 @@ class ButtonModule extends BaseModule {
                 </${buttonElement}>
             </div>
         `;
+        
+        
+        return html;
     }
 
     getButtonClass() {
@@ -169,6 +185,10 @@ class ButtonModule extends BaseModule {
                             <option value="_parent" ${this.buttonData.target === '_parent' ? 'selected' : ''}>Fenêtre parent</option>
                             <option value="_top" ${this.buttonData.target === '_top' ? 'selected' : ''}>Fenêtre principale</option>
                         </select>
+                    </div>
+                    <div class="content-group">
+                        <label>JavaScript onclick:</label>
+                        <input type="text" id="button-onclick" value="${this.buttonData.onclick}" placeholder="window.open('https://example.com', '_blank')">
                     </div>
                     <div class="content-group">
                         <label>Icône:</label>
@@ -276,6 +296,7 @@ class ButtonModule extends BaseModule {
         const textInput = document.getElementById('button-text');
         const linkInput = document.getElementById('button-link');
         const targetSelect = document.getElementById('button-target');
+        const onclickInput = document.getElementById('button-onclick');
         const iconInput = document.getElementById('button-icon');
         const iconPositionSelect = document.getElementById('icon-position');
 
@@ -290,6 +311,11 @@ class ButtonModule extends BaseModule {
 
         if (targetSelect) targetSelect.addEventListener('change', (e) => {
             this.buttonData.target = e.target.value;
+        });
+
+        if (onclickInput) onclickInput.addEventListener('input', (e) => {
+            this.buttonData.onclick = e.target.value;
+            this.updatePreview();
         });
 
         if (iconInput) iconInput.addEventListener('input', (e) => {

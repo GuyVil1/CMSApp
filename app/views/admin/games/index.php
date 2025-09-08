@@ -11,6 +11,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Jeux - Administration</title>
     <link rel="stylesheet" href="/admin.css">
+    <style>
+        .badge-belgian {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            font-weight: 600;
+            border: 1px solid #ffd700;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+        
+        .badge-belgian:hover {
+            background: linear-gradient(135deg, #ffed4e, #ffd700);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.4);
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -70,6 +85,13 @@
                 </div>
             </div>
             <div class="stat-card">
+                <div class="stat-icon">🇧🇪</div>
+                <div class="stat-content">
+                    <div class="stat-number"><?= $belgianGamesCount ?></div>
+                    <div class="stat-label">Jeux Belges</div>
+                </div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-icon">📰</div>
                 <div class="stat-content">
                     <div class="stat-number"><?= array_sum(array_column($games, 'article_count')) ?></div>
@@ -114,6 +136,15 @@
                         </select>
                     </div>
                     
+                    <div class="filter-group">
+                        <label for="belgian">Jeux belges :</label>
+                        <select id="belgian" name="belgian" class="form-select">
+                            <option value="">Tous les jeux</option>
+                            <option value="1" <?= isset($_GET['belgian']) && $_GET['belgian'] === '1' ? 'selected' : '' ?>>🇧🇪 Jeux belges uniquement</option>
+                            <option value="0" <?= isset($_GET['belgian']) && $_GET['belgian'] === '0' ? 'selected' : '' ?>>🌍 Jeux internationaux</option>
+                        </select>
+                    </div>
+                    
                     <div class="filter-actions">
                         <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
                         <a href="/games.php" class="btn btn-secondary">🔄 Réinitialiser</a>
@@ -133,6 +164,7 @@
                         <th>Hardware</th>
                         <th>Genre</th>
                         <th>Date de sortie</th>
+                        <th>🇧🇪 Belge</th>
                         <th>Articles</th>
                         <th>Actions</th>
                     </tr>
@@ -140,7 +172,7 @@
                 <tbody>
                     <?php if (empty($games)): ?>
                         <tr>
-                            <td colspan="8" class="text-center">
+                            <td colspan="9" class="text-center">
                                 <div class="empty-state">
                                     <div class="empty-icon">🎮</div>
                                     <h3>Aucun jeu trouvé</h3>
@@ -202,6 +234,13 @@
                                                 <span class="badge badge-upcoming">À venir</span>
                                             <?php endif; ?>
                                         </div>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($game->getIsBelgian()): ?>
+                                        <span class="badge badge-belgian">🇧🇪 Belge</span>
                                     <?php else: ?>
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>

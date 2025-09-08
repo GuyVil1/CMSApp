@@ -3502,19 +3502,7 @@ class StyleManager {
             align-items: center;
         }
 
-        .button-align-left {
-            justify-content: flex-start;
-        }
-
-        .button-align-center {
-            justify-content: center;
-        }
-
-        .button-align-right {
-            justify-content: flex-end;
-        }
-
-        .button-full-width .custom-button {
+        .button-full-width .content-module-button {
             width: 100%;
         }
 
@@ -4269,20 +4257,20 @@ class StyleManager {
            ======================================== */
         
         .button-container {
-            display: flex;
+            display: flex !important;
             margin: 10px 0;
         }
 
         .button-container.button-align-left {
-            justify-content: flex-start;
+            justify-content: flex-start !important;
         }
 
         .button-container.button-align-center {
-            justify-content: center;
+            justify-content: center !important;
         }
 
         .button-container.button-align-right {
-            justify-content: flex-end;
+            justify-content: flex-end !important;
         }
 
         .button-container.button-full-width {

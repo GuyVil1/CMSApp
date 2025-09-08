@@ -2008,11 +2008,11 @@ class FullscreenEditor {
                          justify-content: flex-end;
                      }
 
-                     .button-full-width .custom-button {
+                     .button-full-width .content-module-button {
                          width: 100%;
                      }
 
-                     .custom-button {
+                     .content-module-button {
                          display: inline-flex;
                          align-items: center;
                          gap: 8px;
@@ -2028,7 +2028,7 @@ class FullscreenEditor {
                          line-height: 1.4;
                      }
 
-                     .custom-button:hover {
+                     .content-module-button:hover {
                          transform: translateY(-2px);
                          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                      }
@@ -3005,16 +3005,34 @@ class FullscreenEditor {
         try {
             console.log('🔘 Recréation du module bouton depuis content-module-button');
             
-            const button = moduleElement.querySelector('a.custom-button');
+            // Chercher le bouton (peut être <a> ou <button>)
+            const button = moduleElement.querySelector('a.content-module-button, button.content-module-button');
             if (button) {
+                console.log('🔘 Bouton trouvé:', button);
+                console.log('🔘 Type de bouton:', button.tagName);
+                console.log('🔘 Classes du bouton:', button.className);
+                console.log('🔘 HTML du bouton:', button.outerHTML);
+                
+                // Chercher le container pour l'alignement
+                const buttonContainer = moduleElement.querySelector('.button-container');
+                const containerClasses = buttonContainer ? buttonContainer.className : '';
+                console.log('🔘 Classes du container:', containerClasses);
+                
                 const buttonText = button.querySelector('.button-text');
                 const buttonData = {
                     text: buttonText ? buttonText.textContent : button.textContent || '',
-                    url: button.href || '#',
+                    link: button.href || '',
                     target: button.target || '_self',
+                    onclick: button.getAttribute('onclick') || '',
                     style: this.extractButtonStyle(button.className),
                     size: this.extractButtonSize(button.className),
-                    alignment: this.getAlignmentFromClass(moduleElement.className)
+                    alignment: this.getAlignmentFromClass(containerClasses),
+                    icon: this.extractButtonIcon(button),
+                    iconPosition: this.extractButtonIconPosition(button),
+                    rounded: button.className.includes('btn-rounded'),
+                    shadow: button.className.includes('btn-shadow'),
+                    animation: this.extractButtonAnimation(button.className),
+                    width: this.extractButtonWidth(containerClasses)
                 };
                 
                 console.log('🔘 Données bouton extraites:', buttonData);
@@ -3025,6 +3043,8 @@ class FullscreenEditor {
                     this.modules.set(module.moduleId, module);
                     console.log('✅ Module bouton recréé avec succès');
                 }
+            } else {
+                console.log('❌ Aucun bouton trouvé dans le module');
             }
         } catch (error) {
             console.error('❌ Erreur lors de la recréation du module bouton:', error);
@@ -3047,6 +3067,38 @@ class FullscreenEditor {
         if (className.includes('btn-small')) return 'small';
         if (className.includes('btn-large')) return 'large';
         return 'medium';
+    }
+    
+    extractButtonIcon(button) {
+        const iconElement = button.querySelector('.button-icon');
+        return iconElement ? iconElement.textContent : '';
+    }
+    
+    extractButtonIconPosition(button) {
+        const icons = button.querySelectorAll('.button-icon');
+        if (icons.length === 0) return 'left';
+        
+        const firstIcon = icons[0];
+        const buttonText = button.querySelector('.button-text');
+        
+        if (buttonText && firstIcon.compareDocumentPosition(buttonText) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            return 'left';
+        } else {
+            return 'right';
+        }
+    }
+    
+    extractButtonAnimation(className) {
+        if (className.includes('btn-animation-pulse')) return 'pulse';
+        if (className.includes('btn-animation-bounce')) return 'bounce';
+        if (className.includes('btn-animation-shake')) return 'shake';
+        if (className.includes('btn-animation-glow')) return 'glow';
+        return 'none';
+    }
+    
+    extractButtonWidth(className) {
+        if (className.includes('button-full-width')) return 'full';
+        return 'auto';
     }
 
     recreateTableModuleFromContent(moduleElement, columnElement) {
@@ -3235,23 +3287,26 @@ class FullscreenEditor {
     }
 
     getAlignmentFromClass(className) {
+        // Nettoyer les espaces
+        const cleanClassName = className.trim();
+        
         // Gérer tous les types d'alignement
-        if (className.includes('text-align-left') || className.includes('image-align-left') || 
-            className.includes('video-align-left') || className.includes('separator-align-left') ||
-            className.includes('align-left')) {
+        if (cleanClassName.includes('text-align-left') || cleanClassName.includes('image-align-left') || 
+            cleanClassName.includes('video-align-left') || cleanClassName.includes('separator-align-left') ||
+            cleanClassName.includes('button-align-left') || cleanClassName.includes('align-left')) {
             return 'left';
         }
-        if (className.includes('text-align-right') || className.includes('image-align-right') || 
-            className.includes('video-align-right') || className.includes('separator-align-right') ||
-            className.includes('align-right')) {
+        if (cleanClassName.includes('text-align-right') || cleanClassName.includes('image-align-right') || 
+            cleanClassName.includes('video-align-right') || cleanClassName.includes('separator-align-right') ||
+            cleanClassName.includes('button-align-right') || cleanClassName.includes('align-right')) {
             return 'right';
         }
-        if (className.includes('text-align-center') || className.includes('image-align-center') || 
-            className.includes('video-align-center') || className.includes('separator-align-center') ||
-            className.includes('align-center')) {
+        if (cleanClassName.includes('text-align-center') || cleanClassName.includes('image-align-center') || 
+            cleanClassName.includes('video-align-center') || cleanClassName.includes('separator-align-center') ||
+            cleanClassName.includes('button-align-center') || cleanClassName.includes('align-center')) {
             return 'center';
         }
-        return 'center'; // Par défaut centré pour les vidéos
+        return 'left'; // Par défaut à gauche
     }
 }
 

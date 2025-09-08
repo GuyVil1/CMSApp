@@ -25,6 +25,21 @@ class SecurityHelper
     }
     
     /**
+     * Extraire la valeur d'un attribut HTML en gérant les guillemets imbriqués
+     */
+    public static function extractAttributeValue(string $html, string $attributeName): ?string
+    {
+        // Pattern simplifié pour trouver l'attribut
+        $pattern = '/' . preg_quote($attributeName, '/') . '\s*=\s*(["\'])(.*?)(\1)/';
+        
+        if (preg_match($pattern, $html, $matches)) {
+            return $matches[2];
+        }
+        
+        return null;
+    }
+    
+    /**
      * Nettoyer les données utilisateur (supprimer les balises HTML)
      */
     public static function sanitize(string $data): string
@@ -219,10 +234,8 @@ class SecurityHelper
         $maliciousPatterns = [
             '/<script[^>]*>.*?<\/script>/is',
             '/javascript:/i',
-            '/on\w+\s*=/i',
             '/<object[^>]*>.*?<\/object>/is',
             '/<embed[^>]*>/i',
-            '/<link[^>]*>/i',
             '/<meta[^>]*>/i'
         ];
         
@@ -292,19 +305,20 @@ class SecurityHelper
         if ($allowedTags === null) {
             $allowedTags = [
                 'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'iframe', 'div'
+                'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'iframe', 'div', 'link', 'button', 'span'
             ];
         }
         
         // Traitement spécial pour les iframes YouTube/Vimeo
         $content = self::sanitizeIframes($content);
         
-        // Supprimer les balises non autorisées
+        // Supprimer les balises non autorisées d'abord (préserve le contenu)
         $content = strip_tags($content, '<' . implode('><', $allowedTags) . '>');
         
         // Nettoyer les attributs des balises restantes
         $content = preg_replace_callback('/<([a-z]+)[^>]*>/i', function($matches) {
             $tag = $matches[1];
+            
             $attributes = [];
             
             // Extraire les attributs autorisés selon la balise
@@ -324,6 +338,44 @@ class SecurityHelper
                 }
                 if (preg_match('/alt\s*=\s*["\']([^"\']*)["\']/', $matches[0], $altMatches)) {
                     $attributes[] = 'alt="' . self::escapeAttr($altMatches[1]) . '"';
+                }
+            } elseif ($tag === 'link') {
+                if (preg_match('/href\s*=\s*["\']([^"\']*)["\']/', $matches[0], $hrefMatches)) {
+                    $url = $hrefMatches[1];
+                    if (self::validateUrl($url) || strpos($url, '/') === 0) {
+                        $attributes[] = 'href="' . self::escapeAttr($url) . '"';
+                    }
+                }
+                if (preg_match('/rel\s*=\s*["\']([^"\']*)["\']/', $matches[0], $relMatches)) {
+                    $attributes[] = 'rel="' . self::escapeAttr($relMatches[1]) . '"';
+                }
+                if (preg_match('/type\s*=\s*["\']([^"\']*)["\']/', $matches[0], $typeMatches)) {
+                    $attributes[] = 'type="' . self::escapeAttr($typeMatches[1]) . '"';
+                }
+            } elseif ($tag === 'button') {
+                $onclickValue = self::extractAttributeValue($matches[0], 'onclick');
+                if ($onclickValue !== null) {
+                    $attributes[] = 'onclick="' . self::escapeAttr($onclickValue) . '"';
+                }
+                if (preg_match('/type\s*=\s*["\']([^"\']*)["\']/', $matches[0], $typeMatches)) {
+                    $attributes[] = 'type="' . self::escapeAttr($typeMatches[1]) . '"';
+                }
+                if (preg_match('/class\s*=\s*["\']([^"\']*)["\']/', $matches[0], $classMatches)) {
+                    $attributes[] = 'class="' . self::escapeAttr($classMatches[1]) . '"';
+                }
+                if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/', $matches[0], $styleMatches)) {
+                    $attributes[] = 'style="' . self::escapeAttr($styleMatches[1]) . '"';
+                }
+            } elseif ($tag === 'span') {
+                $onclickValue = self::extractAttributeValue($matches[0], 'onclick');
+                if ($onclickValue !== null) {
+                    $attributes[] = 'onclick="' . self::escapeAttr($onclickValue) . '"';
+                }
+                if (preg_match('/class\s*=\s*["\']([^"\']*)["\']/', $matches[0], $classMatches)) {
+                    $attributes[] = 'class="' . self::escapeAttr($classMatches[1]) . '"';
+                }
+                if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/', $matches[0], $styleMatches)) {
+                    $attributes[] = 'style="' . self::escapeAttr($styleMatches[1]) . '"';
                 }
             }
             

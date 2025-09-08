@@ -35,6 +35,9 @@ class Game
     private ?string $epicUrl;
     private ?string $gogUrl;
     
+    // Nouveau champ pour les jeux belges
+    private bool $isBelgian;
+    
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -69,6 +72,9 @@ class Game
         $this->psnUrl = $data['psn_url'] ?? null;
         $this->epicUrl = $data['epic_url'] ?? null;
         $this->gogUrl = $data['gog_url'] ?? null;
+        
+        // Nouveau champ pour les jeux belges
+        $this->isBelgian = (bool)($data['is_belgian'] ?? false);
     }
 
     // Getters
@@ -97,6 +103,7 @@ class Game
     public function getPsnUrl(): ?string { return $this->psnUrl; }
     public function getEpicUrl(): ?string { return $this->epicUrl; }
     public function getGogUrl(): ?string { return $this->gogUrl; }
+    public function getIsBelgian(): bool { return $this->isBelgian; }
 
 
     
@@ -187,14 +194,120 @@ class Game
     }
 
     /**
+     * Obtenir les plateformes d'un jeu (pour les jeux multi-plateformes)
+     */
+    public function getPlatforms(): array
+    {
+        $sql = "SELECT h.* FROM game_platforms gp 
+                JOIN hardware h ON gp.hardware_id = h.id 
+                WHERE gp.game_id = ? 
+                ORDER BY h.sort_order, h.name";
+        
+        $results = Database::query($sql, [$this->id]);
+        return array_map(fn($data) => new \Hardware($data), $results);
+    }
+    
+    /**
+     * Ajouter une plateforme à un jeu
+     */
+    public function addPlatform(int $hardwareId): bool
+    {
+        try {
+            Database::query(
+                "INSERT INTO game_platforms (game_id, hardware_id) VALUES (?, ?)",
+                [$this->id, $hardwareId]
+            );
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Supprimer une plateforme d'un jeu
+     */
+    public function removePlatform(int $hardwareId): bool
+    {
+        try {
+            Database::query(
+                "DELETE FROM game_platforms WHERE game_id = ? AND hardware_id = ?",
+                [$this->id, $hardwareId]
+            );
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Mettre à jour les plateformes d'un jeu
+     */
+    public function updatePlatforms(array $platformIds): bool
+    {
+        try {
+            // Supprimer toutes les plateformes existantes
+            Database::query("DELETE FROM game_platforms WHERE game_id = ?", [$this->id]);
+            
+            // Ajouter les nouvelles plateformes
+            foreach ($platformIds as $platformId) {
+                if ($platformId > 0) {
+                    Database::query(
+                        "INSERT INTO game_platforms (game_id, hardware_id) VALUES (?, ?)",
+                        [$this->id, (int)$platformId]
+                    );
+                }
+            }
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Vérifier si un jeu est multi-plateforme
+     */
+    public function isMultiPlatform(): bool
+    {
+        return $this->hardwareId && 
+               \Hardware::find($this->hardwareId) && 
+               \Hardware::find($this->hardwareId)->getName() === 'Multi-plateforme';
+    }
+    
+    /**
      * Obtenir toutes les plateformes uniques
      */
-    public static function getPlatforms(): array
+    public static function getUniquePlatforms(): array
     {
         $sql = "SELECT DISTINCT platform FROM games WHERE platform IS NOT NULL AND platform != '' ORDER BY platform";
         $results = Database::query($sql);
         
         return array_column($results, 'platform');
+    }
+    
+    /**
+     * Récupérer tous les jeux belges
+     */
+    public static function findBelgianGames(int $limit = 20, int $offset = 0): array
+    {
+        $sql = "SELECT g.*, m.filename as cover_image 
+                FROM games g 
+                LEFT JOIN media m ON g.cover_image_id = m.id 
+                WHERE g.is_belgian = 1
+                ORDER BY g.created_at DESC 
+                LIMIT ? OFFSET ?";
+        
+        $results = Database::query($sql, [$limit, $offset]);
+        return array_map(fn($data) => new self($data), $results);
+    }
+    
+    /**
+     * Compter le nombre de jeux belges
+     */
+    public static function countBelgianGames(): int
+    {
+        $sql = "SELECT COUNT(*) as total FROM games WHERE is_belgian = 1";
+        $result = Database::queryOne($sql);
+        return (int)($result['total'] ?? 0);
     }
     
     /**
@@ -213,8 +326,8 @@ class Game
      */
     public static function create(array $data): ?self
     {
-        $sql = "INSERT INTO games (title, slug, description, platform, genre_id, cover_image_id, hardware_id, release_date, score, is_tested, developer, publisher, pegi_rating, steam_url, eshop_url, xbox_url, psn_url, epic_url, gog_url) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO games (title, slug, description, platform, genre_id, cover_image_id, hardware_id, release_date, score, is_tested, developer, publisher, pegi_rating, steam_url, eshop_url, xbox_url, psn_url, epic_url, gog_url, is_belgian) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['title'],
@@ -235,7 +348,8 @@ class Game
             $data['xbox_url'] ?? null,
             $data['psn_url'] ?? null,
             $data['epic_url'] ?? null,
-            $data['gog_url'] ?? null
+            $data['gog_url'] ?? null,
+            $data['is_belgian'] ?? false
         ];
         
         if (Database::execute($sql, $params)) {
@@ -255,7 +369,8 @@ class Game
                 title = ?, slug = ?, description = ?, platform = ?, 
                 genre_id = ?, cover_image_id = ?, hardware_id = ?, release_date = ?,
                 score = ?, is_tested = ?, developer = ?, publisher = ?, pegi_rating = ?,
-                steam_url = ?, eshop_url = ?, xbox_url = ?, psn_url = ?, epic_url = ?, gog_url = ?
+                steam_url = ?, eshop_url = ?, xbox_url = ?, psn_url = ?, epic_url = ?, gog_url = ?,
+                is_belgian = ?
                 WHERE id = ?";
         
         $params = [
@@ -278,6 +393,7 @@ class Game
             $data['psn_url'] ?? $this->psnUrl,
             $data['epic_url'] ?? $this->epicUrl,
             $data['gog_url'] ?? $this->gogUrl,
+            $data['is_belgian'] ?? $this->isBelgian,
             $this->id
         ];
         

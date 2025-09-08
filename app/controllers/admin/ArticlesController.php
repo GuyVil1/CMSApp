@@ -236,12 +236,15 @@ class ArticlesController extends \Controller
             // Générer le slug
             $slug = \Article::generateSlug($title);
             
+            // Sanitiser le contenu HTML
+            $sanitizedContent = \SecurityHelper::sanitizeHtml($content);
+            
             // Créer l'article
             $articleData = [
                 'title' => $title,
                 'slug' => $slug,
                 'excerpt' => $excerpt ?: null,
-                'content' => $content,
+                'content' => $sanitizedContent,
                 'status' => $status,
                 'cover_image_id' => $cover_image_id,
                 'author_id' => \Auth::getUser()['id'],
@@ -1094,6 +1097,65 @@ class ArticlesController extends \Controller
         }
         
         return $mediaId;
+    }
+    
+    /**
+     * Valider le contenu d'un article
+     */
+    protected function validateArticleContent(string $content): array
+    {
+        $errors = [];
+        
+        // Vérifier que le contenu n'est pas vide
+        if (empty(trim($content))) {
+            $errors[] = 'Le contenu ne peut pas être vide';
+        }
+        
+        // Vérifier la longueur minimale
+        if (strlen(trim($content)) < 10) {
+            $errors[] = 'Le contenu doit contenir au moins 10 caractères';
+        }
+        
+        // Vérifier la longueur maximale (limite raisonnable)
+        if (strlen($content) > 100000) {
+            $errors[] = 'Le contenu ne peut pas dépasser 100 000 caractères';
+        }
+        
+        // Vérifier les balises HTML dangereuses
+        $dangerousTags = ['<script', '<object', '<embed', '<iframe', '<form', '<input', '<textarea', '<select'];
+        foreach ($dangerousTags as $tag) {
+            if (stripos($content, $tag) !== false) {
+                $errors[] = 'Le contenu contient des balises HTML non autorisées';
+                break;
+            }
+        }
+        
+        return $errors;
+    }
+    
+    /**
+     * Valider le titre d'un article
+     */
+    protected function validateArticleTitle(string $title): array
+    {
+        $errors = [];
+        
+        // Vérifier que le titre n'est pas vide
+        if (empty(trim($title))) {
+            $errors[] = 'Le titre est obligatoire';
+        }
+        
+        // Vérifier la longueur minimale
+        if (strlen(trim($title)) < 3) {
+            $errors[] = 'Le titre doit contenir au moins 3 caractères';
+        }
+        
+        // Vérifier la longueur maximale
+        if (strlen($title) > 255) {
+            $errors[] = 'Le titre ne peut pas dépasser 255 caractères';
+        }
+        
+        return $errors;
     }
 }
 

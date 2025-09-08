@@ -35,6 +35,61 @@
             align-items: center;
             gap: 8px;
         }
+        
+        /* Styles pour les cases à cocher des plateformes */
+        .platform-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        
+        .platform-checkbox {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .platform-checkbox:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        .platform-checkbox-input {
+            width: 18px;
+            height: 18px;
+            accent-color: #ffd700;
+        }
+        
+        .checkbox-text {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .checkbox-text small {
+            color: #ccc;
+            font-weight: normal;
+        }
+        
+        .platform-checkbox-input:checked + .checkbox-text {
+            color: #ffd700;
+        }
+        
+        .platform-checkbox:has(.platform-checkbox-input:checked) {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: #ffd700;
+        }
     </style>
 </head>
 <body>
@@ -147,6 +202,34 @@
                         </div>
                     </div>
 
+                    <!-- Section multi-plateforme (affichée conditionnellement) -->
+                    <div id="multi-platform-section" class="form-group" style="display: none;">
+                        <label class="form-label">Plateformes disponibles</label>
+                        <div class="platform-checkboxes">
+                            <?php 
+                            // Récupérer les plateformes actuelles du jeu
+                            $currentPlatforms = $game->getPlatforms();
+                            $currentPlatformIds = array_map(fn($p) => $p->getId(), $currentPlatforms);
+                            ?>
+                            <?php foreach ($hardware as $hw): ?>
+                                <?php if ($hw->getName() !== 'Multi-plateforme'): ?>
+                                    <div class="platform-checkbox">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="platforms[]" value="<?= $hw->getId() ?>" 
+                                                   class="platform-checkbox-input"
+                                                   <?= in_array($hw->getId(), $currentPlatformIds) ? 'checked' : '' ?>>
+                                            <span class="checkbox-text">
+                                                <?= htmlspecialchars($hw->getName()) ?> 
+                                                <small>(<?= htmlspecialchars($hw->getTypeName()) ?>)</small>
+                                            </span>
+                                        </label>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="form-help">Sélectionnez toutes les plateformes sur lesquelles le jeu sera disponible</div>
+                    </div>
+
                     <div class="form-group">
                         <label for="release_date" class="form-label">Date de sortie</label>
                         <input type="date" id="release_date" name="release_date" 
@@ -173,6 +256,15 @@
                                class="form-input" placeholder="Ex: Nintendo"
                                value="<?= htmlspecialchars($_POST['publisher'] ?? $game->getPublisher() ?? '') ?>">
                         <div class="form-help">Éditeur du jeu</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="is_belgian" name="is_belgian" value="1" 
+                                   <?= (isset($_POST['is_belgian']) && $_POST['is_belgian'] === '1') || $game->getIsBelgian() ? 'checked' : '' ?>>
+                            🇧🇪 Studio belge
+                        </label>
+                        <div class="form-help">Cochez si le jeu provient d'un studio de développement belge</div>
                     </div>
                 </div>
 
@@ -329,11 +421,22 @@
         // Validation du formulaire
         document.querySelector('form').addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
+            const hardwareSelect = document.getElementById('hardware_id');
+            const selectedOption = hardwareSelect.options[hardwareSelect.selectedIndex];
+            const isMultiPlatform = selectedOption && selectedOption.textContent.includes('Multi-plateforme');
+            const checkedPlatforms = document.querySelectorAll('.platform-checkbox-input:checked');
             
             if (title === '') {
                 e.preventDefault();
                 alert('Le titre du jeu est obligatoire');
                 document.getElementById('title').focus();
+                return false;
+            }
+
+            // Validation pour les jeux multi-plateformes
+            if (isMultiPlatform && checkedPlatforms.length === 0) {
+                e.preventDefault();
+                alert('Veuillez sélectionner au moins une plateforme pour un jeu multi-plateforme');
                 return false;
             }
         });
@@ -359,6 +462,36 @@
             scoreGroup.style.display = 'block';
             scoreInput.required = true;
         }
+
+        // Gestion de l'affichage conditionnel de la section multi-plateforme
+        const hardwareSelect = document.getElementById('hardware_id');
+        const multiPlatformSection = document.getElementById('multi-platform-section');
+        const platformCheckboxes = document.querySelectorAll('.platform-checkbox-input');
+
+        function toggleMultiPlatformSection() {
+            const selectedOption = hardwareSelect.options[hardwareSelect.selectedIndex];
+            const isMultiPlatform = selectedOption && selectedOption.textContent.includes('Multi-plateforme');
+            
+            if (isMultiPlatform) {
+                multiPlatformSection.style.display = 'block';
+                // Ne pas rendre les cases obligatoires individuellement
+                // La validation se fera au niveau du formulaire
+                platformCheckboxes.forEach(checkbox => {
+                    checkbox.required = false;
+                });
+            } else {
+                multiPlatformSection.style.display = 'none';
+                // Retirer l'obligation
+                platformCheckboxes.forEach(checkbox => {
+                    checkbox.required = false;
+                });
+            }
+        }
+
+        hardwareSelect.addEventListener('change', toggleMultiPlatformSection);
+
+        // Initialiser l'état au chargement de la page
+        toggleMultiPlatformSection();
 
         // Intégration de la médiathèque pour la sélection d'image
         const openMediaLibraryBtn = document.getElementById('openMediaLibrary');

@@ -143,7 +143,6 @@ class SecurityMiddleware implements MiddlewareInterface
         $xssPatterns = [
             '/<script[^>]*>.*?<\/script>/i',
             '/javascript:/i',
-            '/on\w+\s*=/i',
             '/<object[^>]*>/i',
             '/<embed[^>]*>/i'
         ];
