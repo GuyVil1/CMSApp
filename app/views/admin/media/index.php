@@ -1219,9 +1219,9 @@
                         <?php else: ?>
                         <div class="media-actions">
                             <?php if ($media->isImage()): ?>
-                                <button class="btn btn-sm btn-success" onclick="selectMedia(<?= $media->getId() ?>, '<?= htmlspecialchars($media->getOriginalName()) ?>')">
-                                    <i class="fas fa-check"></i> Sélectionner
-                                </button>
+                                <span class="text-success" style="font-size: 0.9rem; font-weight: 500;">
+                                    <i class="fas fa-mouse-pointer"></i> Cliquez sur l'image pour sélectionner
+                                </span>
                             <?php else: ?>
                                 <span class="text-muted">Vidéo non sélectionnable</span>
                             <?php endif; ?>
@@ -1698,6 +1698,11 @@
             // Envoyer le message à la fenêtre parent
             if (window.opener) {
                 window.opener.postMessage({
+                    type: 'mediaSelected',
+                    media: mediaData
+                }, window.location.origin);
+            } else if (window.parent) {
+                window.parent.postMessage({
                     type: 'mediaSelected',
                     media: mediaData
                 }, window.location.origin);

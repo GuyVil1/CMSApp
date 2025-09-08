@@ -522,15 +522,21 @@ class HomeController extends Controller
         try {
             error_log("🔍 getDossierChapters appelé avec dossier ID: " . $dossierId);
             
+            // Construire la requête selon les permissions
+            $statusCondition = "dc.status = 'published'";
+            if (Auth::hasAnyRole(['admin', 'editor'])) {
+                $statusCondition = "dc.status IN ('published', 'draft')";
+            }
+            
             $sql = "
                 SELECT 
                     dc.id, dc.title, dc.slug, dc.content, dc.excerpt, dc.chapter_order, 
-                    dc.reading_time, dc.created_at, dc.updated_at,
+                    dc.reading_time, dc.created_at, dc.updated_at, dc.status,
                     m.filename as cover_image,
                     m.original_name as cover_image_name
                 FROM dossier_chapters dc
                 LEFT JOIN media m ON dc.cover_image_id = m.id
-                WHERE dc.dossier_id = ? AND dc.status = 'published'
+                WHERE dc.dossier_id = ? AND {$statusCondition}
                 ORDER BY dc.chapter_order ASC
             ";
             

@@ -6,10 +6,10 @@
 .dossier-chapters-navigation {
     margin: 2.5rem 0;
     padding: 1.8rem;
-    background: linear-gradient(135deg, #E4B600 0%, #FFD700 100%);
-    border-radius: 10px;
-    border: 2px solid #CC0000;
-    box-shadow: 0 4px 12px rgba(204, 0, 0, 0.2);
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-radius: 12px;
+    border: 2px solid #f39c12;
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.2);
 }
 
 /* En-tête de la section */
@@ -20,14 +20,13 @@
 
 .chapters-title {
     font-size: 1.6rem;
-    color: #000000;
+    color: #d63031;
     margin-bottom: 0.4rem;
     font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .chapters-subtitle {
-    color: #CC0000;
+    color: #e17055;
     font-size: 1rem;
     margin: 0;
     font-weight: 500;
@@ -44,17 +43,31 @@
 /* Carte de chapitre */
 .chapter-card {
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 6px rgba(204, 0, 0, 0.15);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 2px solid #E4B600;
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    position: relative;
 }
 
 .chapter-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 15px rgba(204, 0, 0, 0.25);
-    border-color: #CC0000;
+    box-shadow: 0 8px 15px rgba(214, 48, 49, 0.2);
+    border-color: #d63031;
+}
+
+/* Carte cliquable */
+.chapter-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.chapter-card-link:hover {
+    text-decoration: none;
+    color: inherit;
 }
 
 /* Image de couverture du chapitre */
@@ -81,7 +94,7 @@
     position: absolute;
     top: 0.8rem;
     left: 0.8rem;
-    background: linear-gradient(135deg, #CC0000, #990000);
+    background: linear-gradient(135deg, #d63031, #a02929);
     color: white;
     width: 2rem;
     height: 2rem;
@@ -91,8 +104,8 @@
     justify-content: center;
     font-weight: bold;
     font-size: 0.9rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    border: 2px solid #E4B600;
+    box-shadow: 0 2px 4px rgba(214, 48, 49, 0.3);
+    border: 2px solid #ffffff;
 }
 
 /* Contenu de la carte */
@@ -106,15 +119,10 @@
     line-height: 1.3;
 }
 
-.chapter-title a {
-    color: #000000;
-    text-decoration: none;
-    transition: color 0.3s ease;
+.chapter-title {
+    color: #2d3436;
     font-weight: 600;
-}
-
-.chapter-title a:hover {
-    color: #990000;
+    margin: 0;
 }
 
 /* Extrait du chapitre */
@@ -153,9 +161,16 @@
 }
 
 .chapter-status.published {
-    background: #E4B600;
-    color: #000000;
-    border: 1px solid #CC0000;
+    background: #00b894;
+    color: #ffffff;
+    border: 1px solid #00a085;
+    font-weight: 600;
+}
+
+.chapter-status.draft {
+    background: #fdcb6e;
+    color: #2d3436;
+    border: 1px solid #e17055;
     font-weight: 600;
 }
 
@@ -168,23 +183,23 @@
 .btn {
     display: inline-block;
     padding: 0.75rem 2rem;
-    background: linear-gradient(135deg, #CC0000, #990000);
+    background: linear-gradient(135deg, #d63031, #a02929);
     color: white;
     text-decoration: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(204, 0, 0, 0.3);
-    border: 2px solid #E4B600;
+    box-shadow: 0 2px 4px rgba(214, 48, 49, 0.3);
+    border: 2px solid #d63031;
 }
 
 .btn:hover {
-    background: linear-gradient(135deg, #990000, #CC0000);
+    background: linear-gradient(135deg, #a02929, #7a1f1f);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(204, 0, 0, 0.4);
+    box-shadow: 0 4px 8px rgba(214, 48, 49, 0.4);
     color: white;
     text-decoration: none;
-    border-color: #E4B600;
+    border-color: #a02929;
 }
 
 /* Responsive Design */

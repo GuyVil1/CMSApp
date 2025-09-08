@@ -108,7 +108,8 @@ $pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet ar
         
         <div class="chapters-grid">
             <?php foreach ($dossierChapters as $index => $chapter): ?>
-                <div class="chapter-card">
+                <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($chapter['slug']) ?>" 
+                   class="chapter-card chapter-card-link">
                     <div class="chapter-image">
                         <?php if (!empty($chapter['cover_image'])): ?>
                             <img src="/uploads.php?file=<?= urlencode($chapter['cover_image']) ?>" 
@@ -121,20 +122,19 @@ $pageDescription = htmlspecialchars($article->getExcerpt() ?? 'Découvrez cet ar
                     </div>
                     <div class="chapter-content">
                         <h3 class="chapter-title">
-                            <a href="/article/<?= htmlspecialchars($article->getSlug()) ?>/<?= htmlspecialchars($chapter['slug']) ?>" 
-                               class="chapter-link">
-                                <?= htmlspecialchars($chapter['title']) ?>
-                            </a>
+                            <?= htmlspecialchars($chapter['title']) ?>
                         </h3>
                         <?php if (!empty($chapter['excerpt'])): ?>
                             <p class="chapter-excerpt"><?= htmlspecialchars($chapter['excerpt']) ?></p>
                         <?php endif; ?>
                         <div class="chapter-meta">
                             <span class="chapter-reading-time">⏱️ <?= $chapter['reading_time'] ?? 5 ?> min</span>
-                            <span class="chapter-status published">Publié</span>
+                            <span class="chapter-status <?= $chapter['status'] === 'published' ? 'published' : 'draft' ?>">
+                                <?= $chapter['status'] === 'published' ? 'Publié' : 'Brouillon' ?>
+                            </span>
                         </div>
                     </div>
-                </div>
+                </a>
             <?php endforeach; ?>
         </div>
         

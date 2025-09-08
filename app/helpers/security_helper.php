@@ -377,6 +377,58 @@ class SecurityHelper
                 if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/', $matches[0], $styleMatches)) {
                     $attributes[] = 'style="' . self::escapeAttr($styleMatches[1]) . '"';
                 }
+            } elseif ($tag === 'div') {
+                // Support complet pour les divs modulaires
+                if (preg_match('/class\s*=\s*["\']([^"\']*)["\']/', $matches[0], $classMatches)) {
+                    $attributes[] = 'class="' . self::escapeAttr($classMatches[1]) . '"';
+                }
+                if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/', $matches[0], $styleMatches)) {
+                    $attributes[] = 'style="' . self::escapeAttr($styleMatches[1]) . '"';
+                }
+                // Attributs data-* pour les modules
+                if (preg_match('/data-module-id\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-module-id="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+                if (preg_match('/data-module-type\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-module-type="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+                if (preg_match('/data-columns\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-columns="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+                if (preg_match('/data-section-id\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-section-id="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+                if (preg_match('/data-column\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-column="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+                if (preg_match('/data-module-data\s*=\s*["\']([^"\']*)["\']/', $matches[0], $dataMatches)) {
+                    $attributes[] = 'data-module-data="' . self::escapeAttr($dataMatches[1]) . '"';
+                }
+            } elseif ($tag === 'h1' || $tag === 'h2' || $tag === 'h3' || $tag === 'h4' || $tag === 'h5' || $tag === 'h6') {
+                // Support pour les titres modulaires
+                if (preg_match('/class\s*=\s*["\']([^"\']*)["\']/', $matches[0], $classMatches)) {
+                    $attributes[] = 'class="' . self::escapeAttr($classMatches[1]) . '"';
+                }
+                if (preg_match('/style\s*=\s*["\']([^"\']*)["\']/', $matches[0], $styleMatches)) {
+                    $attributes[] = 'style="' . self::escapeAttr($styleMatches[1]) . '"';
+                }
+            } elseif ($tag === 'iframe') {
+                // Support pour les iframes (vidéos)
+                if (preg_match('/src\s*=\s*["\']([^"\']*)["\']/', $matches[0], $srcMatches)) {
+                    $src = $srcMatches[1];
+                    if (self::validateUrl($src) || strpos($src, '/') === 0) {
+                        $attributes[] = 'src="' . self::escapeAttr($src) . '"';
+                    }
+                }
+                if (preg_match('/frameborder\s*=\s*["\']([^"\']*)["\']/', $matches[0], $frameMatches)) {
+                    $attributes[] = 'frameborder="' . self::escapeAttr($frameMatches[1]) . '"';
+                }
+                if (preg_match('/allowfullscreen/', $matches[0])) {
+                    $attributes[] = 'allowfullscreen';
+                }
+                if (preg_match('/title\s*=\s*["\']([^"\']*)["\']/', $matches[0], $titleMatches)) {
+                    $attributes[] = 'title="' . self::escapeAttr($titleMatches[1]) . '"';
+                }
             }
             
             return '<' . $tag . (!empty($attributes) ? ' ' . implode(' ', $attributes) : '') . '>';

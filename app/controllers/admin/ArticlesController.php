@@ -91,7 +91,7 @@ class ArticlesController extends \Controller
     {
         // Charger les données nécessaires
         $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
-        $games = \Database::query("SELECT id, title FROM games ORDER BY title");
+        $games = \Database::query("SELECT id, title, platform FROM games ORDER BY title");
         $tags = \Database::query("SELECT id, name FROM tags ORDER BY name");
         
         $this->render('admin/articles/form', [
@@ -308,7 +308,7 @@ class ArticlesController extends \Controller
         
         // Charger les données nécessaires
         $categories = \Database::query("SELECT id, name FROM categories ORDER BY name");
-        $games = \Database::query("SELECT id, title FROM games ORDER BY title");
+        $games = \Database::query("SELECT id, title, platform FROM games ORDER BY title");
         $tags = \Database::query("SELECT id, name FROM tags ORDER BY name");
         
         // Récupérer les tags de l'article

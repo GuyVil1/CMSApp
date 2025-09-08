@@ -1,3 +1,37 @@
+<?php
+// Fonction pour convertir le contenu texte en format modulaire
+function convertTextToModularFormat($content) {
+    if (empty($content)) {
+        return '';
+    }
+    
+    // Si le contenu contient déjà des content-section, le retourner tel quel
+    if (strpos($content, 'content-section') !== false) {
+        // Déséchapper le contenu HTML à l'intérieur des modules texte
+        $content = preg_replace_callback(
+            '/<div class="text-content">(.*?)<\/div>/s',
+            function($matches) {
+                return '<div class="text-content">' . html_entity_decode($matches[1], ENT_QUOTES, 'UTF-8') . '</div>';
+            },
+            $content
+        );
+        return $content;
+    }
+    
+    // Sinon, wrapper le contenu texte dans une structure modulaire
+    $escapedContent = htmlspecialchars($content, ENT_QUOTES, 'UTF-8');
+    
+    return '<div class="content-section" data-columns="1">
+        <div class="content-columns" data-columns="1">
+            <div class="content-column">
+                <div class="content-module content-module-text" data-module-id="module_' . uniqid() . '" data-module-type="text">
+                    <div class="text-content">' . $escapedContent . '</div>
+                </div>
+            </div>
+        </div>
+    </div>';
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1337,6 +1371,87 @@
             margin-top: 5px;
         }
 
+        /* ========================================
+           SÉLECTEUR DE JEUX - RECHERCHE DYNAMIQUE
+           ======================================== */
+        
+        .game-selector {
+            position: relative;
+        }
+        
+        .game-search {
+            width: 100%;
+            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            color: #333;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .game-search:focus {
+            outline: none;
+            border-color: var(--belgium-yellow);
+            box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .games-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid var(--belgium-yellow);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            margin-top: 5px;
+        }
+
+        .game-option {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .game-option:last-child {
+            border-bottom: none;
+        }
+
+        .game-option:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .game-info {
+            flex: 1;
+        }
+
+        .game-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .game-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .game-option i {
+            margin-right: 10px;
+            color: var(--belgium-yellow);
+        }
+
     </style>
 </head>
 <body>
@@ -1410,14 +1525,17 @@
             <textarea id="content" name="content" style="display: none;"><?= $article ? htmlspecialchars($article->getContent()) : '' ?></textarea>
         </div>
 
-        <!-- Section Dossiers - Visible seulement lors de l'édition d'un article existant de catégorie "Dossiers" -->
-        <?php if ($article): ?>
+        <!-- Section Dossiers - Visible quand la catégorie "Dossiers" est sélectionnée -->
         <div id="dossier-section" class="form-group" style="display: none;">
             <div class="dossier-header">
                 <h3>📚 Gestion des chapitres du dossier</h3>
                 <p class="form-hint">Cette section vous permet de gérer les chapitres de votre dossier</p>
                 <div class="dossier-workflow-info">
-                    <p><strong>Workflow :</strong> Créez d'abord votre article, puis revenez l'éditer pour ajouter des chapitres.</p>
+                    <?php if ($article): ?>
+                        <p><strong>Workflow :</strong> Vous pouvez maintenant ajouter des chapitres à votre dossier.</p>
+                    <?php else: ?>
+                        <p><strong>Workflow :</strong> Créez d'abord votre article, puis revenez l'éditer pour ajouter des chapitres.</p>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -1435,7 +1553,6 @@
                 </div>
             </div>
         </div>
-        <?php endif; ?>
                 </div>
 
                 <!-- Colonne latérale -->
@@ -1456,17 +1573,17 @@
 
                     <!-- Jeu associé -->
                     <div class="form-group">
-                        <label for="game_id">Jeu associé</label>
-                        <select id="game_id" name="game_id">
-                            <option value="">Aucun jeu</option>
-                            <?php foreach ($games as $game): ?>
-                                <option value="<?= $game['id'] ?>" 
-                                    <?= $article && $article->getGameId() == $game['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($game['title']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <p class="form-hint">Si sélectionné, la cover du jeu sera automatiquement utilisée</p>
+                        <label for="gameSearch" class="form-label">
+                            <i class="fas fa-gamepad"></i> Jeu associé (optionnel)
+                        </label>
+                        <div class="game-selector">
+                            <input type="text" id="gameSearch" class="game-search" 
+                                   placeholder="Rechercher un jeu..." autocomplete="off"
+                                   value="<?= $article && $article->getGameId() ? htmlspecialchars($article->getGameName() ?? '') : '' ?>">
+                            <input type="hidden" id="game_id" name="game_id" value="<?= $article && $article->getGameId() ? $article->getGameId() : '' ?>">
+                            <div class="games-dropdown" id="gamesDropdown"></div>
+                        </div>
+                        <p class="form-hint">ℹ️ Si sélectionné, la cover du jeu sera informative pour le design futur</p>
                     </div>
 
                     <!-- Statut de l'article -->
@@ -1746,13 +1863,13 @@
                         try {
                             console.log('🔧 Tentative de création de l\'instance FullscreenEditor...');
                             console.log('Options passées:', {
-                                initialContent: contentTextarea.value,
+                                initialContent: <?= $article ? json_encode(convertTextToModularFormat($article->getContent())) : '""' ?>,
                                 onSave: typeof function() {},
                                 onClose: typeof function() {}
                             });
                             
                             fullscreenEditor = new window.FullscreenEditor({
-                                initialContent: contentTextarea.value,
+                                initialContent: <?= $article ? json_encode(convertTextToModularFormat($article->getContent())) : '""' ?>,
                                                                  onSave: function(content) {
                                      console.log('Sauvegarde du contenu:', content.substring(0, 50) + '...');
                                      // Mettre à jour le textarea et la prévisualisation
@@ -2000,10 +2117,8 @@
                     }
                 }
                 
-                // Fonction pour ouvrir la médiathèque
-                window.openMediaLibrary = function() {
-                    window.open('/admin/media', '_blank', 'width=1000,height=700');
-                };
+                // Fonction pour ouvrir la médiathèque (SUPPRIMÉE - doublon)
+                // La vraie fonction est définie plus bas dans le fichier
 
                 // Validation du formulaire avant soumission
                 const form = document.querySelector('.form-container');
@@ -2181,18 +2296,16 @@
                 
                 // Fonction pour afficher/masquer la section dossiers
                 function toggleDossierSection() {
-                    // GARDE-FOU : Section dossiers visible SEULEMENT en mode édition
-                    if (!isEditMode) {
-                        console.log('🚫 Section dossiers masquée - Mode création (pas d\'ID d\'article)');
-                        return;
-                    }
-                    
                     const selectedCategoryId = categorySelect.value;
                     const isDossierCategory = selectedCategoryId === '10'; // ID de la catégorie "Dossiers"
                     
                     if (isDossierCategory) {
                         dossierSection.style.display = 'block';
-                        console.log('📚 Section dossiers affichée - Article ID:', currentArticleId, 'Catégorie Dossiers');
+                        if (isEditMode) {
+                            console.log('📚 Section dossiers affichée - Article ID:', currentArticleId, 'Catégorie Dossiers');
+                        } else {
+                            console.log('📚 Section dossiers affichée - Mode création, Catégorie Dossiers');
+                        }
                     } else {
                         dossierSection.style.display = 'none';
                         console.log('📝 Section dossiers masquée - Autre catégorie sélectionnée');
@@ -2210,26 +2323,26 @@
                 // Gestionnaire pour le bouton "Ajouter un chapitre"
                 if (addChapterBtn) {
                     addChapterBtn.addEventListener('click', function() {
-                        // GARDE-FOU : Vérifier qu'on a un ID d'article
-                        if (!currentArticleId) {
-                            showNotification('❌ Erreur : Impossible de créer des chapitres sans ID d\'article', 'error');
+                        if (isEditMode) {
+                            console.log('➕ Bouton "Ajouter un chapitre" cliqué pour l\'article ID:', currentArticleId);
+                        } else {
+                            console.log('➕ Bouton "Ajouter un chapitre" cliqué en mode création');
+                            showNotification('ℹ️ Créez d\'abord votre article, puis revenez l\'éditer pour ajouter des chapitres.', 'info');
                             return;
                         }
-                        
-                        console.log('➕ Bouton "Ajouter un chapitre" cliqué pour l\'article ID:', currentArticleId);
                         openChapterManager();
                     });
                 }
                 
                 // Fonction pour ouvrir le gestionnaire de chapitres
                 function openChapterManager() {
-                    // GARDE-FOU : Vérifier qu'on a un ID d'article
-                    if (!currentArticleId) {
-                        showNotification('❌ Erreur : Impossible d\'ouvrir le gestionnaire sans ID d\'article', 'error');
+                    if (isEditMode) {
+                        console.log('🚀 Ouverture du gestionnaire de chapitres pour l\'article ID:', currentArticleId);
+                    } else {
+                        console.log('🚀 Ouverture du gestionnaire de chapitres en mode création');
+                        showNotification('ℹ️ Créez d\'abord votre article, puis revenez l\'éditer pour ajouter des chapitres.', 'info');
                         return;
                     }
-                    
-                    console.log('🚀 Ouverture du gestionnaire de chapitres pour l\'article ID:', currentArticleId);
                     
                     // Créer et afficher le modal du gestionnaire de chapitres
                     const chapterManager = createChapterManagerModal();
@@ -3314,7 +3427,7 @@
                 // Fonction pour ouvrir la médiathèque
                 window.openMediaLibrary = function() {
                     // Ouvrir la médiathèque dans une nouvelle fenêtre
-                    const mediaWindow = window.open('/admin/media?select_mode=1', 'mediaLibrary', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                    const mediaWindow = window.open('/media.php?select_mode=1', 'mediaLibrary', 'width=1200,height=800,scrollbars=yes,resizable=yes');
                     
                     // Écouter les messages de la fenêtre de médiathèque
                     window.addEventListener('message', function(event) {
@@ -3346,6 +3459,110 @@
                 };
 
             });
+
+            // ========================================
+            // SÉLECTEUR DE JEUX - RECHERCHE DYNAMIQUE
+            // ========================================
+            
+            // Éléments DOM pour la recherche de jeux
+            const gameSearch = document.getElementById('gameSearch');
+            const gameId = document.getElementById('game_id');
+            const gamesDropdown = document.getElementById('gamesDropdown');
+            
+            // Utiliser les jeux déjà chargés en PHP (disponible globalement)
+            const allGames = <?= json_encode(array_map(function($game) {
+                return [
+                    'id' => $game['id'],
+                    'title' => $game['title'],
+                    'platform' => $game['platform'] ?? 'Aucune plateforme'
+                ];
+            }, $games)) ?>;
+            
+            let searchTimeout;
+            let selectedGame = null;
+            
+            // Gestion de la recherche de jeux
+            gameSearch.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+                
+                if (query.length < 2) {
+                    gamesDropdown.style.display = 'none';
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    searchGames(query);
+                }, 300);
+            });
+            
+            // Rechercher les jeux
+            function searchGames(query) {
+                const filteredGames = allGames.filter(game => 
+                    game.title.toLowerCase().includes(query.toLowerCase()) ||
+                    (game.platform && game.platform.toLowerCase().includes(query.toLowerCase()))
+                );
+                
+                displayGamesDropdown(filteredGames);
+            }
+            
+            // Afficher le dropdown des jeux
+            function displayGamesDropdown(games) {
+                gamesDropdown.innerHTML = '';
+                
+                if (games.length === 0) {
+                    gamesDropdown.innerHTML = '<div class="game-option"><i class="fas fa-info-circle"></i> Aucun jeu trouvé</div>';
+                } else {
+                    games.forEach(game => {
+                        const option = document.createElement('div');
+                        option.className = 'game-option';
+                        option.innerHTML = `
+                            <i class="fas fa-gamepad"></i>
+                            <div class="game-info">
+                                <div class="game-title">${game.title}</div>
+                                <div class="game-details">${game.platform || 'Aucune plateforme'}</div>
+                            </div>
+                        `;
+                        option.addEventListener('click', () => selectGame(game));
+                        gamesDropdown.appendChild(option);
+                    });
+                }
+                
+                gamesDropdown.style.display = 'block';
+            }
+            
+            // Sélectionner un jeu
+            function selectGame(game) {
+                selectedGame = game;
+                gameSearch.value = game.title;
+                gameId.value = game.id;
+                gamesDropdown.style.display = 'none';
+                
+                // Déclencher l'événement de sélection de jeu pour la gestion de l'image
+                if (typeof showGameCover === 'function' && game.cover_image) {
+                    showGameCover({
+                        id: game.cover_image_id,
+                        url: game.cover_image
+                    });
+                }
+                
+                console.log(`🎮 Jeu sélectionné : ${game.title}`);
+            }
+            
+            // Fermer le dropdown en cliquant ailleurs
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.game-selector')) {
+                    gamesDropdown.style.display = 'none';
+                }
+            });
+            
+            // Gestion de la touche Escape
+            gameSearch.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    gamesDropdown.style.display = 'none';
+                }
+            });
+
         </script>
 </body>
 </html>
