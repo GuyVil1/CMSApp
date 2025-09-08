@@ -571,6 +571,9 @@
         document.querySelector('form').addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
             const coverImage = document.getElementById('cover_image').files[0];
+            const existingCoverImage = document.getElementById('existing_cover_image').value;
+            const coverOptionUpload = document.querySelector('input[name="cover_option"][value="upload"]');
+            const coverOptionExisting = document.querySelector('input[name="cover_option"][value="existing"]');
             const hardwareSelect = document.getElementById('hardware_id');
             const selectedOption = hardwareSelect.options[hardwareSelect.selectedIndex];
             const isMultiPlatform = selectedOption && selectedOption.textContent.includes('Multi-plateforme');
@@ -583,9 +586,16 @@
                 return false;
             }
 
-            if (!coverImage) {
+            // Validation de l'image de couverture selon l'option choisie
+            if (coverOptionUpload.checked && !coverImage) {
                 e.preventDefault();
-                alert('Veuillez sélectionner une image de couverture');
+                alert('Veuillez sélectionner une image à uploader');
+                return false;
+            }
+            
+            if (coverOptionExisting.checked && !existingCoverImage) {
+                e.preventDefault();
+                alert('Veuillez sélectionner une image dans la médiathèque');
                 return false;
             }
 

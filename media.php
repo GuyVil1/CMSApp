@@ -22,13 +22,16 @@ if (!\Auth::isLoggedIn()) {
 // Récupérer l'action
 $action = $_GET['action'] ?? 'index';
 
+// Vérifier si on est en mode sélection
+$selectMode = isset($_GET['select_mode']) && $_GET['select_mode'] == '1';
+
 // Instancier le contrôleur
 $controller = new \Admin\MediaController();
 
 // Router les actions
 switch ($action) {
     case 'index':
-        $controller->index();
+        $controller->index($selectMode);
         break;
         
     case 'upload':

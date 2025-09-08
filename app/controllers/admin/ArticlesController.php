@@ -192,17 +192,7 @@ class ArticlesController extends \Controller
             
             // Validation de l'image de couverture
             if (empty($cover_image_id) && empty($uploadedImageId)) {
-                // Si un jeu est sélectionné, essayer de récupérer sa cover
-                if ($game_id) {
-                    $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
-                    if ($game && $game['cover_image_id']) {
-                        $cover_image_id = $game['cover_image_id'];
-                    } else {
-                        throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image ou un jeu avec une cover.');
-                    }
-                } else {
-                    throw new \Exception('L\'image de couverture est obligatoire');
-                }
+                throw new \Exception('L\'image de couverture est obligatoire. Veuillez sélectionner une image pour votre article.');
             }
             
             // Utiliser l'image uploadée si disponible
@@ -405,13 +395,8 @@ class ArticlesController extends \Controller
             else if (isset($_POST['current_cover_image_id']) && $_POST['current_cover_image_id'] !== '') {
                 $finalCoverImageId = (int)$_POST['current_cover_image_id'];
             }
-            // Priorité 3: Image de jeu sélectionnée
-            else if ($game_id) {
-                $game = \Database::queryOne("SELECT cover_image_id FROM games WHERE id = ?", [$game_id]);
-                if ($game && $game['cover_image_id']) {
-                    $finalCoverImageId = $game['cover_image_id'];
-                }
-            }
+            // Priorité 3: Image de jeu sélectionnée (SUPPRIMÉ - l'image du jeu ne doit pas remplacer l'image de l'article)
+            // L'image du jeu est juste informative pour le design futur
 
             // Validation de l'image de couverture
             if (empty($finalCoverImageId)) {

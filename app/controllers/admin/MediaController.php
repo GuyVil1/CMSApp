@@ -82,14 +82,11 @@ class MediaController extends \Controller
     /**
      * Liste des médias
      */
-    public function index(): void
+    public function index(bool $selectMode = false): void
     {
         $page = (int)($_GET['page'] ?? 1);
         $limit = 20;
         $offset = ($page - 1) * $limit;
-        
-        // Vérifier si on est en mode sélection
-        $selectMode = isset($_GET['select_mode']) && $_GET['select_mode'] == '1';
         
         $medias = \Media::findAll($limit, $offset);
         $totalMedias = \Media::count();

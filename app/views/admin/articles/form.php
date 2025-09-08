@@ -1520,7 +1520,7 @@
                         <div id="game-cover-info" style="display: none;">
                             <div class="game-cover-preview">
                                 <img id="game-cover-preview" src="" alt="Cover du jeu" style="max-width: 200px; border-radius: 8px; margin: 10px 0;">
-                                <p class="form-hint">✅ Cover du jeu sélectionné (automatique)</p>
+                                <p class="form-hint">ℹ️ Cover du jeu sélectionné (informatif pour le design futur)</p>
                                 <input type="hidden" id="game_cover_image_id" name="game_cover_image_id" value="">
                             </div>
                         </div>
@@ -1970,18 +1970,19 @@
                 // Afficher la cover du jeu
                 function showGameCover(coverImage) {
                     gameCoverInfo.style.display = 'block';
-                    manualCoverSelection.style.display = 'none';
+                    manualCoverSelection.style.display = 'block'; // Garder la sélection manuelle visible
                     gameCoverPreview.src = coverImage.url;
                     gameCoverImageIdInput.value = coverImage.id;
-                    // Mettre à jour l'ID de l'image de couverture
-                    document.getElementById('cover_image_id').value = coverImage.id;
-                    // Cacher l'image existante
+                    // NE PAS remplacer l'ID de l'image de couverture de l'article
+                    // L'image du jeu est juste informative pour le design futur
+                    // Garder l'image existante si elle existe
                     if (existingCoverInfo) {
-                        existingCoverInfo.style.display = 'none';
-                        keepCoverBtn.style.display = 'none';
+                        existingCoverInfo.style.display = 'block';
+                        keepCoverBtn.style.display = 'block';
                     }
-                    uploadPreview.style.display = 'none'; // Hide upload preview
-                    previewImage.src = ''; // Clear upload preview image
+                    // Ne pas cacher l'upload preview - l'utilisateur peut toujours uploader
+                    // uploadPreview.style.display = 'none'; // Commenté
+                    // previewImage.src = ''; // Commenté
                 }
 
                 // Afficher la sélection manuelle
