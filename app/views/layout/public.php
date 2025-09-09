@@ -42,6 +42,9 @@
     <!-- CSS principal avec thème belge -->
     <link rel="stylesheet" href="/style.css">
     
+    <!-- CSS main avec home.css (doit être chargé APRÈS style.css) -->
+    <link rel="stylesheet" href="/public/assets/css/main.css">
+    
     <!-- CSS pour les modules de contenu -->
     <link rel="stylesheet" href="/public/assets/css/components/content-modules.css">
     

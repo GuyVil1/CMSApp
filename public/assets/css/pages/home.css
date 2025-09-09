@@ -24,36 +24,9 @@
     /* Suppression de la limitation de hauteur */
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     border-radius: 8px 8px 0 0;
-    margin-left: 16vw;
-    margin-right: 16vw;
+    margin-left: 15vw;
+    margin-right: 15vw;
     overflow: visible; /* Permettre de voir tout le contenu */
-}
-
-/* ========================================
-   BANNIÈRES THÉMATIQUES
-   ======================================== */
-.theme-banner-left {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 14vw;
-    height: 1080px;
-    background: url('/theme-image.php?theme=defaut&side=left') no-repeat center center;
-    background-size: cover;
-    background-attachment: fixed;
-    z-index: 1;
-}
-
-.theme-banner-right {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 14vw;
-    height: 1080px;
-    background: url('/theme-image.php?theme=defaut&side=right') no-repeat center center;
-    background-size: cover;
-    background-attachment: fixed;
-    z-index: 1;
 }
 
 /* ========================================
@@ -277,7 +250,7 @@
 /* ========================================
    SECTION NEWS
    ======================================== */
-.news-layout {
+   .news-layout {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 1.5rem;
@@ -321,7 +294,7 @@
 /* ========================================
    CARTES D'ARTICLES
    ======================================== */
-.article-card {
+   .article-card {
     display: flex;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -336,17 +309,15 @@
 }
 
 .article-image {
-    width: 140px;
-    height: 120px;
+    width: 112px;
+    height: 96px;
     flex-shrink: 0;
-    overflow: hidden;
 }
 
 .article-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
 }
 
 .article-content {
@@ -391,6 +362,42 @@
     border: 1px solid #ddd6fe;
 }
 
+.badge-trailers {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.badge-dossiers {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+}
+
+.badge-sponso {
+    background: #fce7f3;
+    color: #be185d;
+    border: 1px solid #f9a8d4;
+}
+
+.badge-actu {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-actualités {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-démos {
+    background: #667589;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
 .article-date {
     font-size: 0.75rem;
     color: #666;
@@ -415,7 +422,7 @@
 /* ========================================
    SECTION TRAILERS
    ======================================== */
-.trailers-header {
+   .trailers-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -515,7 +522,6 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-
 
 
 /* ========================================
