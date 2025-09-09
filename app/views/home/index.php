@@ -17,10 +17,10 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
         <div class="section-line red"></div>
     </div>
     
-    <div class="featured-grid" style="display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; grid-template-rows: 200px 200px 200px !important; gap: 2px !important; height: 606px !important; border: 2px solid red !important;">
+    <div class="featured-grid">
         <?php if (!empty($featuredArticles)): ?>
             <!-- Article principal - occupe A1, A2, B1, B2 (2x2) -->
-            <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer; grid-column: 1 / 3 !important; grid-row: 1 / 3 !important;">
+            <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'">
                 <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
                      alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>"
                      loading="lazy"
@@ -37,7 +37,7 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             
             <!-- Article C1 (colonne 3, ligne 1) -->
             <?php if (isset($featuredArticles[1])): ?>
-                <div class="featured-small featured-c1" onclick="window.location.href='/article/<?php echo $featuredArticles[1]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 1 !important;">
+                <div class="featured-small featured-c1" onclick="window.location.href='/article/<?php echo $featuredArticles[1]['slug']; ?>'">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[1]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[1]['title']); ?>"
                          loading="lazy"
@@ -62,7 +62,7 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             
             <!-- Article C2 (colonne 3, ligne 2) -->
             <?php if (isset($featuredArticles[2])): ?>
-                <div class="featured-small featured-c2" onclick="window.location.href='/article/<?php echo $featuredArticles[2]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 2 !important;">
+                <div class="featured-small featured-c2" onclick="window.location.href='/article/<?php echo $featuredArticles[2]['slug']; ?>'">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[2]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[2]['title']); ?>"
                          loading="lazy"
@@ -87,7 +87,7 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             
             <!-- Article D1 (colonne 1, ligne 3) -->
             <?php if (isset($featuredArticles[3])): ?>
-                <div class="featured-small featured-d1" onclick="window.location.href='/article/<?php echo $featuredArticles[3]['slug']; ?>'" style="cursor: pointer; grid-column: 1 !important; grid-row: 3 !important;">
+                <div class="featured-small featured-d1" onclick="window.location.href='/article/<?php echo $featuredArticles[3]['slug']; ?>'">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[3]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[3]['title']); ?>"
                          loading="lazy"
@@ -112,7 +112,7 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             
             <!-- Article D2 (colonne 2, ligne 3) -->
             <?php if (isset($featuredArticles[4])): ?>
-                <div class="featured-small featured-d2" onclick="window.location.href='/article/<?php echo $featuredArticles[4]['slug']; ?>'" style="cursor: pointer; grid-column: 2 !important; grid-row: 3 !important;">
+                <div class="featured-small featured-d2" onclick="window.location.href='/article/<?php echo $featuredArticles[4]['slug']; ?>'">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[4]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[4]['title']); ?>"
                          loading="lazy"
@@ -137,7 +137,7 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
             
             <!-- Article D3 (colonne 3, ligne 3) -->
             <?php if (isset($featuredArticles[5])): ?>
-                <div class="featured-small featured-d3" onclick="window.location.href='/article/<?php echo $featuredArticles[5]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 3 !important;">
+                <div class="featured-small featured-d3" onclick="window.location.href='/article/<?php echo $featuredArticles[5]['slug']; ?>'">
                     <img src="/image.php?file=<?php echo urlencode($featuredArticles[5]['cover_image'] ?? 'default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($featuredArticles[5]['title']); ?>"
                          loading="lazy"
