@@ -295,7 +295,7 @@ a{
 .featured-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    max-height: 80vh;
+    max-height: 83vh;
     border-radius: 8px;
     overflow: hidden;
     border: 2px solid var(--border);

@@ -49,8 +49,8 @@ class HomeController extends Controller
             // Récupérer l'état des inscriptions
             $allowRegistration = $this->isRegistrationEnabled();
             
-            // Récupérer les articles en vedette via le service
-            $featuredArticles = $this->articleService->getFeaturedArticles(6);
+            // Récupérer les articles en vedette via la méthode privée (requête SQL directe)
+            $featuredArticles = $this->getFeaturedArticles();
             
             // Récupérer les dernières news via le service
             $latestArticles = $this->articleService->getRecentArticles(1, 10);

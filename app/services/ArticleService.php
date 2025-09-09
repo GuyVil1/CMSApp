@@ -328,6 +328,7 @@ class ArticleService implements ArticleServiceInterface
     {
         // Invalider le cache général
         MemoryCache::forget('featured_articles_3');
+        MemoryCache::forget('featured_articles_6');
         MemoryCache::forget('recent_articles_1_10');
         
         // Invalider le cache spécifique si ID fourni

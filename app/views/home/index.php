@@ -17,113 +17,201 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
         <div class="section-line red"></div>
     </div>
     
-    <div class="featured-grid">
-        <!-- Colonne gauche (2/3) -->
-        <div class="featured-left">
-            <?php if (!empty($featuredArticles)): ?>
-                <!-- Article principal -->
-                <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer;">
-                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
-                         alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>"
+    <div class="featured-grid" style="display: grid !important; grid-template-columns: 1fr 1fr 1fr !important; grid-template-rows: 200px 200px 200px !important; gap: 2px !important; height: 606px !important; border: 2px solid red !important;">
+        <?php if (!empty($featuredArticles)): ?>
+            <!-- Article principal - occupe A1, A2, B1, B2 (2x2) -->
+            <div class="featured-main" onclick="window.location.href='/article/<?php echo $featuredArticles[0]['slug']; ?>'" style="cursor: pointer; grid-column: 1 / 3 !important; grid-row: 1 / 3 !important;">
+                <img src="/image.php?file=<?php echo urlencode($featuredArticles[0]['cover_image'] ?? 'default.jpg'); ?>" 
+                     alt="<?php echo htmlspecialchars($featuredArticles[0]['title']); ?>"
+                     loading="lazy"
+                     class="lazy-responsive">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <span class="featured-badge">À la une</span>
+                    <?php if (!empty($featuredArticles[0]['category_name'])): ?>
+                        <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[0]['category_name']); ?></span>
+                    <?php endif; ?>
+                    <h3 class="featured-title"><?php echo htmlspecialchars($featuredArticles[0]['title']); ?></h3>
+                </div>
+            </div>
+            
+            <!-- Article C1 (colonne 3, ligne 1) -->
+            <?php if (isset($featuredArticles[1])): ?>
+                <div class="featured-small featured-c1" onclick="window.location.href='/article/<?php echo $featuredArticles[1]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 1 !important;">
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[1]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[1]['title']); ?>"
                          loading="lazy"
                          class="lazy-responsive">
                     <div class="featured-overlay"></div>
-                                                    <div class="featured-content">
-                                    <span class="featured-badge">À la une</span>
-                                    <?php if (!empty($featuredArticles[0]['category_name'])): ?>
-                                        <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[0]['category_name']); ?></span>
-                                    <?php endif; ?>
-                                    <h3 class="featured-title"><?php echo htmlspecialchars($featuredArticles[0]['title']); ?></h3>
-                                </div>
-                </div>
-                
-                <!-- Articles secondaires -->
-                <div class="featured-bottom">
-                    <?php for ($i = 1; $i < min(3, count($featuredArticles)); $i++): ?>
-                        <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
-                            <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
-                                 alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>"
-                                 loading="lazy"
-                                 class="lazy-responsive">
-                            <div class="featured-overlay"></div>
-                            <div class="featured-content">
-                                <?php if (!empty($featuredArticles[$i]['category_name'])): ?>
-                                    <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[$i]['category_name']); ?></span>
-                                <?php endif; ?>
-                                <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
-                            </div>
-                        </div>
-                    <?php endfor; ?>
-                    
-                    <?php if (count($featuredArticles) < 3): ?>
-                        <!-- Remplir avec du contenu par défaut pour avoir exactement 2 cases -->
-                        <?php for ($i = max(1, count($featuredArticles)); $i < 3; $i++): ?>
-                            <div class="featured-small">
-                                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                                <div class="featured-overlay"></div>
-                                <div class="featured-content">
-                                    <h4 class="featured-title">Article à venir...</h4>
-                                </div>
-                            </div>
-                        <?php endfor; ?>
-                    <?php endif; ?>
+                    <div class="featured-content">
+                        <?php if (!empty($featuredArticles[1]['category_name'])): ?>
+                            <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[1]['category_name']); ?></span>
+                        <?php endif; ?>
+                        <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[1]['title']); ?></h4>
+                    </div>
                 </div>
             <?php else: ?>
-                <!-- Contenu par défaut si pas d'articles -->
-                <div class="featured-main">
-                    <img src="/assets/images/default-featured.jpg" alt="Article par défaut">
+                <div class="featured-small featured-c1">
+                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
                     <div class="featured-overlay"></div>
                     <div class="featured-content">
-                        <span class="featured-badge">À la une</span>
-                        <h3 class="featured-title">Bienvenue sur GameNews</h3>
-                        <p class="featured-excerpt">Découvrez l'actualité gaming en Belgique</p>
+                        <h4 class="featured-title">Article à venir...</h4>
                     </div>
                 </div>
-                
-                <!-- Articles secondaires par défaut -->
-                <div class="featured-bottom">
-                    <?php for ($i = 0; $i < 2; $i++): ?>
-                        <div class="featured-small">
-                            <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                            <div class="featured-overlay"></div>
-                            <div class="featured-content">
-                                <h4 class="featured-title">Article à venir...</h4>
-                            </div>
-                        </div>
-                    <?php endfor; ?>
+            <?php endif; ?>
+            
+            <!-- Article C2 (colonne 3, ligne 2) -->
+            <?php if (isset($featuredArticles[2])): ?>
+                <div class="featured-small featured-c2" onclick="window.location.href='/article/<?php echo $featuredArticles[2]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 2 !important;">
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[2]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[2]['title']); ?>"
+                         loading="lazy"
+                         class="lazy-responsive">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <?php if (!empty($featuredArticles[2]['category_name'])): ?>
+                            <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[2]['category_name']); ?></span>
+                        <?php endif; ?>
+                        <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[2]['title']); ?></h4>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="featured-small featured-c2">
+                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <h4 class="featured-title">Article à venir...</h4>
+                    </div>
                 </div>
             <?php endif; ?>
-        </div>
-        
-        <!-- Colonne droite (1/3) -->
-        <div class="featured-right">
-            <?php for ($i = 3; $i < min(6, count($featuredArticles)); $i++): ?>
-                <div class="featured-small" onclick="window.location.href='/article/<?php echo $featuredArticles[$i]['slug']; ?>'" style="cursor: pointer;">
-                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[$i]['cover_image'] ?? 'default.jpg'); ?>" 
-                         alt="<?php echo htmlspecialchars($featuredArticles[$i]['title']); ?>">
+            
+            <!-- Article D1 (colonne 1, ligne 3) -->
+            <?php if (isset($featuredArticles[3])): ?>
+                <div class="featured-small featured-d1" onclick="window.location.href='/article/<?php echo $featuredArticles[3]['slug']; ?>'" style="cursor: pointer; grid-column: 1 !important; grid-row: 3 !important;">
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[3]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[3]['title']); ?>"
+                         loading="lazy"
+                         class="lazy-responsive">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <?php if (!empty($featuredArticles[3]['category_name'])): ?>
+                            <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[3]['category_name']); ?></span>
+                        <?php endif; ?>
+                        <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[3]['title']); ?></h4>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="featured-small featured-d1">
+                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <h4 class="featured-title">Article à venir...</h4>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <!-- Article D2 (colonne 2, ligne 3) -->
+            <?php if (isset($featuredArticles[4])): ?>
+                <div class="featured-small featured-d2" onclick="window.location.href='/article/<?php echo $featuredArticles[4]['slug']; ?>'" style="cursor: pointer; grid-column: 2 !important; grid-row: 3 !important;">
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[4]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[4]['title']); ?>"
+                         loading="lazy"
+                         class="lazy-responsive">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <?php if (!empty($featuredArticles[4]['category_name'])): ?>
+                            <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[4]['category_name']); ?></span>
+                        <?php endif; ?>
+                        <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[4]['title']); ?></h4>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="featured-small featured-d2">
+                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <h4 class="featured-title">Article à venir...</h4>
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <!-- Article D3 (colonne 3, ligne 3) -->
+            <?php if (isset($featuredArticles[5])): ?>
+                <div class="featured-small featured-d3" onclick="window.location.href='/article/<?php echo $featuredArticles[5]['slug']; ?>'" style="cursor: pointer; grid-column: 3 !important; grid-row: 3 !important;">
+                    <img src="/image.php?file=<?php echo urlencode($featuredArticles[5]['cover_image'] ?? 'default.jpg'); ?>" 
+                         alt="<?php echo htmlspecialchars($featuredArticles[5]['title']); ?>"
+                         loading="lazy"
+                         class="lazy-responsive">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <?php if (!empty($featuredArticles[5]['category_name'])): ?>
+                            <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[5]['category_name']); ?></span>
+                        <?php endif; ?>
+                        <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[5]['title']); ?></h4>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="featured-small featured-d3">
+                    <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                    <div class="featured-overlay"></div>
+                    <div class="featured-content">
+                        <h4 class="featured-title">Article à venir...</h4>
+                    </div>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <!-- Contenu par défaut -->
+            <div class="featured-main">
+                <img src="/assets/images/default-featured.jpg" alt="Article par défaut">
                 <div class="featured-overlay"></div>
                 <div class="featured-content">
-                    <?php if (!empty($featuredArticles[$i]['category_name'])): ?>
-                        <span class="featured-category"><?php echo htmlspecialchars($featuredArticles[$i]['category_name']); ?></span>
-                    <?php endif; ?>
-                    <h4 class="featured-title"><?php echo htmlspecialchars($featuredArticles[$i]['title']); ?></h4>
+                    <span class="featured-badge">À la une</span>
+                    <h3 class="featured-title">Bienvenue sur GameNews</h3>
+                    <p class="featured-excerpt">Découvrez l'actualité gaming en Belgique</p>
                 </div>
             </div>
-            <?php endfor; ?>
             
-            <?php if (count($featuredArticles) < 6): ?>
-                <!-- Remplir avec du contenu par défaut pour avoir exactement 3 cases -->
-                <?php for ($i = max(3, count($featuredArticles)); $i < 6; $i++): ?>
-                    <div class="featured-small">
-                        <img src="/assets/images/default-article.jpg" alt="Article par défaut">
-                        <div class="featured-overlay"></div>
-                        <div class="featured-content">
-                            <h4 class="featured-title">Article à venir...</h4>
-                        </div>
-                    </div>
-                <?php endfor; ?>
-            <?php endif; ?>
-        </div>
+            <!-- Articles par défaut -->
+            <div class="featured-small featured-c1">
+                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <h4 class="featured-title">Article à venir...</h4>
+                </div>
+            </div>
+            
+            <div class="featured-small featured-c2">
+                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <h4 class="featured-title">Article à venir...</h4>
+                </div>
+            </div>
+            
+            <div class="featured-small featured-d1">
+                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <h4 class="featured-title">Article à venir...</h4>
+                </div>
+            </div>
+            
+            <div class="featured-small featured-d2">
+                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <h4 class="featured-title">Article à venir...</h4>
+                </div>
+            </div>
+            
+            <div class="featured-small featured-d3">
+                <img src="/assets/images/default-article.jpg" alt="Article par défaut">
+                <div class="featured-overlay"></div>
+                <div class="featured-content">
+                    <h4 class="featured-title">Article à venir...</h4>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 
