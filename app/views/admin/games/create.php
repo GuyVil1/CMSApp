@@ -357,7 +357,7 @@
                                 🖼️ Utiliser une image existante
                             </label>
                             <div class="media-library-trigger">
-                                <button type="button" id="openMediaLibraryCreate" class="btn btn-secondary" disabled>
+                                <button type="button" id="openMediaLibraryCreate" class="btn btn-secondary">
                                     🖼️ Choisir dans la médiathèque
                                 </button>
                                 <span id="selectedImageNameCreate" class="selected-image-name">
@@ -472,7 +472,7 @@
             if (coverOptionUpload.checked) {
                 uploadArea.style.display = 'flex';
                 fileInput.required = true;
-                openMediaLibraryCreateBtn.disabled = true;
+                openMediaLibraryCreateBtn.disabled = false; // Toujours actif
                 existingCoverImageInput.required = false;
             } else {
                 uploadArea.style.display = 'none';

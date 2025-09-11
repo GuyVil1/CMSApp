@@ -456,7 +456,7 @@ a{
 /* ========================================
    RESPONSIVE DESIGN
    ======================================== */
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
     .theme-banner-left,
     .theme-banner-right {
         display: none;
