@@ -329,20 +329,3 @@ $pageDescription = 'On joue, on observe, on t\'éclaire. Pas de pub, pas de lang
     </div>
 </section>
 
-<script>
-    function showTab(tabName) {
-        // Masquer tous les contenus
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabContents.forEach(content => content.classList.remove('active'));
-        
-        // Désactiver tous les triggers
-        const tabTriggers = document.querySelectorAll('.tab-trigger');
-        tabTriggers.forEach(trigger => trigger.classList.remove('active'));
-        
-        // Afficher le contenu sélectionné
-        document.getElementById(tabName).classList.add('active');
-        
-        // Activer le trigger sélectionné
-        event.target.classList.add('active');
-    }
-</script>

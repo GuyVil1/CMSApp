@@ -815,21 +815,53 @@ class HomeController extends Controller
     private function getArticlesByHardware(int $hardwareId): array
     {
         try {
-            $sql = "
-                SELECT a.*, c.name as category_name, c.slug as category_slug,
-                       u.login as author_name, m.filename as cover_image,
-                       g.title as game_title, g.slug as game_slug
-                FROM articles a
-                LEFT JOIN categories c ON a.category_id = c.id
-                LEFT JOIN users u ON a.author_id = u.id
-                LEFT JOIN media m ON a.cover_image_id = m.id
-                LEFT JOIN games g ON a.game_id = g.id
-                WHERE g.hardware_id = ? AND a.status = 'published'
-                ORDER BY a.published_at DESC
-                LIMIT 20
-            ";
+            // Récupérer le hardware pour vérifier s'il s'agit de "Multi-plateforme"
+            $hardware = Hardware::find($hardwareId);
+            if (!$hardware) {
+                return [];
+            }
             
-            return Database::query($sql, [$hardwareId]);
+            if ($hardware->getName() === 'Multi-plateforme') {
+                // Pour Multi-plateforme, récupérer les articles liés aux jeux multi-plateforme
+                $sql = "
+                    SELECT a.*, c.name as category_name, c.slug as category_slug,
+                           u.login as author_name, m.filename as cover_image,
+                           g.title as game_title, g.slug as game_slug
+                    FROM articles a
+                    LEFT JOIN categories c ON a.category_id = c.id
+                    LEFT JOIN users u ON a.author_id = u.id
+                    LEFT JOIN media m ON a.cover_image_id = m.id
+                    LEFT JOIN games g ON a.game_id = g.id
+                    WHERE g.id IN (
+                        SELECT game_id 
+                        FROM game_platforms 
+                        GROUP BY game_id 
+                        HAVING COUNT(DISTINCT hardware_id) > 1
+                    ) AND a.status = 'published'
+                    ORDER BY a.published_at DESC
+                    LIMIT 20
+                ";
+                
+                return Database::query($sql);
+            } else {
+                // Pour les autres hardwares, utiliser la table game_platforms
+                $sql = "
+                    SELECT a.*, c.name as category_name, c.slug as category_slug,
+                           u.login as author_name, m.filename as cover_image,
+                           g.title as game_title, g.slug as game_slug
+                    FROM articles a
+                    LEFT JOIN categories c ON a.category_id = c.id
+                    LEFT JOIN users u ON a.author_id = u.id
+                    LEFT JOIN media m ON a.cover_image_id = m.id
+                    LEFT JOIN games g ON a.game_id = g.id
+                    INNER JOIN game_platforms gp ON g.id = gp.game_id
+                    WHERE gp.hardware_id = ? AND a.status = 'published'
+                    ORDER BY a.published_at DESC
+                    LIMIT 20
+                ";
+                
+                return Database::query($sql, [$hardwareId]);
+            }
         } catch (Exception $e) {
             error_log("❌ Erreur lors de la récupération des articles par hardware: " . $e->getMessage());
             return [];
@@ -842,16 +874,43 @@ class HomeController extends Controller
     private function getGamesByHardware(int $hardwareId): array
     {
         try {
-            $sql = "
-                SELECT g.*, m.filename as cover_image
-                FROM games g
-                LEFT JOIN media m ON g.cover_image_id = m.id
-                WHERE g.hardware_id = ? AND g.status = 'published'
-                ORDER BY g.release_date DESC
-                LIMIT 12
-            ";
+            // Récupérer le hardware pour vérifier s'il s'agit de "Multi-plateforme"
+            $hardware = Hardware::find($hardwareId);
+            if (!$hardware) {
+                return [];
+            }
             
-            return Database::query($sql, [$hardwareId]);
+            if ($hardware->getName() === 'Multi-plateforme') {
+                // Pour Multi-plateforme, récupérer les jeux présents sur plusieurs plateformes
+                $sql = "
+                    SELECT g.*, m.filename as cover_image
+                    FROM games g
+                    LEFT JOIN media m ON g.cover_image_id = m.id
+                    WHERE g.id IN (
+                        SELECT game_id 
+                        FROM game_platforms 
+                        GROUP BY game_id 
+                        HAVING COUNT(DISTINCT hardware_id) > 1
+                    )
+                    ORDER BY g.release_date DESC
+                    LIMIT 12
+                ";
+                
+                return Database::query($sql);
+            } else {
+                // Pour les autres hardwares, utiliser la table game_platforms
+                $sql = "
+                    SELECT g.*, m.filename as cover_image
+                    FROM games g
+                    LEFT JOIN media m ON g.cover_image_id = m.id
+                    INNER JOIN game_platforms gp ON g.id = gp.game_id
+                    WHERE gp.hardware_id = ?
+                    ORDER BY g.release_date DESC
+                    LIMIT 12
+                ";
+                
+                return Database::query($sql, [$hardwareId]);
+            }
         } catch (Exception $e) {
             error_log("❌ Erreur lors de la récupération des jeux par hardware: " . $e->getMessage());
             return [];

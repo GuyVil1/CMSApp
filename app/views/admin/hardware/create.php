@@ -33,7 +33,7 @@
 
         <!-- Formulaire -->
         <div class="form-container">
-            <form method="POST" action="/hardware.php?action=store" class="form">
+            <form method="POST" action="/hardware.php?action=store" class="form" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                 
                 <div class="form-section">
@@ -87,6 +87,17 @@
                                min="1970" max="2030"
                                value="<?= htmlspecialchars($_POST['release_year'] ?? '') ?>">
                         <div class="form-help">Année de sortie du hardware</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>🖼️ Image du hardware</h2>
+                    
+                    <div class="form-group">
+                        <label for="image" class="form-label">Photo du hardware</label>
+                        <input type="file" id="image" name="image" accept="image/*" 
+                               class="form-input">
+                        <div class="form-help">Image du hardware (JPG, PNG, WebP - max 5MB)</div>
                     </div>
                 </div>
 

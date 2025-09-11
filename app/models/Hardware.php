@@ -19,9 +19,11 @@ class Hardware
     private ?string $description;
     private bool $isActive;
     private int $sortOrder;
+    private ?string $image;
     private string $createdAt;
     private ?string $updatedAt;
     private int $gamesCount = 0;
+    private int $articlesCount = 0;
 
     public function __construct(array $data = [])
     {
@@ -35,9 +37,11 @@ class Hardware
             $this->description = $data['description'];
             $this->isActive = (bool) $data['is_active'];
             $this->sortOrder = (int) $data['sort_order'];
+            $this->image = $data['image'] ?? null;
             $this->createdAt = $data['created_at'];
             $this->updatedAt = $data['updated_at'];
             $this->gamesCount = isset($data['games_count']) ? (int) $data['games_count'] : 0;
+            $this->articlesCount = isset($data['articles_count']) ? (int) $data['articles_count'] : 0;
         }
     }
 
@@ -51,9 +55,11 @@ class Hardware
     public function getDescription(): ?string { return $this->description; }
     public function isActive(): bool { return $this->isActive; }
     public function getSortOrder(): int { return $this->sortOrder; }
+    public function getImage(): ?string { return $this->image; }
     public function getCreatedAt(): string { return $this->createdAt; }
     public function getUpdatedAt(): ?string { return $this->updatedAt; }
     public function getGamesCount(): int { return $this->gamesCount; }
+    public function getArticlesCount(): int { return $this->articlesCount; }
     
     /**
      * Obtenir le nom du type formaté
@@ -69,22 +75,59 @@ class Hardware
     }
 
     /**
-     * Récupérer tous les hardwares actifs
+     * Récupérer tous les hardwares actifs avec compteurs de jeux et articles
      */
     public static function getAllActive(): array
     {
         try {
-            $db = Database::getInstance();
-            $sql = "SELECT * FROM hardware WHERE is_active = 1 ORDER BY sort_order ASC, name ASC";
-            $stmt = $db->prepare($sql);
-            $stmt->execute();
+            $sql = "
+                SELECT 
+                    h.*,
+                    CASE 
+                        WHEN h.name = 'Multi-plateforme' THEN (
+                            SELECT COUNT(DISTINCT gp.game_id)
+                            FROM game_platforms gp
+                            WHERE gp.game_id IN (
+                                SELECT game_id 
+                                FROM game_platforms 
+                                GROUP BY game_id 
+                                HAVING COUNT(DISTINCT hardware_id) > 1
+                            )
+                        )
+                        ELSE COUNT(DISTINCT gp.game_id)
+                    END as games_count,
+                    CASE 
+                        WHEN h.name = 'Multi-plateforme' THEN (
+                            SELECT COUNT(DISTINCT a.id)
+                            FROM articles a
+                            JOIN games g ON a.game_id = g.id
+                            WHERE a.status = 'published'
+                            AND g.id IN (
+                                SELECT game_id 
+                                FROM game_platforms 
+                                GROUP BY game_id 
+                                HAVING COUNT(DISTINCT hardware_id) > 1
+                            )
+                        )
+                        ELSE COUNT(DISTINCT a.id)
+                    END as articles_count
+                FROM hardware h
+                LEFT JOIN game_platforms gp ON h.id = gp.hardware_id
+                LEFT JOIN games g ON gp.game_id = g.id
+                LEFT JOIN articles a ON g.id = a.game_id AND a.status = 'published'
+                WHERE h.is_active = 1
+                GROUP BY h.id
+                ORDER BY h.sort_order ASC, h.name ASC
+            ";
             
-            $hardwares = [];
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $hardwares[] = new self($row);
-            }
+            $results = Database::query($sql);
             
-            return $hardwares;
+            return array_map(function($data) {
+                $hardware = new self($data);
+                $hardware->gamesCount = (int)$data['games_count'];
+                $hardware->articlesCount = (int)$data['articles_count'];
+                return $hardware;
+            }, $results);
         } catch (Exception $e) {
             error_log("Erreur lors de la récupération des hardwares actifs: " . $e->getMessage());
             return [];
@@ -312,8 +355,8 @@ class Hardware
     {
         try {
             $db = Database::getInstance();
-            $sql = "INSERT INTO hardware (name, slug, type, manufacturer, release_year, description, is_active, sort_order, created_at) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+            $sql = "INSERT INTO hardware (name, slug, type, manufacturer, release_year, description, is_active, sort_order, image, created_at) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
             
             $stmt = $db->prepare($sql);
             $success = $stmt->execute([
@@ -324,7 +367,8 @@ class Hardware
                 $data['release_year'],
                 $data['description'],
                 $data['is_active'] ? 1 : 0,
-                $data['sort_order']
+                $data['sort_order'],
+                $data['image'] ?? null
             ]);
             
             if ($success) {
@@ -348,7 +392,7 @@ class Hardware
             $db = Database::getInstance();
             $sql = "UPDATE hardware SET 
                     name = ?, slug = ?, type = ?, manufacturer = ?, release_year = ?, 
-                    description = ?, is_active = ?, sort_order = ?, updated_at = NOW() 
+                    description = ?, is_active = ?, sort_order = ?, image = ?, updated_at = NOW() 
                     WHERE id = ?";
             
             $stmt = $db->prepare($sql);
@@ -361,6 +405,7 @@ class Hardware
                 $data['description'],
                 $data['is_active'] ? 1 : 0,
                 $data['sort_order'],
+                $data['image'] ?? null,
                 $this->id
             ]);
             
@@ -374,6 +419,7 @@ class Hardware
                 $this->description = $data['description'];
                 $this->isActive = $data['is_active'];
                 $this->sortOrder = $data['sort_order'];
+                $this->image = $data['image'] ?? null;
                 $this->updatedAt = date('Y-m-d H:i:s');
             }
             

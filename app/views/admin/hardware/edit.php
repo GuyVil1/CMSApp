@@ -62,7 +62,7 @@
 
         <!-- Formulaire -->
         <div class="form-container">
-            <form method="POST" action="/hardware.php?action=update&id=<?= $hardware->getId() ?>" class="form">
+            <form method="POST" action="/hardware.php?action=update&id=<?= $hardware->getId() ?>" class="form" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                 
                 <div class="form-section">
@@ -119,6 +119,28 @@
                                min="1970" max="2030"
                                value="<?= htmlspecialchars($_POST['release_year'] ?? $hardware->getReleaseYear() ?? '') ?>">
                         <div class="form-help">Année de sortie du hardware</div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>🖼️ Image du hardware</h2>
+                    
+                    <?php if ($hardware->getImage()): ?>
+                        <div class="form-group">
+                            <label class="form-label">Image actuelle</label>
+                            <div class="image-preview">
+                                <img src="/uploads.php?file=hardware/<?= htmlspecialchars($hardware->getImage()) ?>" 
+                                     alt="<?= htmlspecialchars($hardware->getName()) ?>" 
+                                     style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid var(--admin-border);">
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <div class="form-group">
+                        <label for="image" class="form-label"><?= $hardware->getImage() ? 'Remplacer l\'image' : 'Photo du hardware' ?></label>
+                        <input type="file" id="image" name="image" accept="image/*" 
+                               class="form-input">
+                        <div class="form-help">Image du hardware (JPG, PNG, WebP - max 5MB)</div>
                     </div>
                 </div>
 

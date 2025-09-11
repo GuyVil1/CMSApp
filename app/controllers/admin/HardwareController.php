@@ -26,6 +26,47 @@ class HardwareController extends \Controller
         }
     }
 
+    /**
+     * Gérer l'upload d'une image de hardware
+     */
+    private function handleImageUpload(): ?string
+    {
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        $uploadDir = __DIR__ . '/../../../public/uploads/hardware/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $file = $_FILES['image'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+
+        // Vérifier le type
+        if (!in_array($file['type'], $allowedTypes)) {
+            throw new Exception('Type de fichier non autorisé. Utilisez JPG, PNG ou WebP.');
+        }
+
+        // Vérifier la taille
+        if ($file['size'] > $maxSize) {
+            throw new Exception('Fichier trop volumineux. Maximum 5MB.');
+        }
+
+        // Générer un nom unique
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('hardware_', true) . '.' . $extension;
+        $filepath = $uploadDir . $filename;
+
+        // Déplacer le fichier
+        if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+            throw new Exception('Erreur lors de l\'upload du fichier.');
+        }
+
+        return $filename;
+    }
+
     public function index(): void
     {
         $page = (int)($this->getQueryParam('page', 1));
@@ -111,6 +152,20 @@ class HardwareController extends \Controller
         $isActive = isset($_POST['is_active']);
         $sortOrder = !empty($_POST['sort_order']) ? (int)$_POST['sort_order'] : 0;
 
+        // Gérer l'upload de l'image
+        $imageFilename = null;
+        try {
+            $imageFilename = $this->handleImageUpload();
+        } catch (Exception $e) {
+            $this->render('admin/hardware/create', [
+                'error' => $e->getMessage(),
+                'success' => '',
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'types' => \Hardware::getTypes()
+            ]);
+            return;
+        }
+
         // Validation
         if (empty($name)) {
             $this->render('admin/hardware/create', [
@@ -155,7 +210,8 @@ class HardwareController extends \Controller
             'release_year' => $releaseYear,
             'description' => $description ?: null,
             'is_active' => $isActive,
-            'sort_order' => $sortOrder
+            'sort_order' => $sortOrder,
+            'image' => $imageFilename
         ];
 
         // Créer le hardware
@@ -226,6 +282,26 @@ class HardwareController extends \Controller
         $isActive = isset($_POST['is_active']);
         $sortOrder = !empty($_POST['sort_order']) ? (int)$_POST['sort_order'] : 0;
 
+        // Gérer l'upload de l'image
+        $imageFilename = null;
+        try {
+            $imageFilename = $this->handleImageUpload();
+        } catch (Exception $e) {
+            $this->render('admin/hardware/edit', [
+                'hardware' => $hardware,
+                'error' => $e->getMessage(),
+                'success' => '',
+                'csrf_token' => \Auth::generateCsrfToken(),
+                'types' => \Hardware::getTypes()
+            ]);
+            return;
+        }
+
+        // Si aucune nouvelle image n'est uploadée, garder l'ancienne
+        if ($imageFilename === null) {
+            $imageFilename = $hardware->getImage();
+        }
+
         // Validation
         if (empty($name)) {
             $this->render('admin/hardware/edit', [
@@ -273,7 +349,8 @@ class HardwareController extends \Controller
             'release_year' => $releaseYear,
             'description' => $description ?: null,
             'is_active' => $isActive,
-            'sort_order' => $sortOrder
+            'sort_order' => $sortOrder,
+            'image' => $imageFilename
         ];
 
         // Mettre à jour le hardware

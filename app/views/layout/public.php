@@ -43,22 +43,21 @@
     <link rel="stylesheet" href="/style.css">
     
     <!-- CSS main avec home.css (doit être chargé APRÈS style.css) -->
-    <link rel="stylesheet" href="/public/assets/css/main.css">
-    
-    <!-- CSS pour les modules de contenu -->
-    <link rel="stylesheet" href="/public/assets/css/components/content-modules.css">
+    <?php 
+    // Ne charger main.css que si ce n'est pas la page d'accueil
+    $isHomePage = ($_SERVER['REQUEST_URI'] === '/' || basename($_SERVER['PHP_SELF']) === 'index.php');
+    if (!$isHomePage): ?>
+        <link rel="stylesheet" href="/public/assets/css/main.css">
+    <?php else: ?>
+        <!-- CSS spécifique à la page d'accueil -->
+        <link rel="stylesheet" href="/public/assets/css/pages/home.css">
+    <?php endif; ?>
     
     <!-- CSS pour la navbar -->
     <link rel="stylesheet" href="/public/assets/css/components/navbar.css">
     
     <!-- CSS pour le lazy loading -->
     <link rel="stylesheet" href="/public/assets/css/components/lazy-loading.css">
-    
-    <!-- CSS responsive pour les articles -->
-    <link rel="stylesheet" href="/public/assets/css/components/article-responsive.css">
-    
-    <!-- CSS pour les pages légales -->
-    <link rel="stylesheet" href="/public/assets/css/pages/legal.css">
     
     <!-- CSS additionnel spécifique à la page -->
     <?php if (isset($additionalCSS)): ?>
@@ -309,5 +308,24 @@
     
     <!-- Script lightbox pour les galeries -->
     <script src="/public/assets/js/gallery-lightbox.js"></script>
+    
+    <!-- Script pour les onglets de la page d'accueil -->
+    <script>
+        function showTab(tabName) {
+            // Masquer tous les contenus
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Désactiver tous les triggers
+            const tabTriggers = document.querySelectorAll('.tab-trigger');
+            tabTriggers.forEach(trigger => trigger.classList.remove('active'));
+            
+            // Afficher le contenu sélectionné
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activer le trigger sélectionné
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>

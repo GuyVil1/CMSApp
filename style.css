@@ -302,7 +302,8 @@ a{
     right: 50%;
     margin-left: -50vw;
     margin-right: -50vw;
-    z-index: 10;
+    z-index: 1000;
+    clear: both;
 }
 
 .footer-content {
@@ -474,12 +475,6 @@ a{
     .main-content {
         width: 100%;
     }
-    
-    /* Styles featured déplacés vers home.css */
-    
-    .news-layout {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* ========================================
@@ -493,44 +488,3 @@ a{
    BADGES DE CATÉGORIE FEATURED
    ======================================== */
 /* Styles featured déplacés vers home.css */
-
-/* Mode sombre pour les badges d'articles */
-.dark-mode .badge-test {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.dark-mode .badge-news {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.dark-mode .badge-guide {
-    background: #f3e8ff;
-    color: #7c3aed;
-}
-
-.dark-mode .badge-trailers {
-    background: #fef3c7;
-    color: #d97706;
-}
-
-.dark-mode .badge-dossiers {
-    background: #e0e7ff;
-    color: #3730a3;
-}
-
-.dark-mode .badge-sponso {
-    background: #fce7f3;
-    color: #be185d;
-}
-
-.dark-mode .badge-actu {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.dark-mode .badge-actualités {
-    background: #dbeafe;
-    color: #1e40af;
-}

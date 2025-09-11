@@ -90,6 +90,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th>Image</th>
                         <th>Nom</th>
                         <th>Type</th>
                         <th>Fabricant</th>
@@ -102,22 +103,35 @@
                 <tbody>
                     <?php if (empty($hardware)): ?>
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
+                            <td colspan="9" style="text-align: center; padding: 2rem; color: var(--admin-text-muted);">
                                 Aucun hardware trouvé
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($hardware as $hw): ?>
-                            <tr>
-                                <td>
-                                    <code><?= $hw->getId() ?></code>
-                                </td>
-                                <td>
-                                    <div class="hardware-info">
-                                        <div class="hardware-name"><?= htmlspecialchars($hw->getName()) ?></div>
-                                        <div class="hardware-slug"><?= htmlspecialchars($hw->getSlug()) ?></div>
+                        <tr>
+                            <td>
+                                <code><?= $hw->getId() ?></code>
+                            </td>
+                            <td>
+                                <?php if ($hw->getImage()): ?>
+                                    <div class="hardware-image">
+                                        <img src="/uploads.php?file=hardware/<?= htmlspecialchars($hw->getImage()) ?>" 
+                                             alt="<?= htmlspecialchars($hw->getName()) ?>" 
+                                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border);">
                                     </div>
-                                </td>
+                                <?php else: ?>
+                                    <div class="hardware-image-placeholder" style="width: 50px; height: 50px; background: var(--admin-card-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--admin-text-muted); font-size: 20px;">
+                                        🖥️
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="hardware-info">
+                                    <div class="hardware-name"><?= htmlspecialchars($hw->getName()) ?></div>
+                                    <div class="hardware-slug"><?= htmlspecialchars($hw->getSlug()) ?></div>
+                                </div>
+                            </td>
                                 <td>
                                     <span class="badge badge-type-<?= $hw->getType() ?>">
                                         <?= htmlspecialchars($hw->getTypeName()) ?>

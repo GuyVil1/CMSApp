@@ -31,6 +31,20 @@
     <div class="hardware-grid">
         <?php foreach ($hardwares as $hardware): ?>
             <div class="hardware-card" onclick="window.location.href='/hardwares/<?= $hardware->getSlug() ?>'" style="cursor: pointer;">
+                <!-- Image du hardware -->
+                <?php if ($hardware->getImage()): ?>
+                    <div class="hardware-image">
+                        <img src="/uploads.php?file=hardware/<?= htmlspecialchars($hardware->getImage()) ?>" 
+                             alt="<?= htmlspecialchars($hardware->getFullName()) ?>" 
+                             loading="lazy">
+                    </div>
+                <?php else: ?>
+                    <div class="hardware-image-placeholder">
+                        <div class="placeholder-icon">🖥️</div>
+                        <span class="placeholder-text"><?= htmlspecialchars($hardware->getFullName()) ?></span>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="hardware-header">
                     <div class="hardware-type-badge type-<?= $hardware->getType() ?>">
                         <?= htmlspecialchars($hardware->getTypeName()) ?>
@@ -56,7 +70,7 @@
                         </div>
                         <div class="stat-item">
                             <span class="stat-icon">📰</span>
-                            <span class="stat-text">Articles</span>
+                            <span class="stat-text"><?= $hardware->getArticlesCount() ?> article<?= $hardware->getArticlesCount() > 1 ? 's' : '' ?></span>
                         </div>
                     </div>
                 </div>
@@ -118,6 +132,51 @@
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     border-color: #DC2626;
+}
+
+.hardware-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+    position: relative;
+}
+
+.hardware-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.hardware-card:hover .hardware-image img {
+    transform: scale(1.05);
+}
+
+.hardware-image-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6B7280;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.placeholder-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+}
+
+.placeholder-text {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 1rem;
+    line-height: 1.3;
 }
 
 .hardware-header {
