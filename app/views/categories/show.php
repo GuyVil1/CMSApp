@@ -1,334 +1,297 @@
 <?php
 /**
  * Vue pour afficher une catégorie spécifique
- * Affiche tous les articles de cette catégorie
+ * Design adapté du design de référence des pages hardware
  */
 ?>
 
-<!-- Hero Section -->
-<section class="category-hero category-<?= $category->getSlug() ?>">
-    <div class="container">
-        <h1><?= htmlspecialchars($category->getName()) ?></h1>
-        <?php if ($category->getDescription()): ?>
-            <p><?= htmlspecialchars($category->getDescription()) ?></p>
-        <?php else: ?>
-            <p>Découvrez tous les articles de la catégorie <?= htmlspecialchars($category->getName()) ?>. Une sélection exclusive de contenu de qualité.</p>
-        <?php endif; ?>
+<!-- Section Catégorie -->
+<section class="section">
+    <div class="section-header">
+        <div class="section-line yellow"></div>
+        <h2 class="section-title"><?= htmlspecialchars($category->getName()) ?></h2>
+        <div class="section-line red"></div>
+    </div>
+
+    <!-- Informations de la catégorie -->
+    <div class="hardware-info">
+        <div class="hardware-header">
+            <div class="hardware-title-section">
+                <h1 class="hardware-name"><?= htmlspecialchars($category->getName()) ?></h1>
+                <?php if ($category->getDescription()): ?>
+                    <div class="hardware-description"><?= htmlspecialchars($category->getDescription()) ?></div>
+                <?php else: ?>
+                    <div class="hardware-description">Découvrez tous les articles de la catégorie <?= htmlspecialchars($category->getName()) ?>. Une sélection exclusive de contenu de qualité.</div>
+                <?php endif; ?>
+            </div>
+            
+            <div class="hardware-stats">
+                <div class="stat-item">
+                    <span class="stat-number"><?= count($articles) ?></span>
+                    <span class="stat-label">Article<?= count($articles) > 1 ? 's' : '' ?></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number"><?= count(array_unique(array_column($articles, 'author_name'))) ?></span>
+                    <span class="stat-label">Auteur<?= count(array_unique(array_column($articles, 'author_name'))) > 1 ? 's' : '' ?></span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number"><?= count(array_filter($articles, function($article) { return !empty($article['cover_image']); })) ?></span>
+                    <span class="stat-label">Avec images</span>
+                </div>
+            </div>
+        </div>
         
-        <div class="category-stats">
-            <div class="stat-item">
-                <span class="stat-number"><?= count($articles) ?></span>
-                <span class="stat-label">Article<?= count($articles) > 1 ? 's' : '' ?></span>
+        <!-- Barre de recherche dynamique -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="hardware-search" class="search-input" placeholder="Rechercher des articles dans <?= htmlspecialchars($category->getName()) ?>...">
+                <div class="search-icon">🔍</div>
             </div>
-            <div class="stat-item">
-                <span class="stat-number"><?= count(array_unique(array_column($articles, 'author_name'))) ?></span>
-                <span class="stat-label">Auteur<?= count(array_unique(array_column($articles, 'author_name'))) > 1 ? 's' : '' ?></span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-number"><?= count(array_filter($articles, function($article) { return !empty($article['cover_image']); })) ?></span>
-                <span class="stat-label">Avec images</span>
-            </div>
+            <div id="search-results" class="search-results"></div>
         </div>
     </div>
 </section>
 
-<div class="container">
-    <!-- Section Articles -->
-    <?php if (!empty($articles)): ?>
-        <section class="articles-section">
-            <h2 style="text-align: center; margin-bottom: 2rem; color: #333;">📰 Articles <?= htmlspecialchars($category->getName()) ?></h2>
-            
-            <div class="articles-grid">
-                <?php foreach ($articles as $article): ?>
-                    <a href="/article/<?= htmlspecialchars($article['slug']) ?>" class="article-card" style="text-decoration: none; color: inherit;">
-                        <?php if (!empty($article['cover_image'])): ?>
-                            <img src="/image.php?file=<?= urlencode($article['cover_image']) ?>" 
-                                 alt="<?= htmlspecialchars($article['title']) ?>" 
-                                 class="article-cover">
-                        <?php else: ?>
-                            <div class="article-cover" style="display: flex; align-items: center; justify-content: center; background: #f0f0f0; color: #999;">
-                                📰
-                            </div>
-                        <?php endif; ?>
-                        
-                        <div class="article-content">
-                            <div class="article-header">
-                                <span class="article-badge category-<?= $article['category_slug'] ?>">
-                                    <?= htmlspecialchars($article['category_name']) ?>
-                                </span>
-                                <span class="article-date">
-                                    <?= date('d/m/Y', strtotime($article['published_at'])) ?>
-                                </span>
-                            </div>
-                            <h3 class="article-title"><?= htmlspecialchars($article['title']) ?></h3>
-                            <?php if ($article['excerpt']): ?>
-                                <p class="article-excerpt"><?= htmlspecialchars($article['excerpt']) ?></p>
-                            <?php endif; ?>
-                            <div class="article-meta">
-                                <span class="article-author">Par <?= htmlspecialchars($article['author_name']) ?></span>
-                            </div>
+<!-- Section Articles -->
+<?php if (!empty($articles)): ?>
+    <section class="section">
+        <div class="section-header">
+            <div class="section-line yellow"></div>
+            <h2 class="section-title">📰 Articles <?= htmlspecialchars($category->getName()) ?></h2>
+            <div class="section-line red"></div>
+        </div>
+        
+        <div class="articles-layout">
+            <div class="articles-main">
+                <?php foreach ($articles as $index => $article): ?>
+                    <?php if ($index < 6): // 6 premiers articles en grand format ?>
+                        <div class="article-card-large" data-title="<?= htmlspecialchars(strtolower($article['title'])) ?>" data-excerpt="<?= htmlspecialchars(strtolower($article['excerpt'] ?? '')) ?>">
+                            <a href="/article/<?= htmlspecialchars($article['slug']) ?>" style="text-decoration: none; color: inherit;">
+                                <div class="article-image">
+                                    <?php if (!empty($article['cover_image'])): ?>
+                                        <img src="/uploads.php?file=<?= urlencode($article['cover_image']) ?>" 
+                                             alt="<?= htmlspecialchars($article['title']) ?>" 
+                                             loading="lazy">
+                                    <?php else: ?>
+                                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #999; font-size: 2rem;">
+                                            📰
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="article-content">
+                                    <div class="article-header">
+                                        <span class="article-badge category-<?= $article['category_slug'] ?>">
+                                            <?= htmlspecialchars($article['category_name']) ?>
+                                        </span>
+                                        <span class="article-date">
+                                            <?= date('d/m/Y', strtotime($article['published_at'])) ?>
+                                        </span>
+                                    </div>
+                                    
+                                    <h3 class="article-title"><?= htmlspecialchars($article['title']) ?></h3>
+                                    
+                                    <?php if ($article['excerpt']): ?>
+                                        <p class="article-excerpt"><?= htmlspecialchars($article['excerpt']) ?></p>
+                                    <?php endif; ?>
+                                    
+                                    <div class="article-meta">
+                                        <span class="article-author">Par <?= htmlspecialchars($article['author_name']) ?></span>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
-                    </a>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </div>
-        </section>
-    <?php else: ?>
-        <!-- Message si aucun article -->
-        <section class="empty-state">
+            
+            <?php if (count($articles) > 6): ?>
+                <!-- Articles supplémentaires en format plus petit -->
+                <div class="articles-secondary">
+                    <h3 class="secondary-title">Autres articles <?= htmlspecialchars($category->getName()) ?></h3>
+                    <div class="articles-grid">
+                        <?php foreach (array_slice($articles, 6) as $article): ?>
+                            <div class="article-card-small" data-title="<?= htmlspecialchars(strtolower($article['title'])) ?>" data-excerpt="<?= htmlspecialchars(strtolower($article['excerpt'] ?? '')) ?>">
+                                <a href="/article/<?= htmlspecialchars($article['slug']) ?>" style="text-decoration: none; color: inherit;">
+                                    <div class="article-image">
+                                        <?php if (!empty($article['cover_image'])): ?>
+                                            <img src="/uploads.php?file=<?= urlencode($article['cover_image']) ?>" 
+                                                 alt="<?= htmlspecialchars($article['title']) ?>" 
+                                                 loading="lazy">
+                                        <?php else: ?>
+                                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f0f0f0; color: #999; font-size: 1.5rem;">
+                                                📰
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <div class="article-content">
+                                        <h3 class="article-title"><?= htmlspecialchars($article['title']) ?></h3>
+                                        <span class="article-date">
+                                            <?= date('d/m/Y', strtotime($article['published_at'])) ?>
+                                        </span>
+                                    </div>
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
+<?php else: ?>
+    <!-- Message si aucun article -->
+    <section class="section">
+        <div class="empty-state">
             <div class="empty-icon">📰</div>
             <h3>Aucun article disponible</h3>
             <p>Il n'y a pas encore d'articles dans la catégorie <?= htmlspecialchars($category->getName()) ?>.</p>
             <p>Revenez bientôt pour découvrir du nouveau contenu !</p>
-        </section>
-    <?php endif; ?>
-</div>
+        </div>
+    </section>
+<?php endif; ?>
 
 <style>
-/* Hero Section avec couleurs dynamiques selon la catégorie */
-.category-hero {
-    background: linear-gradient(135deg, var(--category-primary, #ffd700), var(--category-secondary, #ffed4e));
-    color: #000;
-    padding: 3rem 0;
-    text-align: center;
-    margin-bottom: 2rem;
-}
+/* Styles identiques aux pages hardware pour cohérence parfaite */
 
-.category-hero h1 {
-    font-size: 3rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-}
-
-.category-hero p {
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto 2rem;
-    opacity: 0.8;
-}
-
-.category-stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin: 2rem 0;
-    flex-wrap: wrap;
-}
-
-.stat-item {
-    text-align: center;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    min-width: 120px;
-}
-
-.stat-number {
-    font-size: 2rem;
-    font-weight: bold;
-    display: block;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
-
-/* Couleurs spécifiques par catégorie */
-.category-hero.category-actu {
-    --category-primary: #DC2626;
-    --category-secondary: #B91C1C;
-    color: #fff;
-}
-
-.category-hero.category-test {
-    --category-primary: #059669;
-    --category-secondary: #047857;
-    color: #fff;
-}
-
-.category-hero.category-dossiers {
-    --category-primary: #7C3AED;
-    --category-secondary: #6D28D9;
-    color: #fff;
-}
-
-.category-hero.category-trailers {
-    --category-primary: #EA580C;
-    --category-secondary: #DC2626;
-    color: #fff;
-}
-
-/* Grille d'articles moderne */
-.articles-section {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 2px solid var(--category-primary, #ffd700);
-}
-
-.articles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.article-card {
-    background: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: block;
-}
-
-.article-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.article-cover {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-}
-
-.article-content {
-    padding: 1rem;
-}
-
-.article-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.article-badge {
-    padding: 4px 8px;
+.hardware-info {
+    background: #000000;
     border-radius: 12px;
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #fff;
-}
-
-.article-date {
-    font-size: 11px;
-    color: #666;
-    background: #f5f5f5;
-    padding: 2px 6px;
-    border-radius: 8px;
-}
-
-.article-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #333;
-    line-height: 1.3;
-}
-
-.article-excerpt {
-    font-size: 0.9rem;
-    color: #666;
-    line-height: 1.4;
-    margin-bottom: 0.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.article-meta {
-    font-size: 0.8rem;
-    color: #999;
-}
-
-.article-author {
-    font-style: italic;
-}
-
-/* Styles spécifiques pour la page catégorie */
-.category-info {
-    background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
-    border-radius: 12px;
-    padding: 2rem;
+    padding: 1.5rem;
     margin-bottom: 2rem;
     border: 2px solid #DC2626;
 }
 
-.category-details {
+.hardware-header {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
-.category-badge {
-    display: inline-block;
-    padding: 12px 24px;
-    border-radius: 25px;
-    font-size: 16px;
+.hardware-title-section {
+    flex: 1;
+}
+
+.hardware-name {
+    font-size: 24px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     color: #FFFFFF;
-    margin-bottom: 1rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
 }
 
-/* Couleurs par catégorie */
-.category-badge.category-actu {
-    background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+.hardware-description {
+    font-size: 16px;
+    color: #FCD34D;
+    font-weight: 600;
 }
 
-.category-badge.category-test {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+.hardware-stats {
+    display: flex;
+    gap: 1rem;
 }
 
-.category-badge.category-dossiers {
-    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+.stat-item {
+    background-color: #DC2626;
+    color: #FCD34D;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 80px;
 }
 
-.category-badge.category-trailers {
-    background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
+.stat-number {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
 }
 
-/* Couleurs pour les badges d'articles */
-.article-badge.category-actu {
-    background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+.stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.article-badge.category-test {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-
-.article-badge.category-dossiers {
-    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
-}
-
-.article-badge.category-trailers {
-    background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
-}
-
-.category-description {
-    color: #E5E7EB;
-    line-height: 1.6;
-    max-width: 600px;
-}
-
-.category-stats {
+/* Barre de recherche */
+.search-section {
     margin-top: 1rem;
 }
 
-.articles-count {
-    background-color: #DC2626;
-    color: #FCD34D;
-    padding: 8px 16px;
-    border-radius: 20px;
+.search-container {
+    position: relative;
+    max-width: 500px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border: 2px solid #DC2626;
+    border-radius: 25px;
+    background-color: #FFFFFF;
+    color: #1F2937;
     font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #FCD34D;
+    box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.1);
+}
+
+.search-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #DC2626;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.search-results {
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.search-results.show {
+    display: block;
+}
+
+.search-result-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #F3F4F6;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+    background-color: #F9FAFB;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-title {
     font-weight: 600;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.search-result-excerpt {
+    font-size: 12px;
+    color: #6B7280;
+    line-height: 1.4;
 }
 
 .articles-layout {
@@ -374,23 +337,6 @@
     max-width: 100%;
 }
 
-.article-card-large .article-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.article-card-large:hover .article-image::before {
-    opacity: 1;
-}
-
 .article-card-large .article-image img {
     width: 100%;
     height: 100%;
@@ -434,6 +380,35 @@
 .article-badge:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Couleurs par catégorie */
+.article-badge.category-actu {
+    background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+}
+
+.article-badge.category-test {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.article-badge.category-dossiers {
+    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+}
+
+.article-badge.category-trailers {
+    background: linear-gradient(135deg, #EA580C 0%, #DC2626 100%);
+}
+
+.article-badge.category-demos {
+    background: linear-gradient(135deg, #0891B2 0%, #0284C7 100%);
+}
+
+.article-badge.category-guides {
+    background: linear-gradient(135deg, #CA8A04 0%, #D97706 100%);
+}
+
+.article-badge.category-sponso {
+    background: linear-gradient(135deg, #9333EA 0%, #7C3AED 100%);
 }
 
 .article-date {
@@ -500,78 +475,48 @@
 
 .article-card-small {
     background: #FFFFFF;
-    border-radius: 12px;
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .article-card-small:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-    border-color: rgba(220, 38, 38, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .article-card-small .article-image {
-    height: 160px;
+    height: 150px;
     overflow: hidden;
-    position: relative;
-}
-
-.article-card-small .article-image::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.05) 100%);
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.article-card-small:hover .article-image::before {
-    opacity: 1;
 }
 
 .article-card-small .article-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.3s ease;
 }
 
 .article-card-small:hover .article-image img {
-    transform: scale(1.06);
+    transform: scale(1.05);
 }
 
 .article-card-small .article-content {
-    padding: 1.25rem;
+    padding: 1rem;
 }
 
 .article-card-small .article-title {
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #1F2937;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     line-height: 1.3;
-    transition: color 0.3s ease;
-}
-
-.article-card-small:hover .article-title {
-    color: #DC2626;
 }
 
 .article-card-small .article-date {
     font-size: 11px;
-    color: #9CA3AF;
-    background-color: #F9FAFB;
-    padding: 3px 8px;
-    border-radius: 8px;
-    font-weight: 500;
-    display: inline-block;
+    color: #6B7280;
 }
 
 .empty-state {
@@ -597,20 +542,25 @@
     margin-bottom: 0.5rem;
 }
 
-/* Contraintes globales pour les cartes */
-.article-card-large * {
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-    .category-hero h1 {
-        font-size: 2rem;
+    .hardware-info {
+        padding: 1.5rem;
     }
     
-    .category-stats {
+    .hardware-stats {
+        flex-direction: column;
         gap: 1rem;
+        align-items: center;
+    }
+    
+    .articles-main {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .article-card-large .article-content {
+        padding: 1.5rem;
     }
     
     .articles-grid {
@@ -618,8 +568,75 @@
         gap: 1rem;
     }
     
-    .article-content {
-        padding: 0.8rem;
+    .articles-secondary {
+        padding: 1.5rem;
     }
 }
 </style>
+
+<script>
+// Recherche dynamique des articles (identique aux pages hardware)
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('hardware-search');
+    const searchResults = document.getElementById('search-results');
+    const categoryName = '<?= addslashes($category->getName()) ?>';
+    
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Clear previous timeout
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            searchResults.classList.remove('show');
+            return;
+        }
+        
+        // Debounce search
+        searchTimeout = setTimeout(() => {
+            searchArticles(query);
+        }, 300);
+    });
+    
+    function searchArticles(query) {
+        // Simuler une recherche (en réalité, ce serait une requête AJAX)
+        const articles = <?= json_encode($articles) ?>;
+        const filteredArticles = articles.filter(article => 
+            article.title.toLowerCase().includes(query.toLowerCase()) ||
+            (article.excerpt && article.excerpt.toLowerCase().includes(query.toLowerCase()))
+        );
+        
+        displaySearchResults(filteredArticles, query);
+    }
+    
+    function displaySearchResults(articles, query) {
+        if (articles.length === 0) {
+            searchResults.innerHTML = '<div class="search-result-item">Aucun article trouvé pour "' + query + '"</div>';
+        } else {
+            searchResults.innerHTML = articles.map(article => `
+                <div class="search-result-item" onclick="window.location.href='/article/${article.slug}'">
+                    <div class="search-result-title">${highlightText(article.title, query)}</div>
+                    <div class="search-result-excerpt">${highlightText(article.excerpt || '', query)}</div>
+                </div>
+            `).join('');
+        }
+        
+        searchResults.classList.add('show');
+    }
+    
+    function highlightText(text, query) {
+        if (!text) return '';
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<strong style="color: #DC2626;">$1</strong>');
+    }
+    
+    // Fermer les résultats en cliquant ailleurs
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('show');
+        }
+    });
+});
+</script>
